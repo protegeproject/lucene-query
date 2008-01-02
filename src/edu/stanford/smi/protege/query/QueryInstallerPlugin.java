@@ -10,7 +10,7 @@ import edu.stanford.smi.protege.util.Log;
 public class QueryInstallerPlugin extends ProjectPluginAdapter {
     
     public void afterLoad(Project p) {
-        String pluginClassName = AdvancedQueryPlugin.class.getCanonicalName();
+        String pluginClassName = LuceneQueryPlugin.class.getCanonicalName();
         WidgetDescriptor desc = p.getTabWidgetDescriptor(pluginClassName);
         if (desc.isVisible() && !p.isMultiUserServer()) {
             new InstallNarrowFrameStore(p.getKnowledgeBase()).execute();

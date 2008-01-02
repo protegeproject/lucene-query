@@ -33,7 +33,7 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.ModelUtilities;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
-import edu.stanford.smi.protege.query.AdvancedQueryPlugin;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.resource.ResourceKey;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
@@ -46,7 +46,7 @@ import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
 
 
 /**
- * This class instantiates the Advanced Query Plugin, so that it can be called
+ * This class instantiates the Lucene Query Plugin, so that it can be called
  * as a finder component, not as a tab widget.
  * This class is implemented as a singleton.
  * 
@@ -54,13 +54,13 @@ import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
  */
 public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
-	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.AdvancedQueryPlugin";
+	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.LuceneQueryPlugin";
 
 	private KnowledgeBase kb;
 
 	private final JFrame frame = createJFrame();
 
-	private AdvancedQueryPlugin advanceQueryTabWidget;
+	private LuceneQueryPlugin advanceQueryTabWidget;
 
 	private static List<String> searchedForStrings = new ArrayList<String>();
 
@@ -114,7 +114,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			advanceQueryTabWidget = getAdvanceQueryTabWidget();
 
 			if (advanceQueryTabWidget == null) {
-				Log.getLogger().warning("Advanced Query Plugin not found. Please check whether the plugin is installed correctly.");
+				Log.getLogger().warning("Lucene Query Plugin not found. Please check whether the plugin is installed correctly.");
 				return;
 			}
 		}
@@ -193,7 +193,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 	private JFrame createJFrame() {
 		final JFrame frame = ComponentFactory.createFrame();
-		frame.setTitle("Advanced search");
+		frame.setTitle("Lucene search");
 
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent event) {
@@ -236,14 +236,14 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 	}
 
 
-	public AdvancedQueryPlugin getAdvanceQueryTabWidget() {
+	public LuceneQueryPlugin getAdvanceQueryTabWidget() {
 		if (advanceQueryTabWidget == null) {
 			Project prj = kb.getProject();
 
-			advanceQueryTabWidget = new AdvancedQueryPlugin();
+			advanceQueryTabWidget = new LuceneQueryPlugin();
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
-			wd.setName("Advanced Query");
+			wd.setName("Lucene Query");
 			wd.setWidgetClassName(ADVANCED_QUERY_JAVA_CLASS);
 
 			advanceQueryTabWidget.setup(wd, prj);

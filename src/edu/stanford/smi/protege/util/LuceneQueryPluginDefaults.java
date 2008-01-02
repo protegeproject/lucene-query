@@ -14,7 +14,7 @@ import edu.stanford.smi.protege.query.ui.QueryComponent;
  * @author Tania Tudorache <tudorache@stanford.edu>
  *
  */
-public class AdvancedQueryPluginDefaults {
+public class LuceneQueryPluginDefaults {
 			
 	public static final String PROTEGE_PROP_KEY_DEFAULT_SLOT = "query_plugin.default.search_slot";
 	public static final String DEFAULT_SLOT_NAME = "Preferred_Name";

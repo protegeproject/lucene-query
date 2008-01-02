@@ -27,16 +27,16 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
-import edu.stanford.smi.protege.query.AdvancedQueryPlugin;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.resource.ResourceKey;
-import edu.stanford.smi.protege.util.AdvancedQueryPluginDefaults;
+import edu.stanford.smi.protege.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.Disposable;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
 
 /**
- * This class instantiates the Advanced Quert Plugin, so that it can be called
+ * This class instantiates the Lucene Query Plugin, so that it can be called
  * as a finder component, not as a tab widget.
  * This class is implemented as a singleton.
  * @author Tania Tudorache
@@ -44,7 +44,7 @@ import edu.stanford.smi.protege.util.StandardAction;
  */
 public class QueryTreeFinderComponent extends JPanel implements Disposable {
 
-	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.AdvancedQueryPlugin";
+	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.LuceneQueryPlugin";
 
 	private static QueryTreeFinderComponent queryTreeFinderComponent = null;
 
@@ -52,7 +52,7 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 
 	private final JFrame frame = createJFrame();
 
-	private AdvancedQueryPlugin advanceQueryTabWidget;
+	private LuceneQueryPlugin advanceQueryTabWidget;
 
 	private static List<String> searchedForStrings = new ArrayList<String>();
 
@@ -108,7 +108,7 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 			frame.getContentPane().add(advanceQueryTabWidget);
 			frame.pack();
 		}
-		Slot defaultSearchSlot = kb.getSlot(AdvancedQueryPluginDefaults.getDefaultSearchSlotName());
+		Slot defaultSearchSlot = kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName());
 		advanceQueryTabWidget.setDefaultSlot(defaultSearchSlot);
 		
 		advanceQueryTabWidget.setQueryComponent(null, text);
@@ -200,11 +200,11 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 	}
 
 
-	public AdvancedQueryPlugin getAdvanceQueryTabWidget() {		
+	public LuceneQueryPlugin getAdvanceQueryTabWidget() {		
 		if (advanceQueryTabWidget == null) {
 			Project prj = kb.getProject();
 			
-			advanceQueryTabWidget = new AdvancedQueryPlugin();
+			advanceQueryTabWidget = new LuceneQueryPlugin();
 			
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
 			wd.setName("Advanced Query");

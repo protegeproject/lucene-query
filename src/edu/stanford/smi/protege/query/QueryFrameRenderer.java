@@ -221,7 +221,7 @@ public class QueryFrameRenderer extends FrameRenderer implements QueryRenderer {
 			
 		}
 		
-		boolean searching = AdvancedQueryPlugin.SEARCHING_ITEM.equals(text); 		
+		boolean searching = LuceneQueryPlugin.SEARCHING_ITEM.equals(text); 		
 		if (searching) {
 			highlightOn(g, searchColor);
 		}
