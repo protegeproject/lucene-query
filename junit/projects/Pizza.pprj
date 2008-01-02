@@ -7148,7 +7148,7 @@
 
 	(is_hidden FALSE)
 	(property_list [pizza.owl_ProjectKB_Instance_45])
-	(widget_class_name "edu.stanford.smi.protege.query.AdvancedQueryPlugin"))
+	(widget_class_name "edu.stanford.smi.protege.query.LuceneQueryPlugin"))
 
 ([pizza.owl_ProjectKB_Instance_45] of  Property_List
 )

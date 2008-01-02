@@ -1,5 +1,5 @@
 <?xml version = "1.0" encoding = "utf-8"?>
-<project name = "Query Plugin" default = "dist" basedir = ".">    
+<project name = "Lucene Query Plugin" default = "dist" basedir = ".">    
    <property environment="env"/>
    <property name="protege.home" value="${env.PROTEGE_HOME}"/>
 
@@ -9,8 +9,8 @@
    <property name = "plugins" location = "${build}/plugins"/>
    <property name = "lib" value = "../lib"/>
    <property name = "junit" value = "./junit"/>
-   <property name = "plugin_dist" value = "edu.stanford.smi.protege.advancedQuery"/>
-   <property name = "pluginName" value = "advancedQueryPlugin"/>
+   <property name = "plugin_dist" value = "edu.stanford.smi.protegex.query.lucene"/>
+   <property name = "pluginName" value = "luceneQueryPlugin"/>
 
 
     <!-- 
