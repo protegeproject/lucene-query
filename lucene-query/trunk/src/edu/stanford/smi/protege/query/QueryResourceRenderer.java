@@ -227,7 +227,7 @@ public class QueryResourceRenderer extends ResourceRenderer implements QueryRend
 
 		}
 
-		boolean searching = AdvancedQueryPlugin.SEARCHING_ITEM.equals(text);
+		boolean searching = LuceneQueryPlugin.SEARCHING_ITEM.equals(text);
         
 		if (searching) {
 			highlightOn(g, searchColor);

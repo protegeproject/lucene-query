@@ -42,7 +42,7 @@ import edu.stanford.smi.protege.server.framestore.RemoteClientFrameStore;
 import edu.stanford.smi.protege.server.metaproject.Operation;
 import edu.stanford.smi.protege.server.metaproject.impl.OperationImpl;
 import edu.stanford.smi.protege.ui.ListFinder;
-import edu.stanford.smi.protege.util.AdvancedQueryPluginDefaults;
+import edu.stanford.smi.protege.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.DoubleClickActionAdapter;
@@ -65,7 +65,7 @@ import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
  * @author Timothy Redmond, Chris Callendar
  * @date 15-Aug-06
  */
-public class AdvancedQueryPlugin extends AbstractTabWidget {
+public class LuceneQueryPlugin extends AbstractTabWidget {
     
     public static final int DEFAULT_MAX_MATCHES = 1000;
 
@@ -99,7 +99,7 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 	private LabeledComponent resultsComponent;
 	private QueryRenderer queryRenderer;
 
-	public AdvancedQueryPlugin() {
+	public LuceneQueryPlugin() {
 		super();
 		this.canIndex = false;
 		this.isOWL = false;
@@ -123,7 +123,7 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 		this.canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
 		this.slots = (Set) frameStore.execute();
 
-		setDefaultSlot(kb.getSlot(AdvancedQueryPluginDefaults.getDefaultSearchSlotName()));
+		setDefaultSlot(kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName()));
 		       
         // add UI components
 		createGUI();
@@ -135,8 +135,8 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 	 * Creates the GUI, initializing the components and adding them to the tab.
 	 */
 	private void createGUI() {
-		setLabel("Advanced Query Tab");
-		setIcon(ComponentUtilities.loadImageIcon(AdvancedQueryPlugin.class, "querytab.gif"));	// Icons.getQueryIcon(), Icons.getQueryExportIcon();
+		setLabel("Lucene Query Tab");
+		setIcon(ComponentUtilities.loadImageIcon(LuceneQueryPlugin.class, "querytab.gif"));	// Icons.getQueryIcon(), Icons.getQueryExportIcon();
         setLayout(new BorderLayout());
 
         JPanel pnlLeft = new JPanel(new BorderLayout(5, 5));
@@ -207,7 +207,6 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 	 * {@link JProgressBar} inside the button.  Once the indexing is complete the progress bar disappears.
 	 */
 	private void addIndexButton(LabeledComponent lc) {
-		//final ImageIcon icon = ComponentUtilities.loadImageIcon(AdvancedQueryPlugin.class, "ui/index.gif");
 		final JProgressButton btnProgress = new JProgressButton();
 		Action action = new AbstractAction("Index Ontology") {
 			public void actionPerformed(ActionEvent buttonPushed) {
@@ -409,7 +408,7 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 	/**
 	 * Creates the {@link Query} object from all the {@link QueryComponent}s.
 	 * If there are multiple queries then either an {@link AndQuery} or an {@link OrQuery} are used.  
-	 * Passes the {@link Query} on to {@link AdvancedQueryPlugin#doQuery(Query)} if the query is valid.
+	 * Passes the {@link Query} on to {@link LuceneQueryPlugin#doQuery(Query)} if the query is valid.
 	 */
 	public void doSearch() {
 		btnSearch.setEnabled(false);
@@ -441,7 +440,7 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 					// IOException happens for "sounds like" queries when the ontology hasn't been indexed
 					final String msg = "An exception occurred during the query.\n" + 
 						"This possibly happened because this ontology hasn't been indexed.\n" + ex.getMessage();
-					JOptionPane.showMessageDialog(AdvancedQueryPlugin.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(LuceneQueryPlugin.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
 					error = true;
 					lstResults.setListData(new String[] { "An exception occurred during the query." }); 
 				} finally {
@@ -490,7 +489,7 @@ public class AdvancedQueryPlugin extends AbstractTabWidget {
 
 	public void setDefaultSlot(Slot defaultSlot) {
 		if (defaultSlot == null) {
-			defaultSlot = kb.getSlot(AdvancedQueryPluginDefaults.DEFAULT_SLOT_NAME);
+			defaultSlot = kb.getSlot(LuceneQueryPluginDefaults.DEFAULT_SLOT_NAME);
 		}
 		
 		if (defaultSlot == null) {

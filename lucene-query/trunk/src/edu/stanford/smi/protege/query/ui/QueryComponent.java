@@ -28,7 +28,7 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
 import edu.stanford.smi.protege.model.query.Query;
-import edu.stanford.smi.protege.query.AdvancedQueryPlugin;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
@@ -37,7 +37,7 @@ import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.ui.DisplayUtilities;
-import edu.stanford.smi.protege.util.AdvancedQueryPluginDefaults;
+import edu.stanford.smi.protege.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.util.Assert;
 import edu.stanford.smi.protege.util.JNumberTextField;
 import edu.stanford.smi.protege.util.LabeledComponent;
@@ -381,7 +381,7 @@ public class QueryComponent extends JPanel {
 		if (currentValueType == null) {
 			cmbTypes.setSelectedIndex(0);
 		} else {
-			String defaultSearchType = AdvancedQueryPluginDefaults.getDefaultSearchType(currentValueType);
+			String defaultSearchType = LuceneQueryPluginDefaults.getDefaultSearchType(currentValueType);
 			
 			if (defaultSearchType != null) {
 				cmbTypes.setSelectedItem(defaultSearchType);
