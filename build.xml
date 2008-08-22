@@ -7,7 +7,7 @@
    <property name = "src"     location = "./src"/>  
    <property name = "classes" location = "${build}/classes"/>  
    <property name = "plugins" location = "${build}/plugins"/>
-   <property name = "lib" value = "../lib"/>
+   <property name = "lib" value = "./lib"/>
    <property name = "junit" value = "./junit"/>
    <property name = "plugin_dist" value = "edu.stanford.smi.protegex.query.lucene"/>
    <property name = "pluginName" value = "luceneQueryPlugin"/>
@@ -51,9 +51,9 @@
       <path id = "project.classpath">    
         <pathelement location = "${protege.lib}"/>
         <pathelement location = "${owl.lib}"/>
-        <pathelement location = "./lib/lucene-core-2.0.1-dev.jar"/>
-        <pathelement location = "./lib/phonetix-0.2.jar"/>
-        <pathelement location = "./lib/nciedittab.jar"/>
+      	<fileset dir="${lib}">
+      	      		<include name="**/*.jar"/>
+      	</fileset>      	       
       </path>
 
     </target>
@@ -93,9 +93,7 @@
    <target name = "jar" depends = "compile">
      <jar jarfile = "${plugins}/${plugin_dist}/${pluginName}.jar" 
           basedir = "${classes}" 
-          manifest = "${src}/META-INF/MANIFEST.MF"/>  
-     <copy file = "./lib/lucene-core-2.0.1-dev.jar"
-           todir = "${plugins}/${plugin_dist}"/>
+          manifest = "${src}/META-INF/MANIFEST.MF"/>
      <copy file = "./lib/phonetix-0.2.jar"
            todir = "${plugins}/${plugin_dist}"/>
      <copy file = "./plugin.properties"
