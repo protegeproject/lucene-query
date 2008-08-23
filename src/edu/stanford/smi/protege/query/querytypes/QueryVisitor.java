@@ -15,4 +15,6 @@ public interface QueryVisitor {
     void visit(OwnSlotValueQuery q);
     
     void visit(PhoneticQuery q);
+    
+    void visit(LuceneOwnSlotValueQuery q);
 }
