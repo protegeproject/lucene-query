@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -236,6 +237,7 @@ public abstract class CoreIndexer {
     query.add(new TermQuery(term), BooleanClause.Occur.MUST);
     return query;
   }
+ 
   
   protected Query generateLuceneQuery(Frame frame, Slot slot, String literalValue) throws IOException {
       BooleanQuery query = new  BooleanQuery();

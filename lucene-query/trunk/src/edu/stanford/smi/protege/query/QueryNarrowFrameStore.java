@@ -26,6 +26,7 @@ import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.model.query.QueryCallback;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.NestedOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
@@ -49,6 +50,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	private String name;
 
 	private PhoneticIndexer phoneticIndexer;
+	private StdIndexer standardIndexer;
 
 	private Slot nameSlot;
 
@@ -67,8 +69,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		String path = ApplicationProperties.getApplicationDirectory().getAbsolutePath()
 		+ File.separator + "lucene" + File.separator  + name;
 		phoneticIndexer = new PhoneticIndexer(searchableSlots, delegate, path + File.separator + "phonetic", kb);
+		standardIndexer = new StdIndexer(searchableSlots, this, path + File.separator + "phonetic", kb);
 		if (kb instanceof OWLModel) {
 			phoneticIndexer.setOWLMode(true);
+			standardIndexer.setOWLMode(true);
 		}
 		this.kbLock = kb;
 	}
@@ -79,6 +83,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		try {
 			phoneticIndexer.indexOntologies();
+			standardIndexer.indexOntologies();
 		} finally {
 			synchronized (kbLock) {
 				indexingInProgress = false;
@@ -247,6 +252,16 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			try {
 				setResults(phoneticIndexer.executeQuery(q));
 			} catch (IOException ioe) {
+				Log.getLogger().log(Level.WARNING, "Search failed", ioe);
+				throw new ProtegeIOException(ioe);
+			}
+		}
+		
+		public void visit(LuceneOwnSlotValueQuery q) {
+			try {
+				setResults(standardIndexer.executeQuery(q));
+			}
+			catch (IOException ioe) {
 				Log.getLogger().log(Level.WARNING, "Search failed", ioe);
 				throw new ProtegeIOException(ioe);
 			}

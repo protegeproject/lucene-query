@@ -9,6 +9,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
+import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 
 
@@ -23,7 +24,7 @@ public class StdIndexer extends CoreIndexer {
     return new StandardAnalyzer();
   }
   
-  public Set<Frame> executeQuery(OwnSlotValueQuery query) throws IOException {
+  public Set<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
     return executeQuery(query.getSlot(), query.getExpr());
   }
 
