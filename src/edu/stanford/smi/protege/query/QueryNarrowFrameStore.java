@@ -69,7 +69,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		String path = ApplicationProperties.getApplicationDirectory().getAbsolutePath()
 		+ File.separator + "lucene" + File.separator  + name;
 		phoneticIndexer = new PhoneticIndexer(searchableSlots, delegate, path + File.separator + "phonetic", kb);
-		standardIndexer = new StdIndexer(searchableSlots, this, path + File.separator + "phonetic", kb);
+		standardIndexer = new StdIndexer(searchableSlots, this, path + File.separator + "std", kb);
 		if (kb instanceof OWLModel) {
 			phoneticIndexer.setOWLMode(true);
 			standardIndexer.setOWLMode(true);
