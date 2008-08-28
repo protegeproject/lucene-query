@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

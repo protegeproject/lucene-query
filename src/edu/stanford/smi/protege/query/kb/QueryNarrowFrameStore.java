@@ -1,6 +1,5 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.kb;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,6 +24,10 @@ import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.model.query.QueryCallback;
+import edu.stanford.smi.protege.query.api.QueryConfiguration;
+import edu.stanford.smi.protege.query.indexer.Indexer;
+import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
+import edu.stanford.smi.protege.query.indexer.StdIndexer;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.MaxMatchQuery;
@@ -35,7 +38,6 @@ import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
 import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
-import edu.stanford.smi.protege.util.ApplicationProperties;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SimpleStringMatcher;
 import edu.stanford.smi.protege.util.transaction.TransactionMonitor;
@@ -44,13 +46,12 @@ import edu.stanford.smi.protegex.owl.model.OWLModel;
 public class QueryNarrowFrameStore implements NarrowFrameStore {
 	private static transient Logger log = Log.getLogger(QueryNarrowFrameStore.class);
 
-	private Object kbLock;
+	private KnowledgeBase kb;
 
 	private NarrowFrameStore delegate;
 	private String name;
 
-	private PhoneticIndexer phoneticIndexer;
-	private StdIndexer standardIndexer;
+	private Set<Indexer> indexers;
 
 	private Slot nameSlot;
 
@@ -60,39 +61,45 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	 * Query Narrow Frame Store support methods.
 	 */
 
-	public QueryNarrowFrameStore(String name, NarrowFrameStore delegate, Set<Slot> searchableSlots, KnowledgeBase kb) {
+	public QueryNarrowFrameStore(String name, 
+	                             NarrowFrameStore delegate, 
+	                             KnowledgeBase kb) {
 		if (log.isLoggable(Level.FINE)) {
 			log.fine("Constructing QueryNarrowFrameStore");
 		}
 		this.delegate = delegate;
-		nameSlot = (Slot) delegate.getFrame(Model.SlotID.NAME);
-		String path = ApplicationProperties.getApplicationDirectory().getAbsolutePath()
-		+ File.separator + "lucene" + File.separator  + name;
-		phoneticIndexer = new PhoneticIndexer(searchableSlots, delegate, path + File.separator + "phonetic", kb);
-		standardIndexer = new StdIndexer(searchableSlots, this, path + File.separator + "std", kb);
-		if (kb instanceof OWLModel) {
-			phoneticIndexer.setOWLMode(true);
-			standardIndexer.setOWLMode(true);
-		}
-		this.kbLock = kb;
+		nameSlot = kb.getNameSlot();
+		this.kb = kb;
+	}
+	
+	public void configure(QueryConfiguration qc) {
+	    indexers = qc.getIndexers();
+	    for (Indexer indexer : indexers) {
+	        indexer.setSearchableSlots(qc.getSearchableSlots());
+	        indexer.setBaseIndexPath(qc.getBaseIndexPath());
+	        indexer.setKnowledgeBase(kb);
+	        indexer.setOWLMode(kb instanceof OWLModel);
+	        indexer.setNarrowFrameStoreDelegate(delegate);
+	    }
 	}
 
 	public void indexOntologies() {
-		synchronized (kbLock) {
+		synchronized (kb) {
 			indexingInProgress = true;
 		}
 		try {
-			phoneticIndexer.indexOntologies();
-			standardIndexer.indexOntologies();
+		    for (Indexer indexer : indexers) {
+		        indexer.indexOntologies();
+		    }
 		} finally {
-			synchronized (kbLock) {
+			synchronized (kb) {
 				indexingInProgress = false;
 			}
 		}
 	}
 
 	public void checkWriteable() {
-		synchronized (kbLock) {
+		synchronized (kb) {
 			if (indexingInProgress) {
 				throw new ModificationException("Server project in read-only mode: Indexing in Progress");
 			}
@@ -113,7 +120,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	 */
 
 	public void executeQuery(final Query query, final QueryCallback qc) throws OntologyException, ProtegeIOException {
-		synchronized (kbLock) {
+		synchronized (kb) {
 			if (indexingInProgress) {
 				throw new ProtegeIOException("Lucene Indicies not ready yet: Indexing in progress");
 			}
@@ -160,6 +167,24 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 		public Set<Frame> getResults() {
 			return results;
+		}
+		
+		private PhoneticIndexer getPhoneticIndexer() {
+		    for (Indexer indexer : indexers) {
+		        if (indexer instanceof PhoneticIndexer) {
+		            return (PhoneticIndexer) indexer;
+		        }
+		    }
+		    return null;
+		}
+
+		private StdIndexer getStdIndexer() {
+		    for (Indexer indexer : indexers) {
+		        if (indexer instanceof StdIndexer) {
+		            return (StdIndexer) indexer;
+		        }
+		    }
+		    return null;
 		}
 
 		public void visit(AndQuery q) {
@@ -250,16 +275,28 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 		public void visit(PhoneticQuery q) {
 			try {
-				setResults(phoneticIndexer.executeQuery(q));
+			    PhoneticIndexer phoneticIndexer = getPhoneticIndexer();
+			    if (phoneticIndexer != null) {
+			        setResults(phoneticIndexer.executeQuery(q));
+			    }
+			    else {
+			        log.warning("No phonetic lucene indicies installed");
+			    }
 			} catch (IOException ioe) {
-				Log.getLogger().log(Level.WARNING, "Search failed", ioe);
+				log.log(Level.WARNING, "Search failed", ioe);
 				throw new ProtegeIOException(ioe);
 			}
 		}
 		
 		public void visit(LuceneOwnSlotValueQuery q) {
 			try {
-				setResults(standardIndexer.executeQuery(q));
+			    StdIndexer standardIndexer = getStdIndexer();
+			    if (standardIndexer != null) {
+			        setResults(standardIndexer.executeQuery(q));
+			    }
+			    else {
+			        log.warning("No standard lucene indicies installed");
+			    }
 			}
 			catch (IOException ioe) {
 				Log.getLogger().log(Level.WARNING, "Search failed", ioe);
@@ -292,8 +329,12 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			}
 			return false;
 		}
+		
+		
+		
 
 	}
+
 
 	/*---------------------------------------------------------------------
 	 *  Common Narrow Frame Store Functions (excepting executeQuery)
@@ -357,7 +398,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		delegate.addValues(frame, slot, facet, isTemplate, values);
 		if (facet == null && !isTemplate) {
-			phoneticIndexer.addValues(frame, slot, values);
+		    for (Indexer indexer : indexers) {
+		        indexer.addValues(frame, slot, values);
+		    }
 		}
 	}
 
@@ -375,7 +418,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		delegate.removeValue(frame, slot, facet, isTemplate, value);
 		if (facet == null && !isTemplate) {
-			phoneticIndexer.removeValue(frame, slot, value);
+            for (Indexer indexer : indexers) {
+                indexer.removeValue(frame, slot, value);
+            }
 		}
 	}
 
@@ -387,8 +432,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		delegate.setValues(frame, slot, facet, isTemplate, values);
 		if (facet == null && !isTemplate) {
-			phoneticIndexer.removeValues(frame, slot);
-			phoneticIndexer.addValues(frame, slot, values);
+	          for (Indexer indexer : indexers) {
+	              indexer.removeValues(frame, slot);
+	              indexer.addValues(frame, slot, values);
+	          }
 		}
 	}
 
@@ -423,7 +470,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		String fname = getFrameName(frame);
 		delegate.deleteFrame(frame);
-		phoneticIndexer.removeValues(fname);
+        for (Indexer indexer : indexers) {
+            indexer.removeValues(fname);
+        }
 	}
 
 	public void close() {
@@ -460,7 +509,6 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	}
 
 	public void replaceFrame(Frame original, Frame replacement) {
-		//TODO: Tim please check this method
 		checkWriteable();
 		delegate.replaceFrame(original, replacement);
 	}

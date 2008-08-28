@@ -1,6 +1,7 @@
 package edu.stanford.smi.protege.query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -11,19 +12,25 @@ import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.api.QueryApi;
+import edu.stanford.smi.protege.query.api.QueryConfiguration;
+import edu.stanford.smi.protege.query.indexer.Indexer;
+import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
+import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protegex.owl.model.OWLClass;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
+import edu.stanford.smi.protegex.owl.model.RDFResource;
 
-public class SearchTest extends TestCase {
-  private static transient Logger log  = Log.getLogger(SearchTest.class);
+public class PhoneticSearch_Test extends TestCase {
+  private static transient Logger log  = Log.getLogger(PhoneticSearch_Test.class);
   
   /* ----------------------------------------------------------------------
    * Utility functions
@@ -32,11 +39,16 @@ public class SearchTest extends TestCase {
   @SuppressWarnings("unchecked")
   public static OWLModel getOWLModel() {
     List errors = new ArrayList();  
-    Project project = new Project("advancedQuery/junit/projects/Pizza.pprj", errors);
+    Project project = new Project("junit/projects/Pizza.pprj", errors);
     checkErrors(errors);
     OWLModel om = (OWLModel) project.getKnowledgeBase();
-    Set<Slot> slots = (Set<Slot>) new InstallNarrowFrameStore(om).execute();
-    new IndexOntologies(om).execute();
+    QueryConfiguration qc = new QueryConfiguration(om);
+    Set<Indexer> indexers = new HashSet<Indexer>();
+    indexers.add(new PhoneticIndexer());
+    qc.setIndexers(indexers);
+    QueryApi qapi = new QueryApi(om);
+    qapi.install(qc);
+    qapi.index();
     return om;
   }
   
@@ -45,7 +57,7 @@ public class SearchTest extends TestCase {
       if (error instanceof Throwable) {
         ((Throwable) error).printStackTrace();
       } else {
-        System.out.println("Error = " + error);
+        log.warning("Error = " + error);
       }
     }
   }
@@ -53,8 +65,13 @@ public class SearchTest extends TestCase {
   public static void checkSearch(OWLModel om, Query query, String frameName, boolean succeed) {
     boolean found = false;
     for (Frame frame : om.executeQuery(query)) {
-      assertTrue(frame.getName().equals(frameName));
-      found = true;
+        if (frame instanceof RDFResource) {
+            assertTrue(((RDFResource) frame).getLocalName().equals(frameName));
+        }
+        else {
+            assertTrue(frame.getName().equals(frameName));
+        }
+        found = true;
     }
     assertTrue(succeed == found);
   }
@@ -145,12 +162,12 @@ public class SearchTest extends TestCase {
     RDFProperty comment = om.getRDFProperty("rdfs:comment");
     RDFProperty label   = om.getRDFProperty("rdfs:label");
     
-    List<Query> queries = new ArrayList<Query>();
-    Query q1 = new PhoneticQuery(label, "PizzaComQueijo");
+    List<VisitableQuery> queries = new ArrayList<VisitableQuery>();
+    VisitableQuery q1 = new PhoneticQuery(label, "PizzaComQueijo");
     queries.add(q1);
     // Here is a tricky point - the actual comment slot for cheesey pizza starts with "~#en " 
     // to represent the English language.
-    Query q2 = new OwnSlotValueQuery(comment, "*Any pizza*");
+    VisitableQuery q2 = new OwnSlotValueQuery(comment, "*Any pizza*");
     queries.add(q2);
     Query q = new AndQuery(queries);
     OWLClass cheesey = om.getOWLNamedClass("CheeseyPizza");
@@ -166,12 +183,12 @@ public class SearchTest extends TestCase {
     OWLModel om = getOWLModel();
     RDFProperty comment = om.getRDFProperty("rdfs:comment");
     RDFProperty label   = om.getRDFProperty("rdfs:label");
-    List<Query> queries = new ArrayList<Query>();
-    Query q1 = new OwnSlotValueQuery(comment, "*at least 1 cheese*");
+    List<VisitableQuery> queries = new ArrayList<VisitableQuery>();
+    VisitableQuery q1 = new OwnSlotValueQuery(comment, "*at least 1 cheese*");
     queries.add(q1);
-    Query q2 = new PhoneticQuery(label, "BaseEspzza");
+    VisitableQuery q2 = new PhoneticQuery(label, "BaseEspzza");
     queries.add(q2);
-    Query q = new OrQuery(queries);
+    VisitableQuery q = new OrQuery(queries);
     Set<Frame> frames = om.executeQuery(q);
     assertEquals(2, frames.size());
     Frame deepBase = om.getOWLNamedClass("DeepPanBase");
@@ -179,8 +196,8 @@ public class SearchTest extends TestCase {
     Frame cheesey = om.getOWLNamedClass("CheeseyPizza");
     assertTrue(frames.contains(cheesey));
 
-    queries = new ArrayList<Query>();
-    Query q3 = new PhoneticQuery(label, "BaseEsprzza");
+    queries = new ArrayList<VisitableQuery>();
+    VisitableQuery q3 = new PhoneticQuery(label, "BaseEsprzza");
     queries.add(q1);
     queries.add(q3);
     q = new OrQuery(queries);
@@ -188,7 +205,7 @@ public class SearchTest extends TestCase {
     assertEquals(2, frames.size());
     assertTrue(frames.contains(cheesey));
     
-    queries = new ArrayList<Query>();
+    queries = new ArrayList<VisitableQuery>();
     queries.add(q3);
     queries.add(q1);
     q = new OrQuery(queries);

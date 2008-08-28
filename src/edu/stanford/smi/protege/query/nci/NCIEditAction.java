@@ -1,7 +1,8 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.nci;
 
 import java.awt.Cursor;
 import java.lang.reflect.Method;
+import java.util.logging.Logger;
 
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
@@ -10,6 +11,7 @@ import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.plugin.PluginUtilities;
 import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.ui.ProjectView;
+import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.Selectable;
 import edu.stanford.smi.protege.util.ViewAction;
 import edu.stanford.smi.protege.widget.TabWidget;
@@ -22,10 +24,11 @@ import edu.stanford.smi.protege.widget.TabWidget;
  * @date 25-Sep-06
  */
 public class NCIEditAction extends ViewAction {
+    private static transient Logger log = Log.getLogger(NCIEditAction.class);
 
 	protected static final String NCITAB = "gov.nih.nci.protegex.edit.NCIEditTab";
 
-	protected NCIEditAction(String text, Selectable selectable, Icon icon) {
+	public NCIEditAction(String text, Selectable selectable, Icon icon) {
 		super(text, selectable, icon);
 	}
 	
@@ -69,7 +72,7 @@ public class NCIEditAction extends ViewAction {
 					Method setSelectedClsMethod = clsPanel.getClass().getMethod("setSelectedCls", new Class[] { Cls.class });
 					setSelectedClsMethod.invoke(clsPanel, new Object[] { cls });
 				} catch (Throwable t) {
-					System.err.println("Warning - couldn't view the selected Cls in the NCIEditTab");
+					log.warning("Warning - couldn't view the selected Cls in the NCIEditTab");
 					//t.printStackTrace();
 				}
 									

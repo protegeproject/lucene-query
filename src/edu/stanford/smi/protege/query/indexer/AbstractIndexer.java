@@ -1,10 +1,11 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.indexer;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,14 +31,17 @@ import org.apache.lucene.search.TermQuery;
 
 import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
+import edu.stanford.smi.protege.model.KnowledgeBase;
+import edu.stanford.smi.protege.model.Localizable;
 import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
-import edu.stanford.smi.protege.util.FutureTask;
+import edu.stanford.smi.protege.query.util.FutureTask;
+import edu.stanford.smi.protege.query.util.IndexTaskRunner;
 import edu.stanford.smi.protege.util.Log;
 
-public abstract class CoreIndexer {
-  private transient static final Logger log = Log.getLogger(CoreIndexer.class);
+public abstract class AbstractIndexer implements Indexer, Localizable, Serializable {
+  private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
   
   private enum Status {
     INDEXING, READY, DOWN
@@ -45,7 +49,7 @@ public abstract class CoreIndexer {
   
   private Object kbLock;
   
-  private String indexPath;
+  private String baseIndexPath;
   
   private Analyzer analyzer;
   private NarrowFrameStore delegate;
@@ -65,16 +69,8 @@ public abstract class CoreIndexer {
   private IndexTaskRunner indexRunner = new IndexTaskRunner();
 
   
-  public CoreIndexer(Set<Slot> searchableSlots, 
-                     NarrowFrameStore delegate, 
-                     String path, 
-                     Object kbLock) {
-    this.searchableSlots = searchableSlots;
-    this.delegate = delegate;
-    this.kbLock = kbLock;
-    this.indexPath  = path;
+  public AbstractIndexer() {
     analyzer = createAnalyzer();
-    nameSlot = (Slot) delegate.getFrame(Model.SlotID.NAME);
     indexRunner.startBackgroundThread();
   }
   
@@ -82,19 +78,40 @@ public abstract class CoreIndexer {
       indexRunner.dispose();
   }
   
-  public void setOWLMode(boolean owlMode) {
-    this.owlMode = owlMode;
+  public void setSearchableSlots(Set<Slot> searchableSlots) {
+      this.searchableSlots = searchableSlots;
   }
+  
+  public void setBaseIndexPath(String baseIndexPath) {
+      this.baseIndexPath = baseIndexPath;
+  }
+  
+  private String getFullIndexPath() {
+      return baseIndexPath + File.separator + relativeIndexLocation();
+    }
+  
+  public void setOWLMode(boolean owlMode) {
+      this.owlMode = owlMode;
+  }
+  
+  public void setNarrowFrameStoreDelegate(NarrowFrameStore delegate) {
+      this.delegate = delegate;
+      nameSlot = (Slot) delegate.getFrame(Model.SlotID.NAME);
+  }
+  
+  public void setKnowledgeBase(KnowledgeBase kb) {
+      kbLock = kb;
+  }
+  
+
   
   protected abstract Analyzer createAnalyzer();
 
   private IndexWriter openWriter(boolean create) throws IOException {
-    return new IndexWriter(getIndexPath(), analyzer, create);
+    return new IndexWriter(getFullIndexPath(), analyzer, create);
   }
   
-  private String getIndexPath() {
-    return indexPath;
-  }
+
   
   @SuppressWarnings("unchecked")
   public void indexOntologies() throws ProtegeException {
@@ -189,7 +206,7 @@ public abstract class CoreIndexer {
               Set<Frame> results = new HashSet<Frame>();
               try {
                   Query luceneQuery = generateLuceneQuery(slot, expr);
-                  searcher = new IndexSearcher(getIndexPath());
+                  searcher = new IndexSearcher(getFullIndexPath());
                   Hits hits = searcher.search(luceneQuery);
                   for (int i = 0; i < hits.length(); i++) {
                       Document doc = hits.doc(i);
@@ -357,7 +374,7 @@ public abstract class CoreIndexer {
       IndexSearcher searcher = null;
       long start = System.currentTimeMillis();
       try {
-          searcher = new IndexSearcher(getIndexPath());
+          searcher = new IndexSearcher(getFullIndexPath());
           Hits hits;
           hits = searcher.search(q);
           for (int i = 0; i < hits.length(); i++) {
@@ -370,7 +387,7 @@ public abstract class CoreIndexer {
       }
       IndexReader reader = null;
       try {
-          reader = IndexReader.open(getIndexPath());
+          reader = IndexReader.open(getFullIndexPath());
           for (Integer i : deletions) {
               reader.deleteDocument(i);
           }
@@ -506,6 +523,10 @@ public abstract class CoreIndexer {
           }
       });
       installOptimizeTask();
+  }
+  
+  public void localize(KnowledgeBase kb) {
+
   }
 
 }

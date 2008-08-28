@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.indexer;
 
 import java.io.IOException;
 import java.util.Set;
@@ -7,16 +7,13 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import edu.stanford.smi.protege.model.Frame;
-import edu.stanford.smi.protege.model.Slot;
-import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 
 
-public class StdIndexer extends CoreIndexer {
+public class StdIndexer extends AbstractIndexer {
   
-  public StdIndexer(Set<Slot> searchableSlots, NarrowFrameStore delegate, String path, Object kbLock) {
-    super(searchableSlots, delegate, path, kbLock);
+  public StdIndexer() {
+    super();
   }
 
   @Override
@@ -26,6 +23,10 @@ public class StdIndexer extends CoreIndexer {
   
   public Set<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
     return executeQuery(query.getSlot(), query.getExpr());
+  }
+  
+  public String relativeIndexLocation() {
+      return "Standard";
   }
 
 }

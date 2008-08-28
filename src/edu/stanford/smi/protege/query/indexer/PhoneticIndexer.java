@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.indexer;
 
 import java.io.IOException;
 import java.util.Set;
@@ -9,14 +9,12 @@ import com.tangentum.phonetix.DoubleMetaphone;
 import com.tangentum.phonetix.lucene.PhoneticAnalyzer;
 
 import edu.stanford.smi.protege.model.Frame;
-import edu.stanford.smi.protege.model.Slot;
-import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
 
-public class PhoneticIndexer  extends CoreIndexer {
+public class PhoneticIndexer  extends AbstractIndexer {
   
-  public PhoneticIndexer(Set<Slot> searchableSlots, NarrowFrameStore delegate, String path, Object kbLock) {
-    super(searchableSlots, delegate, path, kbLock);
+  public PhoneticIndexer() {
+    super();
   }
 
   @Override
@@ -26,6 +24,10 @@ public class PhoneticIndexer  extends CoreIndexer {
   
   public Set<Frame> executeQuery(PhoneticQuery pq) throws IOException {
     return executeQuery(pq.getSlot(), pq.getExpr());
+  }
+  
+  public String relativeIndexLocation() {
+      return "Phonetic";
   }
  
 }

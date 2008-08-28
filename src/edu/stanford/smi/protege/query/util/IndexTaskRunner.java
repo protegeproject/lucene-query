@@ -1,9 +1,9 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.util;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.stanford.smi.protege.util.FutureTask;
+
 
 public class IndexTaskRunner {
     private List<FutureTask> tasks = new ArrayList<FutureTask>();

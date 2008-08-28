@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

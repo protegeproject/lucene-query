@@ -2,9 +2,12 @@ package edu.stanford.smi.protege.query;
 
 import java.util.Collection;
 
+import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
 import edu.stanford.smi.protege.plugin.ProjectPluginAdapter;
+import edu.stanford.smi.protege.query.api.QueryApi;
+import edu.stanford.smi.protege.query.api.QueryConfiguration;
 import edu.stanford.smi.protege.util.Log;
 
 public class QueryInstallerPlugin extends ProjectPluginAdapter {
@@ -13,7 +16,8 @@ public class QueryInstallerPlugin extends ProjectPluginAdapter {
         String pluginClassName = LuceneQueryPlugin.class.getCanonicalName();
         WidgetDescriptor desc = p.getTabWidgetDescriptor(pluginClassName);
         if (desc.isVisible() && !p.isMultiUserServer()) {
-            new InstallNarrowFrameStore(p.getKnowledgeBase()).execute();
+            KnowledgeBase kb = p.getKnowledgeBase();
+            new QueryApi(kb).install(new QueryConfiguration(kb));
         }
         Collection descriptors = p.getTabWidgetDescriptors();
         for (Object o : descriptors) {
