@@ -10,12 +10,12 @@ import javax.swing.JPanel;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.query.Query;
-import edu.stanford.smi.protege.query.InvalidQueryException;
+import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
-import edu.stanford.smi.protege.util.ListPanel;
-import edu.stanford.smi.protege.util.ListPanelComponent;
+import edu.stanford.smi.protege.query.util.ListPanel;
+import edu.stanford.smi.protege.query.util.ListPanelComponent;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 /**

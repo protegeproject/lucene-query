@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.kb;
 
 import edu.stanford.smi.protege.model.query.Query;
 

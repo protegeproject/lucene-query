@@ -1,9 +1,10 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import java.util.HashMap;
 
 import edu.stanford.smi.protege.model.ValueType;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
+import edu.stanford.smi.protege.util.ApplicationProperties;
 
 /**
  * Class for storing the default configuration of the Advance Query Plugin.

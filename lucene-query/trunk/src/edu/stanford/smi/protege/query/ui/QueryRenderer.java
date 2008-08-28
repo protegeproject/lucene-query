@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.ui;
 
 import java.awt.Color;
 

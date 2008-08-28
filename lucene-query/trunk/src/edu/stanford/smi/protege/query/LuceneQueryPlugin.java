@@ -31,12 +31,27 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.api.QueryApi;
+import edu.stanford.smi.protege.query.api.QueryConfiguration;
+import edu.stanford.smi.protege.query.kb.IndexOntologies;
+import edu.stanford.smi.protege.query.kb.InstallNarrowFrameStore;
+import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.nci.NCIEditAction;
+import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
+import edu.stanford.smi.protege.query.ui.DefaultInstanceViewAction;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
+import edu.stanford.smi.protege.query.ui.QueryFrameRenderer;
+import edu.stanford.smi.protege.query.ui.QueryRenderer;
+import edu.stanford.smi.protege.query.ui.QueryResourceRenderer;
 import edu.stanford.smi.protege.query.ui.QueryUtil;
+import edu.stanford.smi.protege.query.util.JProgressButton;
+import edu.stanford.smi.protege.query.util.ListPanel;
+import edu.stanford.smi.protege.query.util.ListPanelListener;
+import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.server.framestore.RemoteClientFrameStore;
 import edu.stanford.smi.protege.server.metaproject.Operation;
@@ -45,12 +60,8 @@ import edu.stanford.smi.protege.ui.ListFinder;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.DoubleClickActionAdapter;
-import edu.stanford.smi.protege.util.JProgressButton;
 import edu.stanford.smi.protege.util.LabeledComponent;
-import edu.stanford.smi.protege.util.ListPanel;
-import edu.stanford.smi.protege.util.ListPanelListener;
 import edu.stanford.smi.protege.util.Log;
-import edu.stanford.smi.protege.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.util.SelectableList;
 import edu.stanford.smi.protege.util.ViewAction;
 import edu.stanford.smi.protege.widget.AbstractTabWidget;
@@ -119,10 +130,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		this.queryRenderer = this.isOWL ? new QueryResourceRenderer() : new QueryFrameRenderer();
 		this.queryRenderer.setMatchColor(new Color(24, 72, 124));
 
-		InstallNarrowFrameStore frameStore = new InstallNarrowFrameStore(kb);
+		this.slots  = new QueryApi(kb).install(new QueryConfiguration(kb));
 		this.canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
-		this.slots = (Set) frameStore.execute();
-
+	
 		setDefaultSlot(kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName()));
 
         // add UI components

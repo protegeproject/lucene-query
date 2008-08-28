@@ -1,6 +1,7 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import javax.swing.JPanel;
+
 
 /**
  * Notifies listeners when {@link JPanel} get added and removed from a {@link ListPanel}.

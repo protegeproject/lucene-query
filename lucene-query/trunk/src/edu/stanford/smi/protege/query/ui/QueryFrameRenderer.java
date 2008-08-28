@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +14,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JList;
 
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;

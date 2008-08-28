@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.query;
+package edu.stanford.smi.protege.query.kb;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

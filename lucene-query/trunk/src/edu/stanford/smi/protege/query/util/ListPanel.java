@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.text.JTextComponent;
+
 
 
 /**

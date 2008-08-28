@@ -1,4 +1,4 @@
-package edu.stanford.smi.protege.util;
+package edu.stanford.smi.protege.query.util;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
