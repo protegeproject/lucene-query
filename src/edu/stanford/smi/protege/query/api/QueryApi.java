@@ -10,7 +10,7 @@ import edu.stanford.smi.protege.query.kb.IndexOntologies;
 import edu.stanford.smi.protege.query.kb.InstallNarrowFrameStore;
 
 public class QueryApi {
-    private KnowledgeBase kb;
+    private transient KnowledgeBase kb;
     
     public QueryApi(KnowledgeBase kb) {
         this.kb = kb;

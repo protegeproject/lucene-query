@@ -1,10 +1,10 @@
 package edu.stanford.smi.protege.query.api;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.stanford.smi.protege.model.DefaultKnowledgeBase;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Localizable;
 import edu.stanford.smi.protege.model.Slot;
@@ -14,9 +14,10 @@ import edu.stanford.smi.protege.query.indexer.StdIndexer;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 
-public class QueryConfiguration implements Localizable {
+public class QueryConfiguration implements Localizable, Serializable {
+    private static final long serialVersionUID = 720591441102651371L;
     
-    private KnowledgeBase kb;
+    private transient KnowledgeBase kb;
     private Set<Slot> searchableSlots;
     private Set<Indexer> indexers;
     private String baseIndexPath;
@@ -85,8 +86,10 @@ public class QueryConfiguration implements Localizable {
 
     public void localize(KnowledgeBase kb) {
         this.kb = kb;
-        for (Slot slot : searchableSlots) {
-            LocalizeUtils.localize(slot, kb);
+        if (searchableSlots != null) {
+            for (Slot slot : searchableSlots) {
+                LocalizeUtils.localize(slot, kb);
+            }
         }
     }
 
