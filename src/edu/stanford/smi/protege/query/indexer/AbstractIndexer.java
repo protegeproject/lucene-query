@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,7 @@ import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.query.util.FutureTask;
 import edu.stanford.smi.protege.query.util.IndexTaskRunner;
 import edu.stanford.smi.protege.util.Log;
+import edu.stanford.smi.protegex.owl.model.RDFResource;
 
 public abstract class AbstractIndexer implements Indexer, Localizable, Serializable {
   private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
@@ -155,13 +157,23 @@ public abstract class AbstractIndexer implements Indexer, Localizable, Serializa
       }
   }
   
+  @SuppressWarnings("unchecked")
   private boolean addFrame(IndexWriter writer, Frame frame) {
       boolean errorsFound = false;
       for (Slot slot : searchableSlots) {
           try {
               List values;
-              synchronized (kbLock) {
-                  values = delegate.getValues(frame, slot, null, false);
+              if (owlMode && slot.equals(nameSlot) && frame instanceof RDFResource) {
+                  String name;
+                  synchronized (kbLock) {
+                      name = ((RDFResource) frame).getLocalName();
+                  }
+                  values = Collections.singletonList(name);
+              }
+              else {
+                  synchronized (kbLock) {
+                      values = delegate.getValues(frame, slot, null, false);
+                  }
               }
               for (Object value : values) {
                   if (!(value instanceof String)) {
