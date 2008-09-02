@@ -42,25 +42,25 @@ public class InstallNarrowFrameStore extends ProtegeJob {
     SimpleFrameStore fs = (SimpleFrameStore) kb.getTerminalFrameStore();
     NarrowFrameStore nfs = fs.getHelper();
 
-    if (alreadyInstalled(nfs)) {
-        return null;
+    QueryNarrowFrameStore qnfs = getQueryNarrowFrameStore(nfs);
+    if (qnfs == null) {
+    	qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase());
+    	fs.setHelper(qnfs);
+    	qnfs.configure(qc);
     }
-    QueryNarrowFrameStore qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase());
-    fs.setHelper(qnfs);
-    qnfs.configure(qc);
-    return qc.getSearchableSlots();
+	return qnfs.getSearchableSlots();
   }
   
-  public boolean alreadyInstalled(NarrowFrameStore nfs) {
+  private QueryNarrowFrameStore getQueryNarrowFrameStore(NarrowFrameStore nfs) {
     do {
       if (nfs instanceof QueryNarrowFrameStore) {
         if (log.isLoggable(Level.FINE)) {
           log.fine("Query Narrow Frame store already found - no install needed");
         }
-        return true;
+        return (QueryNarrowFrameStore) nfs;
       }
     } while ((nfs = nfs.getDelegate()) != null);
-    return false;
+    return null;
   }
 
   @Override
