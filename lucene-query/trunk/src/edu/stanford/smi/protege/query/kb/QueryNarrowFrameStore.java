@@ -50,6 +50,8 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 	private NarrowFrameStore delegate;
 	private String name;
+	
+	private Set<Slot> searchableSlots = new HashSet<Slot>();
 
 	private Set<Indexer> indexers;
 
@@ -73,14 +75,20 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	}
 	
 	public void configure(QueryConfiguration qc) {
+	    searchableSlots = qc.getSearchableSlots();
+	    
 	    indexers = qc.getIndexers();
 	    for (Indexer indexer : indexers) {
-	        indexer.setSearchableSlots(qc.getSearchableSlots());
+	        indexer.setSearchableSlots(searchableSlots);
 	        indexer.setBaseIndexPath(qc.getBaseIndexPath());
 	        indexer.setKnowledgeBase(kb);
 	        indexer.setOWLMode(kb instanceof OWLModel);
 	        indexer.setNarrowFrameStoreDelegate(delegate);
 	    }
+	}
+	
+	public Set<Slot> getSearchableSlots() {
+		return searchableSlots;
 	}
 
 	public void indexOntologies() {
