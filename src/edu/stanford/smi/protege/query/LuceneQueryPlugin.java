@@ -417,6 +417,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 
 	/**
+	 * test permissions
 	 * Creates the {@link Query} object from all the {@link QueryComponent}s.
 	 * If there are multiple queries then either an {@link AndQuery} or an {@link OrQuery} are used.
 	 * Passes the {@link Query} on to {@link LuceneQueryPlugin#doQuery(Query)} if the query is valid.
