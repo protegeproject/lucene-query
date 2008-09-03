@@ -6,6 +6,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -64,9 +66,12 @@ import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SelectableList;
 import edu.stanford.smi.protege.util.ViewAction;
+import edu.stanford.smi.protege.action.ExportToCsvAction;
+import edu.stanford.smi.protege.action.ExportToCsvUtil;
 import edu.stanford.smi.protege.widget.AbstractTabWidget;
 import edu.stanford.smi.protege.widget.TabWidget;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLNamedClass;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
 
@@ -181,6 +186,10 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 		viewButton = resultsComponent.addHeaderButton(getEditAction());	// won't be null
 		editButton = resultsComponent.addHeaderButton(getViewAction());	// might be null
+		
+		if (RemoteClientFrameStore.isOperationAllowed(getKnowledgeBase(), ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
+			resultsComponent.addHeaderButton(createExportAction());
+		}
 
 		JSplitPane splitter = ComponentFactory.createLeftRightSplitPane();
 		splitter.setLeftComponent(lcLeft);
@@ -210,6 +219,54 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		}
 		return viewAction;
 	}
+	
+	private Action createExportAction() {
+		//initialize NCI defaults for export configuration
+		ExportToCsvUtil.setSlotsDelimiter(",");
+		ExportToCsvUtil.setSlotValuesDelimiter("|");
+		ExportToCsvUtil.setExportBrowserText(false);
+		
+		return new ExportToCsvAction(getKnowledgeBase()) {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				Collection results = ComponentUtilities.getListValues(lstResults);
+				
+				// filter out non-cls results - NCI request
+				for (Iterator iterator = results.iterator(); iterator.hasNext();) {
+					Object object = (Object) iterator.next();
+					if (!(object instanceof OWLNamedClass)) {
+						iterator.remove();
+					}
+				}
+				
+				setInstancesToExport(results);
+				setSlotsToExport(getPossibleExportSlots());
+				super.actionPerformed(event);
+			}
+						
+			private Collection<Slot> getPossibleExportSlots() {
+				ArrayList<Slot> slots = new ArrayList<Slot>();				
+				if (isOWL) {
+					OWLModel owlModel = (OWLModel) kb;
+					slots.add(owlModel.getRDFSLabelProperty());
+					slots.add(owlModel.getRDFSCommentProperty());
+				}				
+				return slots;		
+			}
+			
+			@Override
+			protected String getExportValueString(Object value) {
+				String delimiter = getSlotsDelimiter();
+				String result = super.getExportValueString(value);
+				// escape the escape char
+				if (result.indexOf(delimiter) > -1) {
+					result = "\"" + result.replaceAll("\"", "\"\"") + "\"";
+				}
+				return result;
+			}
+		};
+	}
+
 
 	/**
 	 * Adds the "Index Ontology" button to the given LabeledComponent.
