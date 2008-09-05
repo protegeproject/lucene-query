@@ -204,8 +204,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     Document doc = new Document();
     doc.add(new Field(FRAME_NAME, getFrameName(frame), 
                       Field.Store.YES, Field.Index.UN_TOKENIZED));
-    doc.add(new Field(SLOT_NAME, getFrameName(slot),
-                      Field.Store.YES, Field.Index.UN_TOKENIZED));
+    if (slot != null) {
+        doc.add(new Field(SLOT_NAME, getFrameName(slot),
+                          Field.Store.YES, Field.Index.UN_TOKENIZED));
+    }
     doc.add(new Field(CONTENTS_FIELD, value, Field.Store.YES, Field.Index.TOKENIZED));
     doc.add(new Field(LITERAL_CONTENTS, value, Field.Store.YES, Field.Index.UN_TOKENIZED));
     writer.addDocument(doc);
