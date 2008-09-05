@@ -22,6 +22,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Hits;
@@ -43,7 +45,9 @@ import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 
 public abstract class AbstractIndexer implements Indexer, Localizable, Serializable {
-  private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
+    private static final long serialVersionUID = 1964188756235468692L;
+
+private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
   
   private enum Status {
     INDEXING, READY, DOWN
@@ -254,13 +258,16 @@ public abstract class AbstractIndexer implements Indexer, Localizable, Serializa
   
   protected Query generateLuceneQuery(Slot slot, String expr) throws IOException {
     String contents    = "" + expr;
+    /* alternative implementation at svn revision 11371 */
     BooleanQuery query = new  BooleanQuery();
-    
-    TokenStream ts = analyzer.tokenStream(CONTENTS_FIELD, new StringReader(contents));
-    Token tok;
-    while ((tok = ts.next()) != null) {
-      Term term = new Term(CONTENTS_FIELD, tok.termText());
-      query.add(new TermQuery(term), BooleanClause.Occur.MUST);
+    QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
+    parser.setAllowLeadingWildcard(true);
+    try {
+        query.add(parser.parse(expr), BooleanClause.Occur.MUST);
+    } catch (ParseException e) {
+        IOException ioe = new IOException(e.getMessage());
+        ioe.initCause(e);
+        throw ioe;
     }
     Term term = new Term(SLOT_NAME, getFrameName(slot));
     query.add(new TermQuery(term), BooleanClause.Occur.MUST);
