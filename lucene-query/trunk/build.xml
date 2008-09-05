@@ -51,9 +51,9 @@
       <path id = "project.classpath">    
         <pathelement location = "${protege.lib}"/>
         <pathelement location = "${owl.lib}"/>
-      	<fileset dir="${lib}">
-      	      		<include name="**/*.jar"/>
-      	</fileset>      	       
+          <fileset dir="${lib}">
+                        <include name="**/*.jar"/>
+          </fileset>                 
       </path>
 
     </target>
@@ -73,7 +73,7 @@
      #  ********** Finding Protege Libraries Done. *************
      -->
 
-	
+    
    <target name = "init">
      <mkdir dir = "${classes}"/>
      <mkdir dir = "${plugins}"/>
@@ -94,7 +94,7 @@
      <jar jarfile = "${plugins}/${plugin_dist}/${pluginName}.jar" 
           basedir = "${classes}" 
           manifest = "${src}/META-INF/MANIFEST.MF"/>
-     <copy file = "./lib/phonetix-0.2.jar"
+     <copy file = "./lib/phonetix.jar"
            todir = "${plugins}/${plugin_dist}"/>
      <copy file = "./plugin.properties"
            todir = "${plugins}/${plugin_dist}"/>
@@ -164,8 +164,8 @@
         <classpath>
            <pathelement location="${classes}"/>
            <pathelement location = "${protege.lib}"/>
-           <pathelement location = "./lib/lucene-core-2.0.1-dev.jar"/>
-           <pathelement location = "./lib/phonetix-0.2.jar"/>
+           <pathelement location = "./lib/lucene-core.jar"/>
+           <pathelement location = "./lib/phonetix.jar"/>
            <fileset
               dir="${plugins}/edu.stanford.smi.protegex.owl">
               <include name = "**/*.jar"/>
