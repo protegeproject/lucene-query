@@ -31,6 +31,7 @@ import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
@@ -58,6 +59,7 @@ public class QueryComponent extends JPanel {
 	public static final String STARTS_WITH = "starts with";
 	public static final String ENDS_WITH = "ends with";
 	public static final String SOUNDS_LIKE = "sounds like";
+	public static final String LUCENE_MATCH = "lucene match";
 	public static final String IS = "is";
 	public static final String GREATER_THAN = "greater than";
 	public static final String LESS_THAN = "less than";
@@ -193,7 +195,11 @@ public class QueryComponent extends JPanel {
 		
 		if (SOUNDS_LIKE.equals(type)) {
 			q = new PhoneticQuery(slot, getExpression());
-		} else {
+		}
+		else if (LUCENE_MATCH.equals(type)) {
+		    q = new LuceneOwnSlotValueQuery(slot, getExpression());
+		}
+		else {
 			boolean startsWith = STARTS_WITH.equals(type) || CONTAINS.equals(type);
 			boolean endsWith = ENDS_WITH.equals(type) || CONTAINS.equals(type);
 			if (startsWith && !expr.endsWith("*")) {
@@ -260,7 +266,7 @@ public class QueryComponent extends JPanel {
 	 * Creates a map of {@link ValueType} objects to String[] values used in the types {@link JComboBox}.
 	 */
 	protected void initializeTypes() {
-		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH, SOUNDS_LIKE };	// any, string
+		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH, SOUNDS_LIKE, LUCENE_MATCH };	// any, string
 		String[] number = { IS, GREATER_THAN, LESS_THAN };	// integer, float
 		String[] contains = { CONTAINS };	// instance, class
 		String[] is = { IS };	// symbol, boolean
