@@ -3,5 +3,5 @@ Manifest-Version: 1.0
 Name: edu/stanford/smi/protege/query/LuceneQueryPlugin
 Tab-Widget: True
 
-Name: edu/stanford/smi/protege/query/QueryInstallerPlugin
+Name: edu/stanford/smi/protege/query/QueryProjectPlugin
 Project-Plugin: True
