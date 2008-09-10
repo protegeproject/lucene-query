@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,9 +19,11 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -37,8 +38,11 @@ import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
-import edu.stanford.smi.protege.query.kb.IndexOntologies;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.menu.ConfigureLuceneAction;
+import edu.stanford.smi.protege.query.menu.ConfigureLucenePanel;
+import edu.stanford.smi.protege.query.menu.InstallIndiciesAction;
+import edu.stanford.smi.protege.query.menu.LuceneConfiguration;
 import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
@@ -51,15 +55,13 @@ import edu.stanford.smi.protege.query.ui.QueryFrameRenderer;
 import edu.stanford.smi.protege.query.ui.QueryRenderer;
 import edu.stanford.smi.protege.query.ui.QueryResourceRenderer;
 import edu.stanford.smi.protege.query.ui.QueryUtil;
-import edu.stanford.smi.protege.query.util.JProgressButton;
 import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelListener;
 import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.server.framestore.RemoteClientFrameStore;
-import edu.stanford.smi.protege.server.metaproject.Operation;
-import edu.stanford.smi.protege.server.metaproject.impl.UnbackedOperationImpl;
 import edu.stanford.smi.protege.ui.ListFinder;
+import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.DoubleClickActionAdapter;
@@ -90,11 +92,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 	private static final long serialVersionUID = -5589620508506925170L;
 
-	public static final Operation INDEX_OPERATION = new UnbackedOperationImpl("Generate Lucene Indices", "");
+
+	public static final String LUCENE_MENU_NAME = "Lucene Query";
+	
+	private LuceneConfiguration configuration;
 
 	private KnowledgeBase kb;
 	private Collection<Slot> slots;
-	private boolean canIndex;
 	private boolean isOWL;
 	private Slot defaultSlot = null;
     private int maxMatches = DEFAULT_MAX_MATCHES;
@@ -113,10 +117,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private JButton btnSearch;
 	private LabeledComponent resultsComponent;
 	private QueryRenderer queryRenderer;
+	
+	private JMenu menu;
+	
 
 	public LuceneQueryPlugin() {
 		super();
-		this.canIndex = false;
 		this.isOWL = false;
 		this.slots = Collections.emptySet();
 	}
@@ -134,17 +140,49 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		this.queryRenderer = this.isOWL ? new QueryResourceRenderer() : new QueryFrameRenderer();
 		this.queryRenderer.setMatchColor(new Color(24, 72, 124));
 
-		this.slots  = new QueryApi(kb).install(new QueryConfiguration(kb));
-		this.canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
+		this.slots  = new QueryApi(kb).install(getQueryConfiguration());
 	
 		setDefaultSlot(kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName()));
 
+		// add lucene query menu
+		addMenu();
         // add UI components
 		createGUI();
 		// add the default first query component
 		addQueryComponent();
 	}
 
+	private void addMenu() {
+	    JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
+	    menu = new JMenu(LUCENE_MENU_NAME);
+	    if (getLuceneConfiguration().canIndex()) {
+	        menu.add(new InstallIndiciesAction(this, kb));
+	    }
+	    menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
+	    menuBar.add(menu);
+	}
+	
+	public QueryConfiguration getQueryConfiguration() {
+	    return getQueryConfiguration(kb, configuration);
+	}
+	
+	public static QueryConfiguration getQueryConfiguration(KnowledgeBase kb, LuceneConfiguration configuration) {
+        QueryConfiguration qc = new QueryConfiguration(kb);
+        qc.setIndexers(configuration.getIndexers());
+        return qc;
+	}
+	
+	public void setLuceneConfiguration(LuceneConfiguration configuration) {
+	    this.configuration = configuration;
+	}
+	
+	public LuceneConfiguration getLuceneConfiguration() {
+	    if (configuration == null) {
+	        configuration = new LuceneConfiguration(kb);
+	    }
+	    return configuration;
+	}
+	
 	/**
 	 * Creates the GUI, initializing the components and adding them to the tab.
 	 */
@@ -155,11 +193,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
         JPanel pnlLeft = new JPanel(new BorderLayout(5, 5));
 		LabeledComponent lcLeft = new LabeledComponent("Query", pnlLeft, true);
-
-		// only add if the user has permission to index the ontology
-		if (canIndex) {
-			addIndexButton(lcLeft);
-		}
 
 		JButton btn = lcLeft.addHeaderButton(getAddQueryAction());
 		btn.setText("Add Query");
@@ -267,41 +300,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	}
 
 
-	/**
-	 * Adds the "Index Ontology" button to the given LabeledComponent.
-	 * When clicked it will create an index of the ontology and displays an infinitely looping
-	 * {@link JProgressBar} inside the button.  Once the indexing is complete the progress bar disappears.
-	 */
-	private void addIndexButton(LabeledComponent lc) {
-		final JProgressButton btnProgress = new JProgressButton();
-		Action action = new AbstractAction("Index Ontology") {
-			public void actionPerformed(ActionEvent buttonPushed) {
-				int choice = JOptionPane.showConfirmDialog(btnProgress, "Are you sure you want to index this ontology?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-				if (choice == JOptionPane.YES_OPTION) {
-					btnProgress.showProgressBar("Indexing...");
-					new Thread(new Runnable() {
-						public void run() {
-						  try {
-							new IndexOntologies(kb).execute();
-						  } finally {
-							btnProgress.hideProgressBar();
-						  }
-						}
-					}).start();
-				}
-		    }
-		};
-		btnProgress.setAction(action);
-		// hack - add a fake button to get at the parent
-		JButton btnTemp = lc.addHeaderButton(action);
-		btnTemp.getParent().add(btnProgress);
-		btnTemp.getParent().remove(btnTemp);	// now remove the fake button
 
-		btnProgress.setToolTipText("Create the index for this ontology");
-		btnProgress.setPreferredSize(new Dimension(120, 26));
-		btnProgress.setFont(btnProgress.getFont().deriveFont(Font.BOLD));
-		btnProgress.setForeground(Color.darkGray);
-	}
 
 	/**
 	 * Initializes and returns the query {@link ListPanel}.  This is the panel that contains
