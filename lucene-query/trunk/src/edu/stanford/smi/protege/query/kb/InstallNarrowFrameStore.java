@@ -46,8 +46,8 @@ public class InstallNarrowFrameStore extends ProtegeJob {
     if (qnfs == null) {
     	qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase());
     	fs.setHelper(qnfs);
-    	qnfs.configure(qc);
     }
+    qnfs.configure(qc);
 	return qnfs.getSearchableSlots();
   }
   
