@@ -32,18 +32,19 @@ public class NCIViewAction extends NCIEditAction {
 	public static boolean isValid() {
 		boolean valid = true;
 		try {
-			PluginUtilities.forName(NCITAB, true);
-			PluginUtilities.forName(EDITDIALOG,true);
+			valid = valid && PluginUtilities.forName(NCITAB, true) != null;
+			valid = valid && PluginUtilities.forName(EDITDIALOG,true) != null;
 		} catch (Throwable t) {
 			valid = false;
 		}
 		return valid;
 	}
 
-    protected void performAction(final TabWidget tab, final ProjectView projectView, final Cls cls) {
+    @Override
+	protected void performAction(final TabWidget tab, final ProjectView projectView, final Cls cls) {
 		final Cursor oldCursor = projectView.getCursor();
 		projectView.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		
+
 		// run this later to let the tab change occur
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -54,7 +55,7 @@ public class NCIViewAction extends NCIEditAction {
 					System.err.println("Warning - couldn't open the EditDialog for " + cls);
 					t.printStackTrace();
 				}
-									
+
 				// dependency on NCI code
 				/*
 				try {
@@ -63,10 +64,10 @@ public class NCIViewAction extends NCIEditAction {
 					System.err.println("Warning - couldn't open the EditDialog for " + cls);
 				}
 				*/
-				
+
 				projectView.setCursor(oldCursor);
 			}
 		});
 	}
-    
+
 }
