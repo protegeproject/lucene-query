@@ -40,7 +40,6 @@ import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.ConfigureLuceneAction;
-import edu.stanford.smi.protege.query.menu.ConfigureLucenePanel;
 import edu.stanford.smi.protege.query.menu.InstallIndiciesAction;
 import edu.stanford.smi.protege.query.menu.LuceneConfiguration;
 import edu.stanford.smi.protege.query.nci.NCIEditAction;
@@ -94,7 +93,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 
 	public static final String LUCENE_MENU_NAME = "Lucene Query";
-	
+
 	private LuceneConfiguration configuration;
 
 	private KnowledgeBase kb;
@@ -117,9 +116,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private JButton btnSearch;
 	private LabeledComponent resultsComponent;
 	private QueryRenderer queryRenderer;
-	
+
 	private JMenu menu;
-	
+
 
 	public LuceneQueryPlugin() {
 		super();
@@ -141,7 +140,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		this.queryRenderer.setMatchColor(new Color(24, 72, 124));
 
 		this.slots  = new QueryApi(kb).install(getQueryConfiguration());
-	
+
 		setDefaultSlot(kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName()));
 
 		// add lucene query menu
@@ -161,28 +160,28 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	    menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
 	    menuBar.add(menu);
 	}
-	
+
 	public QueryConfiguration getQueryConfiguration() {
 	    return getQueryConfiguration(kb, configuration);
 	}
-	
+
 	public static QueryConfiguration getQueryConfiguration(KnowledgeBase kb, LuceneConfiguration configuration) {
         QueryConfiguration qc = new QueryConfiguration(kb);
         qc.setIndexers(configuration.getIndexers());
         return qc;
 	}
-	
+
 	public void setLuceneConfiguration(LuceneConfiguration configuration) {
 	    this.configuration = configuration;
 	}
-	
+
 	public LuceneConfiguration getLuceneConfiguration() {
 	    if (configuration == null) {
 	        configuration = new LuceneConfiguration(kb);
 	    }
 	    return configuration;
 	}
-	
+
 	/**
 	 * Creates the GUI, initializing the components and adding them to the tab.
 	 */
@@ -218,7 +217,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 		viewButton = resultsComponent.addHeaderButton(getEditAction());	// won't be null
 		editButton = resultsComponent.addHeaderButton(getViewAction());	// might be null
-		
+
 		if (RemoteClientFrameStore.isOperationAllowed(getKnowledgeBase(), ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
 			resultsComponent.addHeaderButton(createExportAction());
 		}
@@ -251,55 +250,42 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		}
 		return viewAction;
 	}
-	
+
 	private Action createExportAction() {
 		//initialize NCI defaults for export configuration
 		ExportToCsvUtil.setSlotsDelimiter(",");
 		ExportToCsvUtil.setSlotValuesDelimiter("|");
 		ExportToCsvUtil.setExportBrowserText(false);
-		
+
 		return new ExportToCsvAction(getKnowledgeBase()) {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				Collection results = ComponentUtilities.getListValues(lstResults);
-				
+
 				// filter out non-cls results - NCI request
 				for (Iterator iterator = results.iterator(); iterator.hasNext();) {
-					Object object = (Object) iterator.next();
+					Object object = iterator.next();
 					if (!(object instanceof OWLNamedClass)) {
 						iterator.remove();
 					}
 				}
-				
+
 				setInstancesToExport(results);
 				setSlotsToExport(getPossibleExportSlots());
 				super.actionPerformed(event);
 			}
-						
+
 			private Collection<Slot> getPossibleExportSlots() {
-				ArrayList<Slot> slots = new ArrayList<Slot>();				
+				ArrayList<Slot> slots = new ArrayList<Slot>();
 				if (isOWL) {
 					OWLModel owlModel = (OWLModel) kb;
 					slots.add(owlModel.getRDFSLabelProperty());
 					slots.add(owlModel.getRDFSCommentProperty());
-				}				
-				return slots;		
-			}
-			
-			@Override
-			protected String getExportValueString(Object value) {
-				String delimiter = getSlotsDelimiter();
-				String result = super.getExportValueString(value);
-				// escape the escape char
-				if (result.indexOf(delimiter) > -1) {
-					result = "\"" + result.replaceAll("\"", "\"\"") + "\"";
 				}
-				return result;
+				return slots;
 			}
 		};
 	}
-
-
 
 
 	/**
