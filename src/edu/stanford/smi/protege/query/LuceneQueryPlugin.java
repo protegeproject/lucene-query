@@ -78,20 +78,18 @@ import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
 /**
  * {@link TabWidget} for doing advanced queries.
  *
- * @author Timothy Redmond, Chris Callendar
+ * @author Timothy Redmond, Chris Callendar, Tania Tudorache
  * @date 15-Aug-06
  */
 public class LuceneQueryPlugin extends AbstractTabWidget {
+
+	private static final long serialVersionUID = -5589620508506925170L;
 
     public static final int DEFAULT_MAX_MATCHES = 1000;
 
 	public static final String SEARCHING_ITEM = "Searching...";
 	private static final String SEARCH_RESULTS = "Search Results";
 	private static final String SEARCH_IN_PROGRESS = "Search Results (search in progress)";
-
-	private static final long serialVersionUID = -5589620508506925170L;
-
-
 	public static final String LUCENE_MENU_NAME = "Lucene Query";
 
 	private LuceneConfiguration configuration;
@@ -162,7 +160,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	}
 
 	public QueryConfiguration getQueryConfiguration() {
-	    return getQueryConfiguration(kb, configuration);
+	    //return getQueryConfiguration(kb, configuration);
+		//suggestion from Tim
+		return getQueryConfiguration(kb, getLuceneConfiguration());
 	}
 
 	public static QueryConfiguration getQueryConfiguration(KnowledgeBase kb, LuceneConfiguration configuration) {
@@ -215,8 +215,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		resultsComponent = new LabeledComponent(SEARCH_RESULTS, new JScrollPane(lst), true);
 		resultsComponent.setFooterComponent(new ListFinder(lst, "Find Instance"));
 
-		viewButton = resultsComponent.addHeaderButton(getEditAction());	// won't be null
-		editButton = resultsComponent.addHeaderButton(getViewAction());	// might be null
+		viewButton = resultsComponent.addHeaderButton(getViewAction());	// won't be null
+		editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
 
 		if (RemoteClientFrameStore.isOperationAllowed(getKnowledgeBase(), ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
 			resultsComponent.addHeaderButton(createExportAction());
@@ -256,6 +256,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		ExportToCsvUtil.setSlotsDelimiter(",");
 		ExportToCsvUtil.setSlotValuesDelimiter("|");
 		ExportToCsvUtil.setExportBrowserText(false);
+		ExportToCsvUtil.setExportMetadata(true);
 
 		return new ExportToCsvAction(getKnowledgeBase()) {
 			@Override
