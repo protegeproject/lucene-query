@@ -31,40 +31,35 @@ public class NCIEditAction extends ViewAction {
 	public NCIEditAction(String text, Selectable selectable, Icon icon) {
 		super(text, selectable, icon);
 	}
-	
+
 	/**
 	 * Determines if the needed NCI classes are available.
 	 */
 	public static boolean isValid() {
-		boolean valid = true;
-		try {
-			PluginUtilities.forName(NCITAB, true);
-		} catch (Throwable t) {
-			valid = false;
-		}
-		return valid;
+		return PluginUtilities.forName(NCITAB, true) != null;
 	}
 
-    public void onView(final Object o) {
+    @Override
+	public void onView(final Object o) {
 		ProjectView projectView = ProjectManager.getProjectManager().getCurrentProjectView();
-		TabWidget tab = (TabWidget) projectView.getTabByClassName(NCITAB);
+		TabWidget tab = projectView.getTabByClassName(NCITAB);
 		if (tab != null) {
 			performAction(tab, projectView, (Cls) o);
 		}
 	}
-    
+
     protected void performAction(final TabWidget tab, final ProjectView projectView, final Cls cls) {
 		final Cursor oldCursor = projectView.getCursor();
 		projectView.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
 		// show the NCI tab
 		projectView.setSelectedTab(tab);
-		
+
 		// run this later to let the tab change occur
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				// select the Cls in the Class Browser tree
-				
+
 				// use reflection to remove dependency on NCI code
 				try {
 					Method getClassPanelMethod = tab.getClass().getMethod("getClassPanel", new Class[0]);
@@ -75,7 +70,7 @@ public class NCIEditAction extends ViewAction {
 					log.warning("Warning - couldn't view the selected Cls in the NCIEditTab");
 					//t.printStackTrace();
 				}
-									
+
 				// dependency on NCI code
 				/*
 				try {
@@ -88,10 +83,10 @@ public class NCIEditAction extends ViewAction {
 					//e.printStackTrace();
 				}
 				*/
-				
+
 				projectView.setCursor(oldCursor);
 			}
-		});    	
+		});
 	}
 
 	/** Only allow if a Cls is selected. */
