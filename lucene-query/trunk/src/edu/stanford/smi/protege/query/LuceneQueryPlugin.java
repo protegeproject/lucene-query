@@ -8,9 +8,9 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -71,7 +71,6 @@ import edu.stanford.smi.protege.util.ViewAction;
 import edu.stanford.smi.protege.widget.AbstractTabWidget;
 import edu.stanford.smi.protege.widget.TabWidget;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
-import edu.stanford.smi.protegex.owl.model.OWLNamedClass;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
 
@@ -261,17 +260,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		return new ExportToCsvAction(getKnowledgeBase()) {
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				Collection results = ComponentUtilities.getListValues(lstResults);
+				//export the query as the last line in the file
+				VisitableQuery query = getQuery();
+				String exportString = query == null ? "Invalid query" : "Query:\n" + query.toString();
+				setExportMetadata(exportString);
 
-				// filter out non-cls results - NCI request
-				for (Iterator iterator = results.iterator(); iterator.hasNext();) {
-					Object object = iterator.next();
-					if (!(object instanceof OWLNamedClass)) {
-						iterator.remove();
-					}
-				}
-
-				setInstancesToExport(results);
+				setInstancesToExport(ComponentUtilities.getListValues(lstResults));
 				setSlotsToExport(getPossibleExportSlots());
 				super.actionPerformed(event);
 			}
@@ -282,6 +276,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 					OWLModel owlModel = (OWLModel) kb;
 					slots.add(owlModel.getRDFSLabelProperty());
 					slots.add(owlModel.getRDFSCommentProperty());
+				} else {
+					slots.add(kb.getNameSlot());
 				}
 				return slots;
 			}
@@ -535,6 +531,16 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			lstResults.setSelectedIndex(0);
 		}
 		return hits;
+	}
+
+	public VisitableQuery getQuery() {
+		VisitableQuery query = null;
+		try {
+			query = QueryUtil.getQueryFromListPanel(queriesListPanel, btnAndQuery.isSelected());
+		} catch (Exception e) {
+			Log.getLogger().log(Level.WARNING, "Invalid query", e);
+		}
+		return query;
 	}
 
 	public Slot getDefaultSlot() {
