@@ -3,7 +3,6 @@ package edu.stanford.smi.protege.query.ui;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
 
@@ -38,8 +37,8 @@ public final class QueryUtil {
 		VisitableQuery query = null;
 		Collection<JPanel> panels = listPanel.getPanels();
 		ArrayList<VisitableQuery> queries = new ArrayList<VisitableQuery>(panels.size());
-		for (Iterator iter = panels.iterator(); iter.hasNext(); ) {
-			ListPanelComponent comp = (ListPanelComponent) iter.next();
+		for (Object element : panels) {
+			ListPanelComponent comp = (ListPanelComponent) element;
 			QueryComponent qc = (QueryComponent) comp.getMainPanel();
 			// this throws InvalidQueryException
 			VisitableQuery q = qc.getQuery();
@@ -48,15 +47,15 @@ public final class QueryUtil {
 		if (queries.size() == 1) {
 			query = queries.get(0);
 		} else if (queries.size() > 1) {
-			query = (andQuery ? new AndQuery(queries) : new OrQuery(queries));
+			query = andQuery ? new AndQuery(queries) : new OrQuery(queries);
 		}
 		return query;
 	}
-	
+
 	public static void addQueryComponent(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot, ListPanel listPanel) {
 		addQueryComponent(kb, slots, defaultSlot, listPanel, "");
-	}	
-	
+	}
+
 	/**
 	 * Adds a new query component to the {@link ListPanel}.
 	 * @param kb the {@link KnowledgeBase} or {@link OWLModel}
@@ -74,8 +73,8 @@ public final class QueryUtil {
 		comp.setRemoveActionToolTip("Remove query");
 		listPanel.addPanel(comp);
 	}
-	
-		
+
+
 
 	/**
 	 * Adds a new OWL restriction query component to the {@link ListPanel}.
@@ -93,5 +92,23 @@ public final class QueryUtil {
 		comp.setRemoveActionToolTip("Remove query");
 		listPanel.addPanel(comp);
 	}
-	
+
+	/**
+	 * Tries to guess the query type for ordinary queries (not Lucene),
+	 * based on the query string.
+	 * @param queryString - the query string
+	 * @return - one of: "contains", "starts with", "ends with", "exact match"
+	 */
+	public static String getQueryType(String queryString) {
+		if (queryString.startsWith("*") && queryString.endsWith("*")) {
+			return "contains";
+		}
+		if (queryString.startsWith("*")) {
+			return "starts with";
+		}
+		if (queryString.endsWith("*")) {
+			return "ends with";
+		}
+		return "exact match";
+	}
 }
