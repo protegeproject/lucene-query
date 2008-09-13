@@ -262,7 +262,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			public void actionPerformed(ActionEvent event) {
 				//export the query as the last line in the file
 				VisitableQuery query = getQuery();
-				String exportString = query == null ? "Invalid query" : "Query:\n" + query.toString();
+				String exportString = query == null ? "Invalid query" : "Query:\n\n" + query.toString(0);
 				setExportMetadata(exportString);
 
 				setInstancesToExport(ComponentUtilities.getListValues(lstResults));
@@ -538,7 +538,11 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		try {
 			query = QueryUtil.getQueryFromListPanel(queriesListPanel, btnAndQuery.isSelected());
 		} catch (Exception e) {
-			Log.getLogger().log(Level.WARNING, "Invalid query", e);
+			if (Log.getLogger().isLoggable(Level.FINE)) {
+				Log.getLogger().log(Level.FINE, "Invalid query", e);
+			} else {
+				Log.getLogger().warning("Invalid query. Message: " + e.getMessage());
+			}
 		}
 		return query;
 	}
