@@ -52,7 +52,13 @@ public class OwnSlotValueQuery implements VisitableQuery, BoundableQuery {
 
 	@Override
 	public String toString() {
+		return toString(0);
+	}
+
+	public String toString(int indent) {
+		StringBuffer indentStr = QueryUtil.getIndentString(indent);
 		StringBuffer buffer = new StringBuffer();
+		buffer.append(indentStr);
 		buffer.append("(");
 		buffer.append(slot == null ? "(null slot)" : slot.getBrowserText());
 		buffer.append(" ");
@@ -63,10 +69,6 @@ public class OwnSlotValueQuery implements VisitableQuery, BoundableQuery {
 		}
 		buffer.append(" ");
 		buffer.append(expr);
-		if (maxMatches != KnowledgeBase.UNLIMITED_MATCHES) {
-			buffer.append(" -- max matches: ");
-			buffer.append(maxMatches);
-		}
 		buffer.append(")");
 		return buffer.toString();
 	}

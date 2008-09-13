@@ -2,6 +2,7 @@ package edu.stanford.smi.protege.query.querytypes;
 
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
+import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 
 public class LuceneOwnSlotValueQuery implements VisitableQuery, BoundableQuery {
@@ -50,7 +51,13 @@ public class LuceneOwnSlotValueQuery implements VisitableQuery, BoundableQuery {
 
 	@Override
 	public String toString() {
+		return toString(0);
+	}
+
+	public String toString(int indent) {
+		StringBuffer indentStr = QueryUtil.getIndentString(indent);
 		StringBuffer buffer = new StringBuffer();
+		buffer.append(indentStr);
 		buffer.append("(");
 		buffer.append(slot == null ? "(null slot)" : slot.getBrowserText());
 		buffer.append(" = ");

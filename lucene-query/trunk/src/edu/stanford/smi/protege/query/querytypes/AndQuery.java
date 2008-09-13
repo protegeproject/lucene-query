@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.ui.QueryUtil;
 
 public class AndQuery implements VisitableQuery {
 	public Collection<VisitableQuery> conjuncts;
@@ -30,19 +31,24 @@ public class AndQuery implements VisitableQuery {
 
 	@Override
 	public String toString() {
-		if (conjuncts.size() == 0) {
-			return "(empty AND query)";
+		return toString(0);
+	}
+
+	public String toString(int indent) {
+		StringBuffer indentStr = QueryUtil.getIndentString(indent);
+		if (conjuncts.size() == 0) {//rare case
+			return indentStr.toString() + "(empty AND query)";
 		}
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(");
 		Iterator<VisitableQuery> it = conjuncts.iterator();
 		while (it.hasNext()) {
-			buffer.append(it.next().toString());
-			buffer.append(" and\n");
+			buffer.append(it.next().toString(indent));
+			buffer.append("\n");
+			buffer.append(indentStr);
+			buffer.append("AND\n");
 		}
-		buffer.delete(buffer.length() - 5, buffer.length()); //remove last "and"
-		buffer.append(")");
+		buffer.delete(buffer.length() - 5 - indent, buffer.length()); //remove last "and"
 		return buffer.toString();
 	}
 

@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.ui.QueryUtil;
 
 public class OrQuery implements VisitableQuery, BoundableQuery {
 
@@ -43,25 +44,26 @@ public class OrQuery implements VisitableQuery, BoundableQuery {
     }
   }
 
-  @Override
-  public String toString() {
+	@Override
+	public String toString() {
+		return toString(0);
+	}
+
+	public String toString(int indent) {
+	  StringBuffer indentStr = QueryUtil.getIndentString(indent);
 	  if (disjuncts.size() == 0) {
-			return "(empty AND query)";
+			return indentStr.toString() + "(empty OR query)";
 		}
 
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("(");
 		Iterator<VisitableQuery> it = disjuncts.iterator();
 		while (it.hasNext()) {
-			buffer.append(it.next().toString());
-			buffer.append(" or\n");
+			buffer.append(it.next().toString(indent));
+			buffer.append("\n");
+			buffer.append(indentStr);
+			buffer.append("OR\n");
 		}
-		buffer.delete(buffer.length() - 4, buffer.length()); //remove last "and"
-		if (maxMatches != KnowledgeBase.UNLIMITED_MATCHES) {
-			buffer.append(" -- max matches: ");
-			buffer.append(maxMatches);
-		}
-		buffer.append(")");
+		buffer.delete(buffer.length() - 4 - indent, buffer.length()); //remove last "or"
 		return buffer.toString();
   }
 
