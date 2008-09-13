@@ -111,4 +111,13 @@ public final class QueryUtil {
 		}
 		return "exact match";
 	}
+
+	public static StringBuffer getIndentString(int indent) {
+		StringBuffer buffer = new StringBuffer(indent);
+		for (int i = 0; i < indent; i++) {
+			buffer.append(' ');
+		}
+		return buffer;
+	}
+
 }
