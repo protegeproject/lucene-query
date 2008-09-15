@@ -517,7 +517,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	 * @return int number of hits for the query
 	 */
 	private int doQuery(Query q) {
-		Set<Frame> results = null;
+		Collection<Frame> results = null;
 		if (q != null) {
 			results = kb.executeQuery(q);
 		}
