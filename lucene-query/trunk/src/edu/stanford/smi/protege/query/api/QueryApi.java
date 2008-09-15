@@ -1,5 +1,6 @@
 package edu.stanford.smi.protege.query.api;
 
+import java.util.Collection;
 import java.util.Set;
 
 import edu.stanford.smi.protege.model.Frame;
@@ -16,7 +17,7 @@ public class QueryApi {
         this.kb = kb;
     }
     
-    public Set<Frame> executeQuery(Query q) {
+    public Collection<Frame> executeQuery(Query q) {
         return kb.executeQuery(q);
     }
     

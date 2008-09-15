@@ -1,6 +1,7 @@
 package edu.stanford.smi.protege.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -171,7 +172,7 @@ public class PhoneticSearch_Test extends TestCase {
     queries.add(q2);
     Query q = new AndQuery(queries);
     OWLClass cheesey = om.getOWLNamedClass("CheeseyPizza");
-    Set<Frame> frames = om.executeQuery(q);
+    Collection<Frame> frames = om.executeQuery(q);
     assertEquals(1, frames.size());
     assertTrue(frames.contains(cheesey));
   }
@@ -189,7 +190,7 @@ public class PhoneticSearch_Test extends TestCase {
     VisitableQuery q2 = new PhoneticQuery(label, "BaseEspzza");
     queries.add(q2);
     VisitableQuery q = new OrQuery(queries);
-    Set<Frame> frames = om.executeQuery(q);
+    Collection<Frame> frames = om.executeQuery(q);
     assertEquals(2, frames.size());
     Frame deepBase = om.getOWLNamedClass("DeepPanBase");
     assertTrue(frames.contains(deepBase));
