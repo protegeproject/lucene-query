@@ -15,8 +15,7 @@ import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
-import edu.stanford.smi.protege.query.indexer.Indexer;
-import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
+import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
@@ -44,12 +43,11 @@ public class PhoneticSearch_Test extends TestCase {
     checkErrors(errors);
     OWLModel om = (OWLModel) project.getKnowledgeBase();
     QueryConfiguration qc = new QueryConfiguration(om);
-    Set<Indexer> indexers = new HashSet<Indexer>();
-    indexers.add(new PhoneticIndexer());
+    Set<IndexMechanism> indexers = new HashSet<IndexMechanism>();
+    indexers.add(IndexMechanism.PHONETIX_INDICIES);
     qc.setIndexers(indexers);
     QueryApi qapi = new QueryApi(om);
-    qapi.install(qc);
-    qapi.index();
+    qapi.index(qc);
     return om;
   }
   
