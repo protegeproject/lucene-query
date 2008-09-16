@@ -2,8 +2,6 @@ package edu.stanford.smi.protege.query.indexer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,8 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.Token;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
@@ -35,7 +31,6 @@ import org.apache.lucene.search.TermQuery;
 import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.Localizable;
 import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
@@ -44,7 +39,7 @@ import edu.stanford.smi.protege.query.util.IndexTaskRunner;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 
-public abstract class AbstractIndexer implements Indexer, Localizable, Serializable {
+public abstract class AbstractIndexer implements Indexer {
     private static final long serialVersionUID = 1964188756235468692L;
 
 private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
@@ -72,12 +67,13 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   private static final String CONTENTS_FIELD            = "contents";
   private static final String LITERAL_CONTENTS          = "literalContents";
   
-  private IndexTaskRunner indexRunner = new IndexTaskRunner();
+  private transient IndexTaskRunner indexRunner;
 
   
   public AbstractIndexer() {
-    analyzer = createAnalyzer();
-    indexRunner.startBackgroundThread();
+      analyzer = createAnalyzer();
+      indexRunner = new IndexTaskRunner();
+      indexRunner.startBackgroundThread();
   }
   
   public void dispose() {
@@ -547,7 +543,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
   
   public void localize(KnowledgeBase kb) {
-
+      kbLock = kb;
+      analyzer = createAnalyzer();
   }
 
 }
