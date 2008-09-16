@@ -17,10 +17,9 @@ import edu.stanford.smi.protege.util.ApplicationProperties;
  */
 public class LuceneQueryPluginDefaults {
 			
-	public static final String PROTEGE_PROP_KEY_DEFAULT_SLOT = "query_plugin.default.search_slot";
-	public static final String DEFAULT_SLOT_NAME = "Preferred_Name";
+    public static final String PROTEGE_PROP_KEY_DEFAULT_SEARCH_TYPE_BASE = "query_plugin.default.search_type.";
 	
-	private static final String PROTEGE_PROP_KEY_DEFAULT_SEARCH_TYPE_BASE = "query_plugin.default.search_type.";
+
 	
 	private static HashMap<ValueType, String> valueType2ProtegeKeysMap = new HashMap<ValueType, String>();
 	private static HashMap<ValueType, String> valueType2DefaultValueMap = new HashMap<ValueType, String>();
@@ -43,18 +42,6 @@ public class LuceneQueryPluginDefaults {
 		valueType2DefaultValueMap.put(ValueType.INTEGER, QueryComponent.IS);
 		valueType2DefaultValueMap.put(ValueType.STRING, QueryComponent.EXACT_MATCH);
 		valueType2DefaultValueMap.put(ValueType.SYMBOL, QueryComponent.IS);
-	}
-	
-		
-	/**
-	 * @return The default search slot name as defined in the protege.properties for the
-	 * key defined as value of {@link PROTEGE_PROP_KEY_DEFAULT_SLOT}. 
-	 * If this property is not present, it will return the value of the constant
-	 * {@link DEFAULT_SLOT_NAME}.
-	 * 
-	 */
-	public static String getDefaultSearchSlotName() {
-		return ApplicationProperties.getApplicationOrSystemProperty(PROTEGE_PROP_KEY_DEFAULT_SLOT, DEFAULT_SLOT_NAME);
 	}
 	
 	
