@@ -108,8 +108,6 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 			frame.getContentPane().add(advanceQueryTabWidget);
 			frame.pack();
 		}
-		Slot defaultSearchSlot = kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName());
-		advanceQueryTabWidget.setDefaultSlot(defaultSearchSlot);
 		
 		advanceQueryTabWidget.setQueryComponent(null, text);
 				

@@ -4,10 +4,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -16,8 +13,8 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
-import edu.stanford.smi.protege.query.kb.IndexOntologies;
 import edu.stanford.smi.protege.util.ComponentUtilities;
+import edu.stanford.smi.protege.util.ModalDialog;
 
 
 
@@ -34,17 +31,18 @@ public class InstallIndiciesAction extends AbstractAction {
     }
     
     public void actionPerformed(ActionEvent buttonPushed) {
-        int choice = JOptionPane.showConfirmDialog(plugin, 
-                                                   "Are you sure you want to index this ontology?", 
-                                                   "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (choice == JOptionPane.YES_OPTION) {
+        final IndexConfigurer configurer = new IndexConfigurer(kb);
+        int ret = ModalDialog.showDialog(plugin, configurer, "Index Ontologies", ModalDialog.MODE_OK_CANCEL);
+        if (ret == ModalDialog.OPTION_OK) {
             final JDialog dialog = createProgressBox();
             new Thread(new Runnable() {
                 public void run() {
                   try {
                       QueryApi api = new QueryApi(kb);
-                      api.install(plugin.getQueryConfiguration());
-                      api.index();
+                      QueryConfiguration qc = configurer.getConfiguration();
+                      api.index(qc);
+                      plugin.getUIConfiguration().setLuceneSlots(qc.getSearchableSlots());
+                      plugin.getUIConfiguration().setIndexers(qc.getIndexers());
                   } finally {
                       dialog.dispose();
                   }

@@ -7,9 +7,10 @@ import java.util.Collection;
 import javax.swing.JPanel;
 
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
@@ -52,8 +53,8 @@ public final class QueryUtil {
 		return query;
 	}
 
-	public static void addQueryComponent(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot, ListPanel listPanel) {
-		addQueryComponent(kb, slots, defaultSlot, listPanel, "");
+	public static void addQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, ListPanel listPanel) {
+		addQueryComponent(kb, plugin, listPanel, "");
 	}
 
 	/**
@@ -64,8 +65,8 @@ public final class QueryUtil {
 	 * @param listPanel the {@link ListPanel} to add too
 	 * @param defaultVaule the default value to be searched for as a String
 	 */
-	public static void addQueryComponent(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot, ListPanel listPanel, String defaultValue) {
-		QueryComponent qc = new QueryComponent(kb, slots, defaultSlot, defaultValue);
+	public static void addQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, ListPanel listPanel, String defaultValue) {
+		QueryComponent qc = new QueryComponent(kb, plugin, defaultValue);
 		ListPanelComponent comp = new ListPanelComponent(listPanel, qc, false, true);
 		comp.setMinimumSize(new Dimension(60, 56));
 		comp.setPreferredSize(new Dimension(500, 56));
@@ -83,8 +84,8 @@ public final class QueryUtil {
 	 * @param defaultSlot the slot to display by default (must be contained in the slots Collection)
 	 * @param listPanel the {@link ListPanel} to add too
 	 */
-	public static void addRestrictionQueryComponent(OWLModel model, Collection<Slot> slots, Slot defaultSlot, ListPanel listPanel) {
-		OWLRestrictionQueryComponent qc = new OWLRestrictionQueryComponent(model, slots, defaultSlot);
+	public static void addRestrictionQueryComponent(OWLModel model, LuceneQueryPlugin plugin, ListPanel listPanel) {
+		OWLRestrictionQueryComponent qc = new OWLRestrictionQueryComponent(model, plugin);
 		ListPanelComponent comp = new ListPanelComponent(listPanel, qc, false, true);
 		comp.setMinimumSize(new Dimension(60, 100));
 		comp.setPreferredSize(new Dimension(500, 200));

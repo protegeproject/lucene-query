@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 
 import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.action.ExportToCsvUtil;
+import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
@@ -41,7 +42,7 @@ import edu.stanford.smi.protege.query.api.QueryConfiguration;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.ConfigureLuceneAction;
 import edu.stanford.smi.protege.query.menu.InstallIndiciesAction;
-import edu.stanford.smi.protege.query.menu.LuceneConfiguration;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
@@ -56,7 +57,6 @@ import edu.stanford.smi.protege.query.ui.QueryResourceRenderer;
 import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelListener;
-import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.server.framestore.RemoteClientFrameStore;
 import edu.stanford.smi.protege.ui.ListFinder;
@@ -81,7 +81,6 @@ import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
  * @date 15-Aug-06
  */
 public class LuceneQueryPlugin extends AbstractTabWidget {
-
 	private static final long serialVersionUID = -5589620508506925170L;
 
     public static final int DEFAULT_MAX_MATCHES = 1000;
@@ -91,7 +90,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private static final String SEARCH_IN_PROGRESS = "Search Results (search in progress)";
 	public static final String LUCENE_MENU_NAME = "Lucene Query";
 
-	private LuceneConfiguration configuration;
+	private QueryUIConfiguration configuration;
 
 	private KnowledgeBase kb;
 	private Collection<Slot> slots;
@@ -136,10 +135,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		this.queryRenderer = this.isOWL ? new QueryResourceRenderer() : new QueryFrameRenderer();
 		this.queryRenderer.setMatchColor(new Color(24, 72, 124));
 
-		this.slots  = new QueryApi(kb).install(getQueryConfiguration());
-
-		setDefaultSlot(kb.getSlot(LuceneQueryPluginDefaults.getDefaultSearchSlotName()));
-
+		configuration = new QueryUIConfiguration(kb);
+		QueryConfiguration qc = new QueryApi(kb).install();
+		if (qc != null) {
+		    configuration.setLuceneSlots(qc.getSearchableSlots());
+		    configuration.setIndexers(qc.getIndexers());
+		}
 		// add lucene query menu
 		addMenu();
         // add UI components
@@ -151,33 +152,18 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private void addMenu() {
 	    JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
 	    menu = new JMenu(LUCENE_MENU_NAME);
-	    if (getLuceneConfiguration().canIndex()) {
+	    if (getUIConfiguration().canIndex()) {
 	        menu.add(new InstallIndiciesAction(this, kb));
 	    }
 	    menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
 	    menuBar.add(menu);
 	}
 
-	public QueryConfiguration getQueryConfiguration() {
-	    //return getQueryConfiguration(kb, configuration);
-		//suggestion from Tim
-		return getQueryConfiguration(kb, getLuceneConfiguration());
-	}
-
-	public static QueryConfiguration getQueryConfiguration(KnowledgeBase kb, LuceneConfiguration configuration) {
-        QueryConfiguration qc = new QueryConfiguration(kb);
-        qc.setIndexers(configuration.getIndexers());
-        return qc;
-	}
-
-	public void setLuceneConfiguration(LuceneConfiguration configuration) {
+        public void setLuceneConfiguration(QueryUIConfiguration configuration) {	
 	    this.configuration = configuration;
 	}
 
-	public LuceneConfiguration getLuceneConfiguration() {
-	    if (configuration == null) {
-	        configuration = new LuceneConfiguration(kb);
-	    }
+	public QueryUIConfiguration getUIConfiguration() {
 	    return configuration;
 	}
 
@@ -404,14 +390,14 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 									OWLIcons.getImageIcon(OWLIcons.ADD_OVERLAY).getImage(), 15, 13, 15, 16);
 		return new AbstractAction("Add a nested query", icon) {
 			public void actionPerformed(ActionEvent e) {
-				QueryUtil.addRestrictionQueryComponent((OWLModel)kb, slots, defaultSlot, queriesListPanel);
+				QueryUtil.addRestrictionQueryComponent((OWLModel)kb, LuceneQueryPlugin.this, queriesListPanel);
 			}
 		};
 	}
 
 	public void setQueryComponent(Slot slot, String defaultValue ){
 		queriesListPanel.removeAllPanels();
-		QueryUtil.addQueryComponent(kb, slots, (slot == null ? defaultSlot:slot), queriesListPanel, defaultValue);
+		QueryUtil.addQueryComponent(kb, this, queriesListPanel, defaultValue);
 		queriesListPanel.repaint();
 		queriesListPanel.revalidate();
 	}
@@ -441,7 +427,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	}
 
 	private void addQueryComponent() {
-		QueryUtil.addQueryComponent(kb, slots, defaultSlot, queriesListPanel);
+		QueryUtil.addQueryComponent(kb, this, queriesListPanel);
 	}
 
 	/**
@@ -520,6 +506,19 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		Collection<Frame> results = null;
 		if (q != null) {
 			results = kb.executeQuery(q);
+			Collection<Frame> toRemove = new HashSet<Frame>();
+			for (Frame frame : results) {
+			    if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
+			        toRemove.add(frame);
+			    }
+			    if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
+			        toRemove.add(frame);
+			    }
+			    if (!frame.isVisible()) {
+			        toRemove.add(frame);
+			    }
+			}
+			results.removeAll(toRemove);
 		}
 		int hits = results != null ? results.size() : 0;
 		if (hits == 0) {
@@ -533,8 +532,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		return hits;
 	}
 
-	public VisitableQuery getQuery() {
-		VisitableQuery query = null;
+
+    public VisitableQuery getQuery() {
+            VisitableQuery query = null;
 		try {
 			query = QueryUtil.getQueryFromListPanel(queriesListPanel, btnAndQuery.isSelected());
 		} catch (Exception e) {
@@ -545,23 +545,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			}
 		}
 		return query;
-	}
-
-	public Slot getDefaultSlot() {
-		return defaultSlot;
-	}
-
-	public void setDefaultSlot(Slot defaultSlot) {
-		if (defaultSlot == null) {
-			defaultSlot = kb.getSlot(LuceneQueryPluginDefaults.DEFAULT_SLOT_NAME);
-		}
-
-		if (defaultSlot == null) {
-			this.defaultSlot = kb.getNameSlot();
-		} else {
-			this.defaultSlot = defaultSlot;
-		}
-
 	}
 
 }

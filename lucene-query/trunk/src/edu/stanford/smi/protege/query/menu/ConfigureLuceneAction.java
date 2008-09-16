@@ -12,12 +12,12 @@ public class ConfigureLuceneAction extends AbstractAction {
     private static final long serialVersionUID = -36752085065056828L;
     
     private LuceneQueryPlugin plugin;
-    private LuceneConfiguration newConfiguration;
+    private QueryUIConfiguration newConfiguration;
     
     public ConfigureLuceneAction(LuceneQueryPlugin plugin) {
         super("Configure", OWLIcons.getPreferencesIcon());
         this.plugin = plugin;
-        newConfiguration = new LuceneConfiguration(plugin.getLuceneConfiguration());
+        newConfiguration = new QueryUIConfiguration(plugin.getUIConfiguration());
     }
 
     public void actionPerformed(ActionEvent e) {

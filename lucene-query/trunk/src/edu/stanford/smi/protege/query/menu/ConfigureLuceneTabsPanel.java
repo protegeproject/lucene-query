@@ -13,7 +13,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-import edu.stanford.smi.protege.query.menu.LuceneConfiguration.BooleanConfigItem;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.BooleanConfigItem;
 import edu.stanford.smi.protege.ui.CheckBoxRenderer;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
@@ -24,12 +24,12 @@ import edu.stanford.smi.protege.util.LabeledComponent;
 public class ConfigureLuceneTabsPanel extends JComponent {
     private static final long serialVersionUID = 1835328900385886439L;
     
-    private LuceneConfiguration configuration;
+    private QueryUIConfiguration configuration;
     private JTable table;
     private EnumMap<BooleanConfigItem, String> titleMap = new EnumMap<BooleanConfigItem, String>(BooleanConfigItem.class);
 
     
-    public ConfigureLuceneTabsPanel(LuceneConfiguration configuration) {
+    public ConfigureLuceneTabsPanel(QueryUIConfiguration configuration) {
         this.configuration = configuration;
         initTitles();
         
@@ -52,8 +52,6 @@ public class ConfigureLuceneTabsPanel extends JComponent {
         titleMap.put(BooleanConfigItem.SEARCH_FOR_CLASSES, "Include Classes in search results");
         titleMap.put(BooleanConfigItem.SEARCH_FOR_PROPERTIES, 
                      configuration.isOwl() ? "Include Properties in search results" : "Include Slots in search Results");
-        titleMap.put(BooleanConfigItem.USE_PHONETIX_INDICIES, "Use Phonetic Indicies");
-        titleMap.put(BooleanConfigItem.USE_STANDARD_INDICIES, "Use Standard Lucene Indicies");
     }
     
     private TableModel createTableModel() {
