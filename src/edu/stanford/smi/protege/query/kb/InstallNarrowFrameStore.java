@@ -1,23 +1,17 @@
 package edu.stanford.smi.protege.query.kb;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.DefaultKnowledgeBase;
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.framestore.SimpleFrameStore;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
-import edu.stanford.smi.protege.query.indexer.Indexer;
-import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
-import edu.stanford.smi.protege.query.indexer.StdIndexer;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.ProtegeJob;
-import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class InstallNarrowFrameStore extends ProtegeJob {
   private static final long serialVersionUID = 8982683075005704375L;
@@ -29,26 +23,34 @@ public class InstallNarrowFrameStore extends ProtegeJob {
   public final static String RDF_LABEL = "rdfs:label";
   public final static String RDF_COMMENT = "rdfs:comment";
   
-  private QueryConfiguration qc;
+  private File indexLocation;
   
-  public InstallNarrowFrameStore(QueryConfiguration qc) {
-    super(qc.getKnowledgeBase());
-    this.qc = qc;
+  public InstallNarrowFrameStore(KnowledgeBase kb, File indexLocation) {
+    super(kb);
+    this.indexLocation = indexLocation;
+  }
+  
+  @Override
+  public QueryConfiguration execute() throws ProtegeException {
+        return (QueryConfiguration) super.execute();
   }
 
   @Override
-  public Object run() throws ProtegeException {
+  public QueryConfiguration run() throws ProtegeException {
     DefaultKnowledgeBase kb = (DefaultKnowledgeBase) getKnowledgeBase();
+    if (indexLocation == null) { 
+        indexLocation = new File(new QueryConfiguration(kb).getBaseIndexPath());
+    }
+    
     SimpleFrameStore fs = (SimpleFrameStore) kb.getTerminalFrameStore();
     NarrowFrameStore nfs = fs.getHelper();
 
     QueryNarrowFrameStore qnfs = getQueryNarrowFrameStore(nfs);
     if (qnfs == null) {
-    	qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase());
+    	qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase(), indexLocation);
     	fs.setHelper(qnfs);
     }
-    qnfs.configure(qc);
-	return qnfs.getSearchableSlots();
+	return qnfs.getConfiguration();
   }
   
   private QueryNarrowFrameStore getQueryNarrowFrameStore(NarrowFrameStore nfs) {
@@ -62,11 +64,5 @@ public class InstallNarrowFrameStore extends ProtegeJob {
     } while ((nfs = nfs.getDelegate()) != null);
     return null;
   }
-
-  @Override
-    public void localize(KnowledgeBase kb) {
-        super.localize(kb);
-        qc.localize(kb);
-    }
 
 }

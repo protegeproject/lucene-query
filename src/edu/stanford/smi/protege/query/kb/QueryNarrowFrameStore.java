@@ -1,6 +1,11 @@
 package edu.stanford.smi.protege.query.kb;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,6 +13,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 import edu.stanford.smi.protege.exception.ModificationException;
 import edu.stanford.smi.protege.exception.OntologyException;
@@ -18,13 +26,13 @@ import edu.stanford.smi.protege.model.Facet;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.FrameID;
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Reference;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.model.query.QueryCallback;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
+import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.indexer.Indexer;
 import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
 import edu.stanford.smi.protege.query.indexer.StdIndexer;
@@ -45,19 +53,23 @@ import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class QueryNarrowFrameStore implements NarrowFrameStore {
 	private static transient Logger log = Log.getLogger(QueryNarrowFrameStore.class);
+	
+	public static final String CONFIGURATION_FILE = "configuration.xml";
 
 	private KnowledgeBase kb;
 
 	private NarrowFrameStore delegate;
 	private String name;
-	
-	private Set<Slot> searchableSlots = new HashSet<Slot>();
-
-	private Set<Indexer> indexers;
 
 	private Slot nameSlot;
 
 	private boolean indexingInProgress = false;
+	
+	private File indexLocation;
+	
+	private QueryConfiguration configuration;
+	
+	private Set<Indexer> indexers = new HashSet<Indexer>();
 
 	/*-----------------------------------------------------------
 	 * Query Narrow Frame Store support methods.
@@ -65,33 +77,104 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 	public QueryNarrowFrameStore(String name, 
 	                             NarrowFrameStore delegate, 
-	                             KnowledgeBase kb) {
+	                             KnowledgeBase kb,
+	                             File indexLocation) {
 		if (log.isLoggable(Level.FINE)) {
 			log.fine("Constructing QueryNarrowFrameStore");
 		}
 		this.delegate = delegate;
 		nameSlot = kb.getNameSlot();
 		this.kb = kb;
+		this.indexLocation = indexLocation;
+		readConfigFile();
+		initialize();
 	}
 	
-	public void configure(QueryConfiguration qc) {
-	    searchableSlots = qc.getSearchableSlots();
-	    
-	    indexers = qc.getIndexers();
-	    for (Indexer indexer : indexers) {
-	        indexer.setSearchableSlots(searchableSlots);
-	        indexer.setBaseIndexPath(qc.getBaseIndexPath());
-	        indexer.setKnowledgeBase(kb);
-	        indexer.setOWLMode(kb instanceof OWLModel);
-	        indexer.setNarrowFrameStoreDelegate(delegate);
+	public void readConfigFile() {
+	    if (indexLocation == null || !indexLocation.exists() || !indexLocation.isDirectory()) {
+	        return;
+	    }
+	    File configFile = new File(indexLocation, CONFIGURATION_FILE);
+	    try {
+	        XStream xstream = new XStream(new DomDriver());
+	        ObjectInputStream input = xstream.createObjectInputStream(new FileInputStream(configFile));
+	        configuration = (QueryConfiguration) input.readObject();
+	        configuration.localize(kb);
+	        input.close();
+	        return;
+	    }
+	    catch (IOException ioe) {
+	        if (log.isLoggable(Level.FINE)) {
+	            log.log(Level.FINE, "Configuration not found", ioe);
+	        }
+	        return;
+	    }
+	    catch (ClassNotFoundException cnfe) {
+	        if (log.isLoggable(Level.FINE)) {
+	            log.log(Level.FINE, "Configuration not found", cnfe);
+	        }
+	        return;
 	    }
 	}
 	
+	public void writeConfigFile() {
+	    if (indexLocation == null || !indexLocation.exists() || !indexLocation.isDirectory()) {
+	        return;
+	    }
+	    File configFile = new File(indexLocation, CONFIGURATION_FILE);
+	    try {
+	        XStream xstream = new XStream(new DomDriver());
+	        ObjectOutputStream output = xstream.createObjectOutputStream(new FileOutputStream(configFile));
+	        output.writeObject(configuration);
+	        output.close();
+	    }
+	    catch (IOException ioe) {
+	        log.log(Level.WARNING, "Could not write indexer configuration", ioe);
+	    }
+	}
+	
+	public void initialize() {
+	    getConfiguration();
+	    if (configuration == null) {
+	        return;
+	    }
+	    indexers = new HashSet<Indexer>();
+	    for (IndexMechanism mechanism : configuration.getIndexers()) {
+	        try {
+	            Indexer indexer = mechanism.getIndexerClass().newInstance();
+	            indexer.setSearchableSlots(configuration.getSearchableSlots());
+	            indexer.setBaseIndexPath(configuration.getBaseIndexPath());
+	            indexer.setKnowledgeBase(kb);
+	            indexer.setOWLMode(kb instanceof OWLModel);
+	            indexer.setNarrowFrameStoreDelegate(delegate);
+	            indexers.add(indexer);
+	        }
+	        catch (IllegalAccessException e) {
+	            ;
+	        }
+	        catch (InstantiationException e) {
+	            ;
+	        }
+	    }
+	}
+	
+	public QueryConfiguration getConfiguration() {
+	    return configuration;
+	}
+	
+	public void setConfiguration(QueryConfiguration configuration) {
+	    this.configuration = configuration;
+	    initialize();
+	}
+	
+	
 	public Set<Slot> getSearchableSlots() {
-		return searchableSlots;
+		return getConfiguration().getSearchableSlots();
 	}
 
-	public void indexOntologies() {
+	public void indexOntologies(QueryConfiguration configuration) {
+	    this.configuration = configuration;
+	    initialize();
 		synchronized (kb) {
 			indexingInProgress = true;
 		}
@@ -103,6 +186,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			synchronized (kb) {
 				indexingInProgress = false;
 			}
+			writeConfigFile();
 		}
 	}
 

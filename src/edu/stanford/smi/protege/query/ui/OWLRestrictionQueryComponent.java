@@ -4,9 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -18,7 +15,7 @@ import javax.swing.JScrollPane;
 
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
-import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.NestedOwnSlotValueQuery;
@@ -31,7 +28,6 @@ import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
-import edu.stanford.smi.protegex.owl.model.RDFProperty;
 
 /**
  * Extends {@link QueryComponent} to show an OWL restriction query.  
@@ -46,35 +42,14 @@ public class OWLRestrictionQueryComponent extends QueryComponent {
 
 	private LabeledComponent groupLabeledComponent;
 	private ListPanel groupListPanel;
-	private Collection<Slot> searchableSlots;
 	
 	private JRadioButton btnAndQuery;
 	private JRadioButton btnOrQuery;
 	
-	public OWLRestrictionQueryComponent(OWLModel model, Collection<Slot> searchableSlots, Slot defaultSlot) {
-		super(model, collectOWLProperties(model), defaultSlot);
-		this.searchableSlots = searchableSlots;
-		
+	public OWLRestrictionQueryComponent(OWLModel model, LuceneQueryPlugin plugin) {
+		super(model, plugin);
 		// add the default component (must be after searchable slot is set)
 		addQueryComponent();
-	}
-
-	/**
-	 * Gets all the {@link RDFProperty} objects from the {@link OWLModel} and builds a collection
-	 * of {@link OWLProperty}s which are returned (down-casted to {@link Slot}s).
-	 */
-	@SuppressWarnings("unchecked")
-	private static Collection<Slot> collectOWLProperties(OWLModel model) {
-		Collection rdfProps = model.getRDFProperties();
-		Collection<Slot> slots = new HashSet<Slot>(rdfProps.size());
-		for (Iterator iter = rdfProps.iterator(); iter.hasNext();) {
-			Object obj = iter.next();
-			if (obj instanceof OWLProperty) {
-				OWLProperty owlProp = (OWLProperty) obj;
-				slots.add(owlProp);
-			}
-		}
-		return slots;
 	}
 	
 	protected OWLModel getOWLModel() {
@@ -191,7 +166,7 @@ public class OWLRestrictionQueryComponent extends QueryComponent {
 	}
 
 	private void addQueryComponent() {
-		QueryUtil.addQueryComponent(getKnowledgeBase(), searchableSlots, defaultSlot, groupListPanel);
+		QueryUtil.addQueryComponent(getKnowledgeBase(), getLuceneQueryPlugin(), groupListPanel);
 	}
 
 }

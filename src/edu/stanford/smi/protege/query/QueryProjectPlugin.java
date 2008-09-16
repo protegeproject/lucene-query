@@ -5,7 +5,6 @@ import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
 import edu.stanford.smi.protege.plugin.ProjectPluginAdapter;
 import edu.stanford.smi.protege.query.api.QueryApi;
-import edu.stanford.smi.protege.query.menu.LuceneConfiguration;
 import edu.stanford.smi.protege.util.ApplicationProperties;
 
 public class QueryProjectPlugin extends ProjectPluginAdapter {
@@ -24,7 +23,7 @@ public class QueryProjectPlugin extends ProjectPluginAdapter {
     
     private void installQueryFrameStoreOnServer(Project p) {
         KnowledgeBase kb = p.getKnowledgeBase();
-        new QueryApi(kb).install(LuceneQueryPlugin.getQueryConfiguration(kb, new LuceneConfiguration(kb)));
+        new QueryApi(kb).install();
     }
     
     private boolean isLuceneTabEnabled(Project p) {

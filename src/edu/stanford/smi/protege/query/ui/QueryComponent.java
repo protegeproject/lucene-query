@@ -6,9 +6,12 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -29,7 +32,9 @@ import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
+import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
@@ -53,13 +58,11 @@ import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
  * @author Chris Callendar
  */
 public class QueryComponent extends JPanel {
-	
-	public static final String EXACT_MATCH = "exact match";
+    private static final long serialVersionUID = -6087068847427663289L;
+    public static final String EXACT_MATCH = "exact match";
 	public static final String CONTAINS = "contains";
 	public static final String STARTS_WITH = "starts with";
 	public static final String ENDS_WITH = "ends with";
-	public static final String SOUNDS_LIKE = "sounds like";
-	public static final String LUCENE_MATCH = "lucene match";
 	public static final String IS = "is";
 	public static final String GREATER_THAN = "greater than";
 	public static final String LESS_THAN = "less than";
@@ -71,8 +74,6 @@ public class QueryComponent extends JPanel {
 	private Map<ValueType, QueryLabeledComponent> typesToComponentMap;
 	
 	private KnowledgeBase kb;
-	private Collection<Slot> slots;
-	private Collection<Slot> allSlots;
 
 	private static final QueryLabeledComponent NULL_COMPONENT = getBlankComponent();
 	
@@ -87,29 +88,21 @@ public class QueryComponent extends JPanel {
 	private DefaultComboBoxModel cmbModelSymbol = new DefaultComboBoxModel(NULL);
 	private JPanel pnlQueryComponents;
 	private ValueType currentValueType = null;
-	protected final Slot defaultSlot;
 	
 	// this flag must be set to true for view (slot/cls/instance) actions to appear
 	private boolean allowViewActions = false;
+	
+	private LuceneQueryPlugin plugin;
 	
 	/**
 	 * Initializes this component with the given {@link KnowledgeBase} and selectable {@link Slot}s.
 	 * The Name Slot (:NAME) is used as the default Slot.
 	 * @param slots the available slots (which the user can choose from)
 	 */
-	public QueryComponent(KnowledgeBase kb, Collection<Slot> slots) {
-		this(kb, slots, kb.getNameSlot());
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin) {
+		this(kb, plugin, "");
 	}
-	
-	/**
-	 * Initializes this component with the given {@link KnowledgeBase} and selectable {@link Slot}s.
-	 * The defaultSlot is used <b>IF</b> if is contained in the slots collection.
-	 * @param slots the available slots (which the user can choose from)
-	 * @param defaultSlot the slot to display by default	
-	 */
-	public QueryComponent(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot) {
-		this(kb, slots, defaultSlot, "");
-	}
+
 	
 	/**
 	 * Initializes this component with the given {@link KnowledgeBase} and selectable {@link Slot}s.
@@ -118,11 +111,9 @@ public class QueryComponent extends JPanel {
 	 * @param defaultSlot the slot to display by default
 	 * @param value the default value to be searched
 	 */
-	public QueryComponent(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot, String value) {
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, String value) {
 		this.kb = kb;
-		this.slots = slots;
-		this.allSlots = slots;
-		this.defaultSlot = defaultSlot;
+		this.plugin = plugin;
 		this.typesMap = new HashMap<ValueType, String[]>(15);
 		this.typesToComponentMap = new HashMap<ValueType, QueryLabeledComponent>(15);
 					
@@ -135,6 +126,14 @@ public class QueryComponent extends JPanel {
 	
 	protected KnowledgeBase getKnowledgeBase() {
 		return kb;
+	}
+	
+	public QueryUIConfiguration getUIConfiguration() {
+	    return plugin.getUIConfiguration();
+	}
+	
+	public LuceneQueryPlugin getLuceneQueryPlugin() {
+	    return plugin;
 	}
 	
 	/**
@@ -193,10 +192,10 @@ public class QueryComponent extends JPanel {
 		VisitableQuery q;
 		String type = (String) getTypesComboBox().getSelectedItem();
 		
-		if (SOUNDS_LIKE.equals(type)) {
+		if (IndexMechanism.PHONETIX_INDICIES.getCommand().equals(type)) {
 			q = new PhoneticQuery(slot, getExpression());
 		}
-		else if (LUCENE_MATCH.equals(type)) {
+		else if (IndexMechanism.STANDARD_INDICIES.getCommand().equals(type)) {
 		    q = new LuceneOwnSlotValueQuery(slot, getExpression());
 		}
 		else {
@@ -224,6 +223,8 @@ public class QueryComponent extends JPanel {
 		add(getQueryComponentsPanel(), BorderLayout.CENTER);
 
 		// set the default slot (e.g. :NAME)
+		Slot defaultSlot = getUIConfiguration().getDefaultSlot();
+		Collection<Slot> slots = getUIConfiguration().getAllSlots();
 		if ((defaultSlot != null) && slots.contains(defaultSlot)) {
 			getSelectSlotComponent().setObject(defaultSlot);
 		} else if (slots.size() > 0) {
@@ -266,7 +267,7 @@ public class QueryComponent extends JPanel {
 	 * Creates a map of {@link ValueType} objects to String[] values used in the types {@link JComboBox}.
 	 */
 	protected void initializeTypes() {
-		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH, SOUNDS_LIKE, LUCENE_MATCH };	// any, string
+		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH };	// any, string
 		String[] number = { IS, GREATER_THAN, LESS_THAN };	// integer, float
 		String[] contains = { CONTAINS };	// instance, class
 		String[] is = { IS };	// symbol, boolean
@@ -472,7 +473,7 @@ public class QueryComponent extends JPanel {
 	protected Action createSelectSlotAction(final QueryListComponent comp, final String name, Icon icon) {
 		return new AbstractAction(name, icon) {
 			public void actionPerformed(ActionEvent e) {
-				Slot slot = DisplayUtilities.pickSlot(comp, slots, name);
+				Slot slot = DisplayUtilities.pickSlot(comp, getUIConfiguration().getAllSlots(), name);
 				// if the user pressed cancel then slot will be null
 				if (slot != null) {
 					comp.setObject(slot);
@@ -511,10 +512,10 @@ public class QueryComponent extends JPanel {
 	 * @param title the title for the dialog
 	 * @return the {@link Query} or null
 	 */
-    public static Query showQueryDialog(KnowledgeBase kb, Collection<Slot> slots, Slot defaultSlot, Component parent, String title) {
+    public static Query showQueryDialog(KnowledgeBase kb, LuceneQueryPlugin  plugin, Component parent, String title) {
     	// This method is not used at the moment
     	Query query = null;
-    	final QueryComponent comp = new QueryComponent(kb, slots, defaultSlot);
+    	final QueryComponent comp = new QueryComponent(kb, plugin);
 
     	// we need to get the query this way because when the dialog closes all the children components
     	// of QueryComponent are disposed which prevents us from getting the query afterwards
@@ -547,8 +548,9 @@ public class QueryComponent extends JPanel {
 	/** Listens for when the user selects a Cls and updates the slots accordingly. */
 	private QueryListComponentListener clsListener = new QueryListComponentListener() {
 		public void valueChanged(Object value) {
+		    Collection<Slot> slots;
 			if (value == null) {
-				slots = allSlots;
+				slots = getUIConfiguration().getAllSlots();
 			} else if (value instanceof Cls) {
 				Cls cls = (Cls) value;
 				slots = cls.getTemplateSlots();
@@ -581,32 +583,36 @@ public class QueryComponent extends JPanel {
 				valueComponent = NULL_COMPONENT;
 				currentValueType = null;
 			} else if (value instanceof Slot) {
-				Slot slot = (Slot) value;
-				// update the types combobox (if different from current type)
-				ValueType type = slot.getValueType();
-				if (!type.equals(currentValueType)) {
-					currentValueType = type;
-					
-					String[] types = typesMap.get(type);
-					model.removeAllElements();
-					for (int i = 0; i < types.length; i++) {
-						model.addElement(types[i]);
-					}
-					
-					selectDefaultSearchType();
-	
-					// load the symbol values
-					if (ValueType.SYMBOL.equals(type)) {
-						cmbModelSymbol.removeAllElements();
-						for (Iterator iter = slot.getAllowedValues().iterator(); iter.hasNext(); ) {
-							cmbModelSymbol.addElement(iter.next());
-						}
-					}
-	
-					// get the new value component
-					valueComponent = typesToComponentMap.get(type);
-					valueComponent.reset();
-				}
+			    Slot slot = (Slot) value;
+			    // update the types combobox (if different from current type)
+			    ValueType type = slot.getValueType();
+			    currentValueType = type;
+
+			    List<String> types = new ArrayList(Arrays.asList(typesMap.get(type)));
+			    if (getUIConfiguration().getLuceneSlots().contains(slot) && 
+			            (type.equals(ValueType.ANY) || type.equals(ValueType.STRING))) {
+			        for (IndexMechanism indexer : getUIConfiguration().getIndexers()) {
+			            types.add(indexer.getCommand());
+			        }
+			    }
+			    model.removeAllElements();
+			    for (String queryType : types) {
+			        model.addElement(queryType);
+			    }
+
+			    selectDefaultSearchType();
+
+			    // load the symbol values
+			    if (ValueType.SYMBOL.equals(type)) {
+			        cmbModelSymbol.removeAllElements();
+			        for (Iterator iter = slot.getAllowedValues().iterator(); iter.hasNext(); ) {
+			            cmbModelSymbol.addElement(iter.next());
+			        }
+			    }
+
+			    // get the new value component
+			    valueComponent = typesToComponentMap.get(type);
+			    valueComponent.reset();
 			}
 			
 			valueComponent.setBackground(pnlQueryComponents.getBackground());
