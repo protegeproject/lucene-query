@@ -267,8 +267,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         ioe.initCause(e);
         throw ioe;
     }
-    Term term = new Term(SLOT_NAME, getFrameName(slot));
-    query.add(new TermQuery(term), BooleanClause.Occur.MUST);
+    if (slot != null) {
+    	Term term = new Term(SLOT_NAME, getFrameName(slot));
+    	query.add(new TermQuery(term), BooleanClause.Occur.MUST);
+    }
     return query;
   }
  
