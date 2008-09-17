@@ -88,15 +88,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	public static final String SEARCHING_ITEM = "Searching...";
 	private static final String SEARCH_RESULTS = "Search Results";
 	private static final String SEARCH_IN_PROGRESS = "Search Results (search in progress)";
-	public static final String LUCENE_MENU_NAME = "Lucene Query";
+	public static final String LUCENE_MENU_NAME = "Lucene";
 
 	private QueryUIConfiguration configuration;
 
 	private KnowledgeBase kb;
-	private Collection<Slot> slots;
 	private boolean isOWL;
-	private Slot defaultSlot = null;
-    private int maxMatches = DEFAULT_MAX_MATCHES;
 
 	private ViewAction viewAction;
 	private ViewAction editAction;
@@ -119,7 +116,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	public LuceneQueryPlugin() {
 		super();
 		this.isOWL = false;
-		this.slots = Collections.emptySet();
 	}
 
 	/**
@@ -303,9 +299,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			pnlQueryBottom.setLayout(new BoxLayout(pnlQueryBottom, BoxLayout.LINE_AXIS));
 			pnlQueryBottom.setPreferredSize(new Dimension(500, 28));
 
-			pnlQueryBottom.add(new JButton(getSetMaxMatchesAction()));
-			pnlQueryBottom.add(Box.createRigidArea(new Dimension(4, 0)));
-
 			JButton btn = new JButton(new AbstractAction("Clear", Icons.getClearIcon(false, false)) {
 				public void actionPerformed(ActionEvent e) {
 					clearComponents();
@@ -369,21 +362,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			}
 		};
 	}
-
-    private Action getSetMaxMatchesAction() {
-        return new AbstractAction("Set Max Matches") {
-            public void actionPerformed(ActionEvent e) {
-                String userValue = JOptionPane.showInputDialog("Enter max matches count (0 or less for all)",
-                                                               new Integer(maxMatches));
-                try {
-                    maxMatches = Integer.parseInt(userValue);
-                }
-                catch (NumberFormatException nfe) {
-                    Log.getLogger().fine("max matches count not updated.");
-                }
-            }
-        };
-    }
 
 	private Action getAddRestrictionQueryAction() {
 		Icon icon = new OverlayIcon(OWLIcons.getImageIcon(OWLIcons.PRIMITIVE_OWL_CLASS).getImage(), 5, 5,
@@ -461,9 +439,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				try {
 					VisitableQuery query = QueryUtil.getQueryFromListPanel(queriesListPanel,
 															      		   btnAndQuery.isSelected());
-					if (maxMatches > 0) {
-						query = new MaxMatchQuery(query, maxMatches);
-					}
 					hits = doQuery(query);
                     indicateSearchDone(hits, false);
 					setViewButtonsEnabled((hits > 0));
