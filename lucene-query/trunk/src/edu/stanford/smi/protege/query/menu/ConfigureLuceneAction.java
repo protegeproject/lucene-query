@@ -15,16 +15,17 @@ public class ConfigureLuceneAction extends AbstractAction {
     private QueryUIConfiguration newConfiguration;
     
     public ConfigureLuceneAction(LuceneQueryPlugin plugin) {
-        super("Configure", OWLIcons.getPreferencesIcon());
+        super("Configure Search Options", OWLIcons.getPreferencesIcon());
         this.plugin = plugin;
         newConfiguration = new QueryUIConfiguration(plugin.getUIConfiguration());
     }
 
     public void actionPerformed(ActionEvent e) {
         ConfigureLucenePanel panel = new ConfigureLucenePanel(newConfiguration);
-        int sel = ModalDialog.showDialog(plugin, panel, "Configure Collaborative Protege", ModalDialog.MODE_OK_CANCEL);
+        int sel = ModalDialog.showDialog(plugin, panel, "Configure Lucene Query Options", ModalDialog.MODE_OK_CANCEL);
         
         if (sel == ModalDialog.OPTION_OK) {
+            newConfiguration.setMaxResultsDisplayed(panel.getMaxResultsDisplayed());
             plugin.setLuceneConfiguration(newConfiguration);
             newConfiguration.save();
         }   
