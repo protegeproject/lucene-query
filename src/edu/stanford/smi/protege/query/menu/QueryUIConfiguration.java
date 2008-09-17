@@ -24,6 +24,7 @@ import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
 public class QueryUIConfiguration implements Serializable, Localizable {
     public static final Operation INDEX_OPERATION = new UnbackedOperationImpl("Generate Lucene Indices", "");
     public static final String PROTEGE_PROP_KEY_DEFAULT_SLOT = "query_plugin.default.search_slot";
+    public static final String LUCENE_MAX_SEARCH_RESULTS = "lucene.max.displayed.results";
     
     private boolean canIndex;
     
@@ -36,6 +37,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     private Set<Slot> luceneSlots = new HashSet<Slot>();
     
     private Set<Slot> allSlots = new HashSet<Slot>();
+    
+    private int maxResultsDisplayed;
     
     private EnumMap<BooleanConfigItem, Boolean> booleanConfigValue = new EnumMap<BooleanConfigItem, Boolean>(BooleanConfigItem.class);
     
@@ -69,9 +72,39 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         
         initSlots(kb);
         initBooleans();
+        initOther();
     }
     
-    public void initSlots(KnowledgeBase kb) {
+    public QueryUIConfiguration(QueryUIConfiguration original) {
+        canIndex = original.canIndex();
+        isOwl = original.isOwl();
+        
+        defaultSlot = original.getDefaultSlot();
+        allSlots = original.allSlots;
+        
+        maxResultsDisplayed = original.getMaxResultsDisplayed();
+        
+        for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
+            boolean originalValue = original.getBooleanConfiguration(configItem);
+            booleanConfigValue.put(configItem, originalValue);
+        }
+    }
+    
+    public void save() {
+        ApplicationProperties.setString(PROTEGE_PROP_KEY_DEFAULT_SLOT, defaultSlot.getName());
+        ApplicationProperties.setInt(LUCENE_MAX_SEARCH_RESULTS, getMaxResultsDisplayed());
+        for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
+            String protegeProperty = configItem.getProtegeProperty();
+            boolean value = booleanConfigValue.get(configItem);
+            ApplicationProperties.setBoolean(protegeProperty, value);
+        }
+    }
+    
+    /* ------------------------------------
+     * Initialization
+     */
+    
+    private void initSlots(KnowledgeBase kb) {
         String defaultSlotName = ApplicationProperties.getString(PROTEGE_PROP_KEY_DEFAULT_SLOT);
         if (defaultSlotName != null) {
             if (isOwl) {
@@ -108,7 +141,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         return slots;
     }
     
-    public void initBooleans() {
+    private void initBooleans() {
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             String protegeProperty = configItem.getProtegeProperty();
             boolean value = ApplicationProperties.getBooleanProperty(protegeProperty, configItem.getDefaultValue());
@@ -116,17 +149,14 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         } 
     }
     
-    public QueryUIConfiguration(QueryUIConfiguration original) {
-        canIndex = original.canIndex();
-        isOwl = original.isOwl();
-        
-        defaultSlot = original.getDefaultSlot();
-        
-        for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
-            boolean originalValue = original.getBooleanConfiguration(configItem);
-            booleanConfigValue.put(configItem, originalValue);
-        }
+    private void initOther() {
+        maxResultsDisplayed = ApplicationProperties.getIntegerProperty(LUCENE_MAX_SEARCH_RESULTS, 50);
     }
+    
+
+    /* ------------------------------------
+     * Utilities
+     */
     
     public boolean getBooleanConfiguration(BooleanConfigItem configItem) {
         return booleanConfigValue.get(configItem);
@@ -136,11 +166,13 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         booleanConfigValue.put(configItem, value);
     }
     
-    public void save() {
-        for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
-            String protegeProperty = configItem.getProtegeProperty();
-            boolean value = booleanConfigValue.get(configItem);
-            ApplicationProperties.setBoolean(protegeProperty, value);
+    public void localize(KnowledgeBase kb) {
+        for (Slot slot : allSlots) {
+            LocalizeUtils.localize(slot, kb);
+        }
+        LocalizeUtils.localize(defaultSlot, kb);
+        for (Slot slot : luceneSlots) {
+            LocalizeUtils.localize(slot, kb);
         }
     }
     
@@ -202,15 +234,15 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     public void setIndexers(Set<IndexMechanism> indexers) {
         this.indexers = indexers;
     }
-    
-    public void localize(KnowledgeBase kb) {
-        for (Slot slot : allSlots) {
-            LocalizeUtils.localize(slot, kb);
-        }
-        LocalizeUtils.localize(defaultSlot, kb);
-        for (Slot slot : luceneSlots) {
-            LocalizeUtils.localize(slot, kb);
-        }
+
+    public int getMaxResultsDisplayed() {
+        return maxResultsDisplayed;
     }
+
+    public void setMaxResultsDisplayed(int maxResultsDisplayed) {
+        this.maxResultsDisplayed = maxResultsDisplayed;
+    }
+    
+
     
 }
