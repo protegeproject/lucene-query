@@ -31,29 +31,24 @@
       <echo message="Using Protege Home = ${protege.home} to find protege jars"/>
       <property name="protege.lib" value="${protege.home}/protege.jar"/>
       <property name="owl.lib"     value="${protege.home}/plugins/edu.stanford.smi.protegex.owl/protege-owl.jar"/>
+      <property name="std.lib"     value="${protege.home}/plugins/edu.stanford.smi.protegex.standard_extensions/standard-extensions.jar"/>
     </target>
     
-    <target name="useLibDir" depends="checkProtegeHome" 
-            unless="protege.home.set">
-       <echo message="Using lib dir to find protege jars"/>
-      <property name="protege.lib" value="${lib}/protege.jar"/>
-      <property name="owl.lib" value="${lib}/protege-owl.jar"/>
-    </target>
-
-
-    <target name = "checkProtegeLibs" depends="useProtegeHome, useLibDir">
+    <target name = "checkProtegeLibs" depends="useProtegeHome">
       <condition property="libs.found">
         <and>
           <available file="${protege.lib}" type = "file"/>
           <available file="${owl.lib}" type = "file"/>
+          <available file="${std.lib}" type = "file"/>
         </and>
       </condition>
       <path id = "project.classpath">    
         <pathelement location = "${protege.lib}"/>
         <pathelement location = "${owl.lib}"/>
-          <fileset dir="${lib}">
-                        <include name="**/*.jar"/>
-          </fileset>                 
+        <pathelement location = "${std.lib}"/>
+        <fileset dir="${lib}">
+          <include name="**/*.jar"/>
+        </fileset>                 
       </path>
 
     </target>
