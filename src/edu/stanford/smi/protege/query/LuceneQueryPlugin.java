@@ -7,8 +7,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -39,6 +39,7 @@ import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
+import edu.stanford.smi.protege.query.kb.DoQueryJob;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.ConfigureLuceneAction;
 import edu.stanford.smi.protege.query.menu.InstallIndiciesAction;
@@ -46,7 +47,6 @@ import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.ui.DefaultInstanceViewAction;
@@ -59,7 +59,6 @@ import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelListener;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.server.framestore.RemoteClientFrameStore;
-import edu.stanford.smi.protege.ui.ListFinder;
 import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
@@ -73,6 +72,7 @@ import edu.stanford.smi.protege.widget.TabWidget;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
+import edu.stanford.smi.protegex.util.PagedFrameList;
 
 /**
  * {@link TabWidget} for doing advanced queries.
@@ -107,7 +107,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private JPanel pnlQueryBottom;
 
 	private JButton btnSearch;
-	private LabeledComponent resultsComponent;
+	private PagedFrameList<Frame> resultsComponent;
 	private QueryRenderer queryRenderer;
 
 	private JMenu menu;
@@ -192,9 +192,11 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		pnlLeft.add(new JScrollPane(getQueryList()), BorderLayout.CENTER);
 		pnlLeft.add(getQueryBottomPanel(), BorderLayout.SOUTH);
 
-		SelectableList lst = getResultsList();
-		resultsComponent = new LabeledComponent(SEARCH_RESULTS, new JScrollPane(lst), true);
-		resultsComponent.setFooterComponent(new ListFinder(lst, "Find Instance"));
+
+		resultsComponent = new PagedFrameList<Frame>(SEARCH_RESULTS);
+		lstResults = resultsComponent.getSelectableList();
+        lstResults.setCellRenderer(queryRenderer);
+        lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction()));
 
 		viewButton = resultsComponent.addHeaderButton(getViewAction());	// won't be null
 		editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
@@ -208,7 +210,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		splitter.setRightComponent(resultsComponent);
         add(splitter, BorderLayout.CENTER);
 	}
-
+	
 	private Action getEditAction() {
 		if (editAction == null) {
 			if (NCIEditAction.isValid()) {
@@ -336,15 +338,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		return pnlQueryBottom;
 	}
 
-	private SelectableList getResultsList() {
-		if (lstResults == null) {
-	        lstResults = ComponentFactory.createSelectableList(null, false);
-	        lstResults.setCellRenderer(queryRenderer);
-	        lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction()));
-		}
-		return lstResults;
-	}
-
 // KLO start
 
     @Override
@@ -466,7 +459,19 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	}
 
     private void indicateSearchDone(int hits, boolean error) {
-        String matchString = error ? "" : "  (" + hits + " match" + (hits == 1 ? ")" : "es)");
+        String matchString;
+        if (error) {
+            matchString = "";
+        }
+        else {
+            matchString = "  (" + hits + " match" + ((hits > 1) ? "es" : "");
+            if (hits > configuration.getMaxResultsDisplayed()) {
+                matchString = matchString + " shown " + configuration.getMaxResultsDisplayed() + " results at a time)";
+            }
+            else {
+                matchString = matchString + ")";
+            }
+        }
         resultsComponent.setHeaderLabel(SEARCH_RESULTS + matchString);
     }
 
@@ -478,9 +483,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	 * @return int number of hits for the query
 	 */
 	private int doQuery(Query q) {
-		Collection<Frame> results = null;
+		List<Frame> results = null;
 		if (q != null) {
-			results = kb.executeQuery(q);
+			results = new DoQueryJob(kb, q).execute();
 			Collection<Frame> toRemove = new HashSet<Frame>();
 			for (Frame frame : results) {
 			    if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
@@ -498,10 +503,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		int hits = results != null ? results.size() : 0;
 		if (hits == 0) {
 			queryRenderer.setQuery(null);	// don't bold anything
+			resultsComponent.setAllFrames(new ArrayList<Frame>());
 			lstResults.setListData(new String[] { "No results found." });
 		} else {
 			queryRenderer.setQuery(q);		// bold the matching results
-			lstResults.setListData(new Vector<Frame>(results));
+			resultsComponent.setAllFrames(results);
+			resultsComponent.setPageSize(configuration.getMaxResultsDisplayed());
 			lstResults.setSelectedIndex(0);
 		}
 		return hits;
