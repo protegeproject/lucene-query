@@ -98,6 +98,6 @@ public class ConfigureLuceneTabsPanel extends JComponent {
     }
     
     public int getMaxResultsDisplayed() {
-        return ((Long) maxResultsDisplayedField.getValue()).intValue();
+        return ((Number) maxResultsDisplayedField.getValue()).intValue();
     }
 }
