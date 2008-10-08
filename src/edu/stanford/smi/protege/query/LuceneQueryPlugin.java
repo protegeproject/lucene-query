@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
@@ -155,7 +154,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	    menuBar.add(menu);
 	}
 
-        public void setLuceneConfiguration(QueryUIConfiguration configuration) {	
+        public void setLuceneConfiguration(QueryUIConfiguration configuration) {
 	    this.configuration = configuration;
 	}
 
@@ -210,7 +209,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		splitter.setRightComponent(resultsComponent);
         add(splitter, BorderLayout.CENTER);
 	}
-	
+
 	private Action getEditAction() {
 		if (editAction == null) {
 			if (NCIEditAction.isValid()) {
@@ -236,8 +235,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 	private Action createExportAction() {
 		//initialize NCI defaults for export configuration
-		ExportToCsvUtil.setSlotsDelimiter(",");
-		ExportToCsvUtil.setSlotValuesDelimiter("|");
 		ExportToCsvUtil.setExportBrowserText(false);
 		ExportToCsvUtil.setExportMetadata(true);
 
@@ -464,7 +461,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             matchString = "";
         }
         else {
-            matchString = "  (" + hits + " match" + ((hits > 1) ? "es" : "");
+            matchString = "  (" + hits + " match" + (hits > 1 ? "es" : "");
             if (hits > configuration.getMaxResultsDisplayed()) {
                 matchString = matchString + " shown " + configuration.getMaxResultsDisplayed() + " results at a time)";
             }
