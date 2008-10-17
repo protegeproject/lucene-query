@@ -22,7 +22,7 @@ public class StdIndexer extends AbstractIndexer {
   }
   
   public Collection<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
-    return executeQuery(query.getSlot(), query.getExpr());
+    return executeQuery(query.getSlots(), query.getExpr());
   }
   
   public String relativeIndexLocation() {
