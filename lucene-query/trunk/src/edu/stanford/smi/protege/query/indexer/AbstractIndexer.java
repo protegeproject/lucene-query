@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -217,7 +217,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                   set(null);
               }
               Searcher searcher = null;
-              Collection<Frame> results = new ArrayList<Frame>();
+              Collection<Frame> results = new LinkedHashSet<Frame>();
               try {
                   Query luceneQuery = generateLuceneQuery(slot, expr);
                   searcher = new IndexSearcher(getFullIndexPath());
@@ -255,7 +255,6 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
   
   protected Query generateLuceneQuery(Slot slot, String expr) throws IOException {
-    String contents    = "" + expr;
     /* alternative implementation at svn revision 11371 */
     BooleanQuery query = new  BooleanQuery();
     QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
