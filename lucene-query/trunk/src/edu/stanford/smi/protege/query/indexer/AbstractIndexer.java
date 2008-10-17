@@ -208,9 +208,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     doc.add(new Field(LITERAL_CONTENTS, value, Field.Store.YES, Field.Index.UN_TOKENIZED));
     writer.addDocument(doc);
   }
-
-  @SuppressWarnings("unchecked")
-  public Collection<Frame> executeQuery(final Slot slot, final String expr) throws IOException {
+  
+  public Collection<Frame> executeQuery(Collection<Slot> slots, String expr) throws IOException {
+      return executeQuery(generateLuceneQuery(slots, expr));
+  }
+  
+  public Collection<Frame> executeQuery(final Query luceneQuery) throws IOException {
       FutureTask queryTask = new FutureTask() {
           public void run() {
               if (status == Status.DOWN) {
@@ -219,7 +222,6 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               Searcher searcher = null;
               Collection<Frame> results = new LinkedHashSet<Frame>();
               try {
-                  Query luceneQuery = generateLuceneQuery(slot, expr);
                   searcher = new IndexSearcher(getFullIndexPath());
                   Hits hits = searcher.search(luceneQuery);
                   for (int i = 0; i < hits.length(); i++) {
@@ -253,9 +255,15 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           }
       }
   }
+
+
   
-  protected Query generateLuceneQuery(Slot slot, String expr) throws IOException {
-    /* alternative implementation at svn revision 11371 */
+  /*
+   * This is one of the queries that is actually used for searching the lucene index
+   * rather than just for maintaining it.  It is a slight variation of the query that 
+   * just searches for a single slot.
+   */
+  protected Query generateLuceneQuery(Collection<Slot> slots, String expr) throws IOException {
     BooleanQuery query = new  BooleanQuery();
     QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
     parser.setAllowLeadingWildcard(true);
@@ -266,14 +274,29 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         ioe.initCause(e);
         throw ioe;
     }
-    if (slot != null) {
-    	Term term = new Term(SLOT_NAME, getFrameName(slot));
-    	query.add(new TermQuery(term), BooleanClause.Occur.MUST);
+    if (slots == null || slots.isEmpty()) {
+        ;
+    }
+    else if (slots.size() == 1)  {
+        Slot slot = slots.iterator().next();
+        Term term = new Term(SLOT_NAME, getFrameName(slot));
+        query.add(new TermQuery(term), BooleanClause.Occur.MUST);
+    }
+    else {
+        BooleanQuery slotQuery = new BooleanQuery();
+        for (Slot slot : slots) {
+            Term term = new Term(SLOT_NAME, getFrameName(slot));
+            slotQuery.add(new TermQuery(term), BooleanClause.Occur.SHOULD);
+        }
+        query.add(slotQuery, BooleanClause.Occur.MUST);
     }
     return query;
   }
  
   
+  /*
+   * This query already contains the frame name to find.  It is used to find a document and thence delete it.
+   */
   protected Query generateLuceneQuery(Frame frame, Slot slot, String literalValue) throws IOException {
       BooleanQuery query = new  BooleanQuery();
       
@@ -288,6 +311,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       return query;
     }
   
+  /*
+   * This query already contains the name of the document that it is looking for.
+   * It is used to find a document so that it can be deleted.
+   */
   protected Query generateLuceneQuery(String fname) throws IOException {
     BooleanQuery query  = new  BooleanQuery();
     
@@ -298,6 +325,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     return query;
   }
   
+  /*
+   * This query already contains the frame name of the document it is looking for.
+   * It is used to find a document so that it can be deleted.
+   */
   protected Query generateLuceneQuery(Frame frame, Slot slot) throws IOException {
     BooleanQuery query  = new  BooleanQuery();
     
