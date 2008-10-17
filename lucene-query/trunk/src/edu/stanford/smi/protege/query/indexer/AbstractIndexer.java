@@ -210,14 +210,14 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   @SuppressWarnings("unchecked")
-  public Set<Frame> executeQuery(final Slot slot, final String expr) throws IOException {
+  public Collection<Frame> executeQuery(final Slot slot, final String expr) throws IOException {
       FutureTask queryTask = new FutureTask() {
           public void run() {
               if (status == Status.DOWN) {
                   set(null);
               }
               Searcher searcher = null;
-              Set<Frame> results = new HashSet<Frame>();
+              Collection<Frame> results = new ArrayList<Frame>();
               try {
                   Query luceneQuery = generateLuceneQuery(slot, expr);
                   searcher = new IndexSearcher(getFullIndexPath());
@@ -240,7 +240,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
 
       try {
           indexRunner.addTask(queryTask);
-          return (Set<Frame>) queryTask.get();
+          return (Collection<Frame>) queryTask.get();
       } catch (InterruptedException e) {
           throw new RuntimeException(e);
       } catch (ExecutionException e) {

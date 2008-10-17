@@ -1,7 +1,7 @@
 package edu.stanford.smi.protege.query.indexer;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.Collection;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -21,7 +21,7 @@ public class StdIndexer extends AbstractIndexer {
     return new StandardAnalyzer();
   }
   
-  public Set<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
+  public Collection<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
     return executeQuery(query.getSlot(), query.getExpr());
   }
   
