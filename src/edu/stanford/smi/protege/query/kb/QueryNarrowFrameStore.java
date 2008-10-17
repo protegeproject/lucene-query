@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -239,17 +240,17 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	}
 
 	public class QueryResultsCollector implements QueryVisitor {
-		private Set<Frame> results = new HashSet<Frame>();
+		private Collection<Frame> results = new ArrayList<Frame>();
 
-		private void setResults(Set<Frame> results) {
+		private void setResults(Collection<Frame> results) {
 			this.results = results;
 		}
 
-		private void retainResults(Set<Frame> results) {
+		private void retainResults(Collection<Frame> results) {
 			this.results.retainAll(results);
 		}
 
-		private void addResults(Set<Frame> results) {
+		private void addResults(Collection<Frame> results) {
 			this.results.addAll(results);
 		}
 
@@ -257,7 +258,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			results.add(frame);
 		}
 
-		public Set<Frame> getResults() {
+		public Collection<Frame> getResults() {
 			return results;
 		}
 		
@@ -330,7 +331,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			VisitableQuery innerQuery = q.getInnerQuery();
 			QueryResultsCollector inner = new QueryResultsCollector();
 			innerQuery.accept(inner);
-			Set<Frame> frames = inner.getResults();
+			Collection<Frame> frames = inner.getResults();
 			for (Frame frame : frames) {
 				if (frame instanceof Cls) {
 					addResults(q.executeQueryBasedOnQueryResult((Cls) frame, getDelegate()));

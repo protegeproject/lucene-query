@@ -1,7 +1,7 @@
 package edu.stanford.smi.protege.query.indexer;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.Collection;
 
 import org.apache.lucene.analysis.Analyzer;
 
@@ -22,7 +22,7 @@ public class PhoneticIndexer  extends AbstractIndexer {
     return new PhoneticAnalyzer(new DoubleMetaphone());
   }
   
-  public Set<Frame> executeQuery(PhoneticQuery pq) throws IOException {
+  public Collection<Frame> executeQuery(PhoneticQuery pq) throws IOException {
     return executeQuery(pq.getSlot(), pq.getExpr());
   }
   
