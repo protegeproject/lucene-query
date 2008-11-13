@@ -25,12 +25,11 @@ import javax.swing.event.PopupMenuListener;
 
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Project;
-import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
-import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.ResourceKey;
 import edu.stanford.smi.protege.util.ComponentFactory;
+import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.Disposable;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
@@ -51,19 +50,15 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 	private KnowledgeBase kb;
 
 	private final JFrame frame = createJFrame();
-
-	private LuceneQueryPlugin advanceQueryTabWidget;
-
-	private static List<String> searchedForStrings = new ArrayList<String>();
-
+	private LuceneQueryPlugin advanceQueryTabWidget;	
 	private JComboBox _comboBox;
-
 	private Action _findButtonAction;
+	
+	private static List<String> searchedForStrings = new ArrayList<String>();
 
 
 	private QueryTreeFinderComponent(KnowledgeBase kb) {
 		this.kb = kb;
-
 		initialize();
 	}
 
@@ -241,9 +236,13 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
     }
 
 	public void dispose() {
+        if (frame != null) {
+        	ComponentUtilities.deregisterWindow(frame);        	
+        }
         if (advanceQueryTabWidget != null) {
             advanceQueryTabWidget.dispose();
-        }
+        }        
+        queryTreeFinderComponent = null;
 	}
 
 }
