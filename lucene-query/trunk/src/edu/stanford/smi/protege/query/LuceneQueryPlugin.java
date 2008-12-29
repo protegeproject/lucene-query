@@ -197,8 +197,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         lstResults.setCellRenderer(queryRenderer);
         lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction()));
 
+        editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
 		viewButton = resultsComponent.addHeaderButton(getViewAction());	// won't be null
-		editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
+		
 
 		if (RemoteClientFrameStore.isOperationAllowed(getKnowledgeBase(), ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
 			resultsComponent.addHeaderButton(createExportAction());

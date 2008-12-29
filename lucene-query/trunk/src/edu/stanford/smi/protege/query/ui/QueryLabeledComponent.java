@@ -53,7 +53,8 @@ public class QueryLabeledComponent extends LabeledComponent {
 			comp = scroll.getViewport().getView();
 		}
 		if (comp instanceof JTextComponent) {
-			((JTextComponent) comp).setText("");			
+			// TODO: discuss with Tim/Tania, presumably we want to rest for other types?
+			//((JTextComponent) comp).setText("");			
 		}  else if (comp instanceof JList) {
 			((JList) comp).setListData(new Object[0]);
 		} else if (comp instanceof JComboBox) {
