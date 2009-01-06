@@ -8,6 +8,7 @@ import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.query.Query;
+import edu.stanford.smi.protege.util.ControlFrameCalculatorCachingJob;
 import edu.stanford.smi.protege.util.ProtegeJob;
 
 
@@ -21,10 +22,19 @@ public class DoQueryJob extends ProtegeJob {
         this.query = query;
     }
 
+    // TODO there might be trouble here if more than one search is going on at a time...
     @Override
     public Object run() throws ProtegeException {
         List<Frame> results = new ArrayList<Frame>(getKnowledgeBase().executeQuery(query));
-        Collections.sort(results);
+        boolean enabled = new ControlFrameCalculatorCachingJob(getKnowledgeBase(), false).execute();
+        try {
+            Collections.sort(results);
+        }
+        finally {
+            if (enabled) {
+                new ControlFrameCalculatorCachingJob(getKnowledgeBase(), true).execute();
+            }
+        }
         return results;
     }
     
