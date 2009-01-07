@@ -8,7 +8,8 @@ import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.query.Query;
-import edu.stanford.smi.protege.util.ControlFrameCalculatorCachingJob;
+import edu.stanford.smi.protege.server.RemoteSession;
+import edu.stanford.smi.protege.server.framestore.ServerFrameStore;
 import edu.stanford.smi.protege.util.ProtegeJob;
 
 
@@ -22,17 +23,20 @@ public class DoQueryJob extends ProtegeJob {
         this.query = query;
     }
 
-    // TODO there might be trouble here if more than one search is going on at a time...
     @Override
     public Object run() throws ProtegeException {
         List<Frame> results = new ArrayList<Frame>(getKnowledgeBase().executeQuery(query));
-        boolean enabled = new ControlFrameCalculatorCachingJob(getKnowledgeBase(), false).execute();
+        RemoteSession session = null;
+        if (getKnowledgeBase().getProject().isMultiUserServer()) { // disable frame calculator stuff
+            session = ServerFrameStore.getCurrentSession();
+            ServerFrameStore.setCurrentSession(null);
+        }
         try {
             Collections.sort(results);
         }
         finally {
-            if (enabled) {
-                new ControlFrameCalculatorCachingJob(getKnowledgeBase(), true).execute();
+            if (getKnowledgeBase().getProject().isMultiUserServer()) {
+                ServerFrameStore.setCurrentSession(session);
             }
         }
         return results;
