@@ -32,6 +32,7 @@ import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.action.ExportToCsvUtil;
 import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Frame;
+import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
@@ -62,6 +63,7 @@ import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.DoubleClickActionAdapter;
+import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SelectableList;
@@ -106,7 +108,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private JPanel pnlQueryBottom;
 
 	private JButton btnSearch;
-	private PagedFrameList<Frame> resultsComponent;
+	private PagedFrameList resultsComponent;
 	private QueryRenderer queryRenderer;
 
 	private JMenu menu;
@@ -192,10 +194,10 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		pnlLeft.add(getQueryBottomPanel(), BorderLayout.SOUTH);
 
 
-		resultsComponent = new PagedFrameList<Frame>(SEARCH_RESULTS);
+		resultsComponent = new PagedFrameList(SEARCH_RESULTS);
 		lstResults = resultsComponent.getSelectableList();
         lstResults.setCellRenderer(queryRenderer);
-        lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction()));
+        lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction() != null ? getEditAction() : getViewAction()));
 
         editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
 		viewButton = resultsComponent.addHeaderButton(getViewAction());	// won't be null
@@ -228,7 +230,21 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				viewAction = new NCIViewAction("View Cls", lstResults, Icons.getViewInstanceIcon());
 			} else {
 				// add the default view instance action
-				viewAction = new DefaultInstanceViewAction("View Instance", lstResults, Icons.getViewClsIcon(), kb);
+				viewAction = new ViewAction("View Instance", lstResults, Icons.getViewClsIcon()) {
+				    
+				    public void onView(Object o) {
+				        if (o instanceof FrameWithBrowserText) {
+				            kb.getProject().show((Instance) ((FrameWithBrowserText) o).getFrame());
+				        }
+				    }
+				    
+				    @Override
+				    public void onSelectionChange() {
+				        if (!getSelection().isEmpty()) {
+				            setAllowed(getSelection().iterator().next() instanceof FrameWithBrowserText);
+				        }
+				    }
+				};
 			}
 		}
 		return viewAction;
@@ -481,19 +497,20 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	 * @return int number of hits for the query
 	 */
 	private int doQuery(Query q) {
-		List<Frame> results = null;
+		List<FrameWithBrowserText> results = null;
 		if (q != null) {
 			results = new DoQueryJob(kb, q).execute();
-			Collection<Frame> toRemove = new HashSet<Frame>();
-			for (Frame frame : results) {
+			Collection<FrameWithBrowserText> toRemove = new HashSet<FrameWithBrowserText>();
+			for (FrameWithBrowserText wrappedFrame : results) {
+			    Frame frame = wrappedFrame.getFrame();
 			    if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
-			        toRemove.add(frame);
+			        toRemove.add(wrappedFrame);
 			    }
 			    if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
-			        toRemove.add(frame);
+			        toRemove.add(wrappedFrame);
 			    }
 			    if (!frame.isVisible()) {
-			        toRemove.add(frame);
+			        toRemove.add(wrappedFrame);
 			    }
 			}
 			results.removeAll(toRemove);
@@ -501,7 +518,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		int hits = results != null ? results.size() : 0;
 		if (hits == 0) {
 			queryRenderer.setQuery(null);	// don't bold anything
-			resultsComponent.setAllFrames(new ArrayList<Frame>());
+			resultsComponent.setAllFrames(new ArrayList<FrameWithBrowserText>());
 			lstResults.setListData(new String[] { "No results found." });
 		} else {
 			queryRenderer.setQuery(q);		// bold the matching results
