@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JList;
 
+import edu.stanford.smi.protege.model.SimpleInstance;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
@@ -21,8 +22,14 @@ import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.util.DefaultRenderer;
+import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.ModalDialog;
+import edu.stanford.smi.protegex.owl.model.Deprecatable;
+import edu.stanford.smi.protegex.owl.model.OWLAnonymousClass;
+import edu.stanford.smi.protegex.owl.model.OWLNamedClass;
+import edu.stanford.smi.protegex.owl.model.RDFSClass;
 import edu.stanford.smi.protegex.owl.ui.ResourceRenderer;
+import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 
 /**
  * This is the OWL version of the QueryFrameRenderer.
@@ -286,6 +293,31 @@ public class QueryResourceRenderer extends ResourceRenderer implements QueryRend
 			g.drawString(text, position.x, y);
 			position.x += _fontMetrics.stringWidth(text);
 		}
+	}
+	
+	@Override
+	public void load(Object o) {
+	    if (o instanceof FrameWithBrowserText) {
+	        FrameWithBrowserText fbt = (FrameWithBrowserText) o;
+	        setMainText(fbt.getBrowserText());
+	        if (fbt.getFrame() != null) {
+	            setMainIcon(fbt.getFrame().getIcon());
+	        }
+	        if (o instanceof RDFSClass) {
+	            loadedClass = (RDFSClass) o;
+	            if (loadedClass instanceof OWLAnonymousClass) {
+	                addAnnotationFlag(this, loadedClass);
+	            }
+	            if (loadedClass instanceof Deprecatable && ((Deprecatable) loadedClass).isDeprecated()) {
+	                addIcon(OWLIcons.getDeprecatedIcon());
+	            }
+	        }
+	        else if (o instanceof SimpleInstance) {
+	            loadedInstance = (SimpleInstance) o;
+	        }
+	    } else {
+	        super.load(o);
+	    }
 	}
 
 	// tester
