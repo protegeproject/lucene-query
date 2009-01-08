@@ -11,6 +11,7 @@ import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.plugin.PluginUtilities;
 import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.ui.ProjectView;
+import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.Selectable;
 import edu.stanford.smi.protege.util.ViewAction;
@@ -44,7 +45,7 @@ public class NCIEditAction extends ViewAction {
 		ProjectView projectView = ProjectManager.getProjectManager().getCurrentProjectView();
 		TabWidget tab = projectView.getTabByClassName(NCITAB);
 		if (tab != null) {
-			performAction(tab, projectView, (Cls) o);
+			performAction(tab, projectView, (Cls) ((FrameWithBrowserText) o).getFrame());
 		}
 	}
 
@@ -93,7 +94,8 @@ public class NCIEditAction extends ViewAction {
 	@Override
     public void onSelectionChange() {
     	if (!getSelection().isEmpty()) {
-        	setAllowed(getSelection().iterator().next() instanceof Cls);
+    	    Object selection = getSelection().iterator().next();
+        	setAllowed(selection instanceof FrameWithBrowserText && ((FrameWithBrowserText) selection).getFrame() instanceof Cls);
     	}
     }
 
