@@ -16,11 +16,11 @@ import javax.swing.JList;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.ui.FrameRenderer;
+import edu.stanford.smi.protege.ui.FrameWithBrowserTextRenderer;
 import edu.stanford.smi.protege.util.DefaultRenderer;
 import edu.stanford.smi.protege.util.ModalDialog;
 
@@ -34,7 +34,7 @@ import edu.stanford.smi.protege.util.ModalDialog;
  * @author Chris Callendar
  * @date 7-Nov-06
  */
-public class QueryFrameRenderer extends FrameRenderer implements QueryRenderer {
+public class QueryFrameRenderer extends FrameWithBrowserTextRenderer implements QueryRenderer {
 
 	private String queryString;	
 	private Pattern pattern;
