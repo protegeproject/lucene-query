@@ -263,7 +263,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				String exportString = query == null ? "Invalid query" : "Query:\n\n" + query.toString(0);
 				setExportMetadata(exportString);
 
-				setInstancesToExport(ComponentUtilities.getListValues(lstResults));
+				setFramesWithBrowserTextToExport(ComponentUtilities.getListValues(lstResults));				
 				setSlotsToExport(getPossibleExportSlots());
 				super.actionPerformed(event);
 			}
