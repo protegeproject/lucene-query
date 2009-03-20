@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -49,7 +50,6 @@ import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
-import edu.stanford.smi.protege.query.ui.DefaultInstanceViewAction;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
 import edu.stanford.smi.protege.query.ui.QueryFrameRenderer;
 import edu.stanford.smi.protege.query.ui.QueryRenderer;
@@ -103,6 +103,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 	private ListPanel queriesListPanel;
 	private SelectableList lstResults;
+	// boolean to disable double click on results when using search in modal dialogs
+	private boolean enableClickLstResults;
 	private JRadioButton btnAndQuery;
 	private JRadioButton btnOrQuery;
 	private JPanel pnlQueryBottom;
@@ -117,6 +119,11 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	public LuceneQueryPlugin() {
 		super();
 		this.isOWL = false;
+	}
+	
+	public LuceneQueryPlugin(boolean b) {
+		this();
+		enableClickLstResults = b;
 	}
 
 	/**
@@ -197,7 +204,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		resultsComponent = new PagedFrameList(SEARCH_RESULTS);
 		lstResults = resultsComponent.getSelectableList();
         lstResults.setCellRenderer(queryRenderer);
-        lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction() != null ? getEditAction() : getViewAction()));
+        if (enableClickLstResults) {
+        	lstResults.addMouseListener(new DoubleClickActionAdapter(getEditAction() != null ? getEditAction() : getViewAction()));
+        }
 
         editButton = resultsComponent.addHeaderButton(getEditAction());	// might be null
 		viewButton = resultsComponent.addHeaderButton(getViewAction());	// won't be null
@@ -279,6 +288,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				}
 				return slots;
 			}
+			
+			
 		};
 	}
 

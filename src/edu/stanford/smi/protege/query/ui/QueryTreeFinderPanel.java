@@ -7,11 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.Action;
@@ -19,11 +16,9 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.TreePath;
@@ -38,9 +33,11 @@ import edu.stanford.smi.protege.resource.ResourceKey;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.Disposable;
+import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
+import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
 
@@ -53,12 +50,14 @@ import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
  * @author Tania Tudorache
  */
 public class QueryTreeFinderPanel extends JPanel implements Disposable {
+	
+	public static final long serialVersionUID = 923455029L;
 
 	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.LuceneQueryPlugin";
 
 	private KnowledgeBase kb;
 
-	private final JFrame frame = createJFrame();
+	//private final JFrame frame = createJFrame();
 
 	private LuceneQueryPlugin advanceQueryTabWidget;
 
@@ -136,14 +135,20 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			int r = ProtegeUI.getModalDialogFactory().showDialog(this, lc, "Search for Class", ModalDialogFactory.MODE_OK_CANCEL);
 			if (r == ModalDialogFactory.OPTION_OK) {
 				// Get user selection
-				Collection c = advanceQueryTabWidget.getSelection();
-				if (c != null && c.size() > 0)
-				{
-					Iterator it = c.iterator();
-					Object obj = it.next();
-					selectedCls = (Cls) obj;
-					setExpandedCls(selectedCls, c);
+				Collection selections = advanceQueryTabWidget.getSelection();
+				for (Object selected : selections) {
+				    if (selected instanceof FrameWithBrowserText) {
+				        FrameWithBrowserText selectedFrame = (FrameWithBrowserText) selected;
+				        if (selectedFrame.getFrame() instanceof Cls) {
+				            selectedCls = (Cls) selectedFrame.getFrame();
+				            break;
+				        }
+				    }
 				}
+				if (selectedCls != null) {
+					setExpandedCls(selectedCls, selections);
+				}
+				
 			}
 			dispose();
 		}
@@ -152,13 +157,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 
 
-    private Cls getSelection()
-    {
-		return selectedCls;
-	}
-
-
-	private JComponent createFindButton() {
+    private JComponent createFindButton() {
 		JToolBar toolBar = ComponentFactory.createToolBar();
 		ComponentFactory.addToolBarButton(toolBar, _findButtonAction);
 		return toolBar;
@@ -188,20 +187,6 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 				});
 		_comboBox.addPopupMenuListener(createPopupMenuListener());
 		return _comboBox;
-	}
-
-
-	private JFrame createJFrame() {
-		final JFrame frame = ComponentFactory.createFrame();
-		frame.setTitle("Lucene search");
-
-		frame.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent event) {
-				frame.setVisible(false);
-			}
-		});
-
-		return frame;
 	}
 
 
@@ -240,7 +225,8 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 		if (advanceQueryTabWidget == null) {
 			Project prj = kb.getProject();
 
-			advanceQueryTabWidget = new LuceneQueryPlugin();
+			// instantiate LQT but disable double clicking of search results
+			advanceQueryTabWidget = new LuceneQueryPlugin(false);
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
 			wd.setName("Lucene Query");
@@ -260,6 +246,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			return _findButtonAction;
 
 		_findButtonAction = new StandardAction(ResourceKey.CLASS_SEARCH_FOR) {
+			public static final long serialVersionUID = 923456089L;
 			public void actionPerformed(ActionEvent arg0) {
 				doFind();
 			}
@@ -268,17 +255,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 	}
 
 
-    private void bringFrameToFront() {
-        if (frame != null && frame.isVisible()) {
-
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    frame.toFront();
-                }
-            });
-
-        }
-    }
+    
 
 	public void dispose() {
 		//120606
@@ -292,14 +269,21 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
     private void setExpandedCls(Cls cls, Collection c) {
 		Collection objectPath = ModelUtilities.getPathToRoot(cls);
+		
+		// TODO: temporary workaround. getPathToRoot will include Thing but the tree's roots may not
+		objectPath.remove(((OWLModel) kb).getOWLThingClass());
+		
 
 		TreePath path = ComponentUtilities.getTreePath(tree, objectPath);
+		
 
 		if (path != null) {			
 			tree.scrollPathToVisible(path);
 			tree.setSelectionPath(path);						
 		}
 	}
+    
+    
         
     
 }
