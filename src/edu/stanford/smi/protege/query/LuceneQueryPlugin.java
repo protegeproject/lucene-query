@@ -104,7 +104,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private ListPanel queriesListPanel;
 	private SelectableList lstResults;
 	// boolean to disable double click on results when using search in modal dialogs
-	private boolean enableClickLstResults;
+	private boolean enableClickLstResults = true;
 	private JRadioButton btnAndQuery;
 	private JRadioButton btnOrQuery;
 	private JPanel pnlQueryBottom;
