@@ -14,12 +14,14 @@ import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLNames;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
+import edu.stanford.smi.protegex.owl.model.impl.OWLSystemFrames;
 
 public class OWLRestrictionQuery implements VisitableQuery {
 	private static boolean owlInitialized = false;
 
 	private static RDFProperty equivalentClass;
 	private static RDFProperty someValuesFrom;
+	private static RDFProperty allValuesFrom;
 	private static RDFProperty onProperty;
 	private static RDFProperty owlIntersectionOf;
 	private static RDFProperty rdfFirst;
@@ -41,15 +43,18 @@ public class OWLRestrictionQuery implements VisitableQuery {
 
 	private void initializeOWLEntities(OWLModel om) {
 		if (!owlInitialized) {
-			equivalentClass   = om.getOWLEquivalentClassProperty();
-			onProperty        = om.getRDFProperty(OWLNames.Slot.ON_PROPERTY);
-			owlIntersectionOf = om.getOWLIntersectionOfProperty();
-			rdfFirst          = om.getRDFFirstProperty();
-			rdfRest           = om.getRDFRestProperty();
-			someValuesFrom    = om.getRDFProperty(OWLNames.Slot.SOME_VALUES_FROM);
+		    OWLSystemFrames frames = om.getSystemFrames();
+			equivalentClass   = frames.getOwlEquivalentClassProperty();
+			
+			onProperty        = frames.getOwlOnPropertyProperty();
+			owlIntersectionOf = frames.getOwlIntersectionOfProperty();
+			rdfFirst          = frames.getRdfFirstProperty();
+			rdfRest           = frames.getRdfRestProperty();
+			someValuesFrom    = frames.getOwlSomeValuesFromProperty();
+			allValuesFrom     = frames.getOwlAllValuesFromProperty();
 
-			directSubclasses  = ((KnowledgeBase) om).getSystemFrames().getDirectSubclassesSlot();
-			nameSlot          = ((KnowledgeBase) om).getSystemFrames().getNameSlot();
+			directSubclasses  = frames.getDirectSubclassesSlot();
+			nameSlot          = frames.getNameSlot();
 
 			owlInitialized = true;
 		}
@@ -112,6 +117,13 @@ public class OWLRestrictionQuery implements VisitableQuery {
 					restrictions.add(restriction);
 				}
 			}
+		}
+		for (Frame restriction : nfs.getFrames(allValuesFrom, null, false, innerQueryResult)) {
+		    for (Object restrictionProperty : nfs.getValues(restriction, onProperty, null, false)) {
+		        if (restrictionProperty instanceof Frame && restrictionProperty.equals(property)) {
+		            restrictions.add(restriction);
+		        }
+		    }
 		}
 		return restrictions;
 	}
