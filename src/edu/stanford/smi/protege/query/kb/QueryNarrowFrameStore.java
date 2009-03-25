@@ -6,10 +6,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -240,7 +240,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	}
 
 	public class QueryResultsCollector implements QueryVisitor {
-		private Collection<Frame> results = new ArrayList<Frame>();
+		private Collection<Frame> results = new LinkedHashSet<Frame>();
 
 		private void setResults(Collection<Frame> results) {
 			this.results = results;
