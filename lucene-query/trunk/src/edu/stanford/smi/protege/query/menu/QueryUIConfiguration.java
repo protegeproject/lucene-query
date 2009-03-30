@@ -19,6 +19,7 @@ import edu.stanford.smi.protege.util.LocalizeUtils;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
+import edu.stanford.smi.protegex.owl.model.impl.OWLSystemFrames;
 import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
 
 public class QueryUIConfiguration implements Serializable, Localizable {
@@ -133,11 +134,19 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         Set<Slot> slots = new HashSet<Slot>(rdfProps.size());
         for (Iterator iter = rdfProps.iterator(); iter.hasNext();) {
             Object obj = iter.next();
-            if (obj instanceof OWLProperty) {
-                OWLProperty owlProp = (OWLProperty) obj;
+            if (obj instanceof OWLProperty || !((Slot) obj).isSystem()) {
+                Slot owlProp = (Slot) obj;
                 slots.add(owlProp);
             }
         }
+        // Hacky - most of the rdf properties are not interesting
+        OWLSystemFrames frames = model.getSystemFrames();
+        slots.add(frames.getOwlIncompatibleWithProperty());
+        slots.add(frames.getOwlBackwardCompatibleWithProperty());
+        slots.add(frames.getOwlPriorVersionProperty());
+        slots.add(frames.getRdfsIsDefinedByProperty());
+        slots.add(frames.getRdfsLabelProperty());
+        slots.add(frames.getRdfsSeeAlsoProperty());
         return slots;
     }
     
