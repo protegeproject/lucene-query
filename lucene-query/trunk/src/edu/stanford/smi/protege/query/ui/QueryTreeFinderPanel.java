@@ -21,11 +21,9 @@ import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.tree.TreePath;
 
 import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.ModelUtilities;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.model.WidgetDescriptor;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
@@ -37,7 +35,6 @@ import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
-import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
 
@@ -268,22 +265,8 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 
     private void setExpandedCls(Cls cls, Collection c) {
-		Collection objectPath = ModelUtilities.getPathToRoot(cls);
-		
-		// TODO: temporary workaround. getPathToRoot will include Thing but the tree's roots may not
-		objectPath.remove(((OWLModel) kb).getOWLThingClass());
-		
-
-		TreePath path = ComponentUtilities.getTreePath(tree, objectPath);
-		
-
-		if (path != null) {			
-			tree.scrollPathToVisible(path);
-			tree.setSelectionPath(path);						
-		}
-	}
-    
-    
+    	ComponentUtilities.setSelectedNode(cls.getKnowledgeBase(), tree, new FrameWithBrowserText(cls));
+    }   
         
     
 }
