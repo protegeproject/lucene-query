@@ -94,24 +94,29 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 		//Initial case - should be called only once. It could also be moved to the constructor or initialize.
 		if (advanceQueryTabWidget == null) {
 			advanceQueryTabWidget = getAdvanceQueryTabWidget();
-
 			if (advanceQueryTabWidget == null) {
 				Log.getLogger().warning("Advanced Query Plugin not found. Please check whether the plugin is installed correctly.");
 				return;
-			}
-			
+			}			
 			frame.getContentPane().add(advanceQueryTabWidget);
 			frame.pack();
 		}
 		
 		advanceQueryTabWidget.setQueryComponent(null, text);
-				
-		//hack to bring frame to front if hidden by other window
-		frame.setVisible(false);
-		frame.setVisible(true);	
+		
+		if (!frame.isVisible()) {
+			ComponentUtilities.center(frame); 
+			frame.setVisible(true);
+			bringFrameToFront();
+		} else {
+			frame.setVisible(false);
+			frame.setVisible(true);
+			frame.toFront();
+		}
 			
-		if (text != null && text.length() > 0)
+		if (text != null && text.length() > 0) {
 			advanceQueryTabWidget.doSearch();
+		}
 	}
 
 
@@ -203,8 +208,7 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 			wd.setName("Advanced Query");
 			wd.setWidgetClassName(ADVANCED_QUERY_JAVA_CLASS);			
 			
-			advanceQueryTabWidget.setup(wd, prj);
-			
+			advanceQueryTabWidget.setup(wd, prj);			
 			advanceQueryTabWidget.initialize();
 		}	
 		
