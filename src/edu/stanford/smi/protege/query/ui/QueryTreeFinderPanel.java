@@ -51,28 +51,19 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 	public static final long serialVersionUID = 923455029L;
 
 	private static final String ADVANCED_QUERY_JAVA_CLASS = "edu.stanford.smi.protege.query.LuceneQueryPlugin";
-
+	
 	private KnowledgeBase kb;
-
-	//private final JFrame frame = createJFrame();
-
 	private LuceneQueryPlugin advanceQueryTabWidget;
-
 	private static List<String> searchedForStrings = new ArrayList<String>();
-
 	private JComboBox _comboBox;
-
 	private Action _findButtonAction;
-
 	private Cls selectedCls;
-
 	private JTree tree;
 
 
 	private QueryTreeFinderPanel(KnowledgeBase kb, JTree tree) {
 		this.kb = kb;
 		this.tree = tree;
-
 		initialize();
 	}
 
@@ -144,14 +135,11 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 				}
 				if (selectedCls != null) {
 					setExpandedCls(selectedCls, selections);
-				}
-				
+				}				
 			}
 			dispose();
 		}
 	}
-
-
 
 
     private JComponent createFindButton() {
@@ -189,20 +177,14 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 	private PopupMenuListener createPopupMenuListener() {
 		return new PopupMenuListener() {
+			public void popupMenuCanceled(PopupMenuEvent e) { }
 
-			public void popupMenuCanceled(PopupMenuEvent e) {
-				// do nothing
-			}
-
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-				// do nothing
-			}
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
 
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				_comboBox.setModel(new DefaultComboBoxModel(searchedForStrings
 						.toArray()));
 			}
-
 		};
 	}
 
@@ -230,7 +212,6 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			wd.setWidgetClassName(ADVANCED_QUERY_JAVA_CLASS);
 
 			advanceQueryTabWidget.setup(wd, prj);
-
 			advanceQueryTabWidget.initialize();
 		}
 
@@ -250,8 +231,6 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 		};
 		return _findButtonAction;
 	}
-
-
     
 
 	public void dispose() {
@@ -263,10 +242,8 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 		}
 	}
 
-
     private void setExpandedCls(Cls cls, Collection c) {
     	ComponentUtilities.setSelectedNode(cls.getKnowledgeBase(), tree, new FrameWithBrowserText(cls));
-    }   
-        
+    }  
     
 }
