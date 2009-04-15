@@ -15,10 +15,10 @@ import javax.swing.JList;
 
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
-import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.OrQuery;
-import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
 import edu.stanford.smi.protege.ui.FrameRenderer;
 import edu.stanford.smi.protege.ui.FrameWithBrowserTextRenderer;
 import edu.stanford.smi.protege.util.DefaultRenderer;
