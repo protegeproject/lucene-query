@@ -201,6 +201,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		btn.setPreferredSize(dim);
 		btn.setMinimumSize(dim);
 		btn.setMaximumSize(dim);
+		
+		btn = lcLeft.addHeaderButton(getAddNegatedNestedQueryAction());
+		btn.setText("Add Negated Nested");
+		btn.setPreferredSize(dim);
+		btn.setMinimumSize(dim);
+		btn.setMaximumSize(dim);
+		
 		if (isOWL) {
 			btn = lcLeft.addHeaderButton(getAddRestrictionQueryAction());
 			dim = new Dimension(124, btn.getPreferredSize().height);
@@ -416,6 +423,14 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		return new AbstractAction("Add Query", Icons.getAddQueryLibraryIcon()) {
 			public void actionPerformed(ActionEvent e) {
 				addQueryComponent();
+			}
+		};
+	}
+	
+	private Action getAddNegatedNestedQueryAction() {
+		return new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
+			public void actionPerformed(ActionEvent e) {
+				QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this, queriesListPanel);
 			}
 		};
 	}
