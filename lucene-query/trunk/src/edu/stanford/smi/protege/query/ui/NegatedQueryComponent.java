@@ -18,6 +18,7 @@ import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelListener;
@@ -39,8 +40,7 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 	
 	private KnowledgeBase kb;
 	private LuceneQueryPlugin plugin;
-	
-	private JPanel pnlQueryComponents;
+
 	private LabeledComponent groupLabeledComponent;
 	private ListPanel groupListPanel;
 	
@@ -50,37 +50,21 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 	public NegatedQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin) {
 		this.kb = kb;
 		this.plugin = plugin;
-		initialize();
+
+		add(getGroupLabeledComponent(), BorderLayout.CENTER);
 		addQueryComponent();
 	}
-	
-	
-	private void initialize() {
-		
-		final JPanel pnl = getQueryComponentsPanel();
-		pnl.setMinimumSize(new Dimension(60, 56));
-		pnl.setPreferredSize(new Dimension(500, 56));
-		pnl.setMaximumSize(new Dimension(5000, 56));
 
-		// move the query components panel to be at the top
-		remove(pnl);
-		add(pnl, BorderLayout.NORTH);
-		// add the group list panel
-		add(getGroupLabeledComponent(), BorderLayout.CENTER);
-		
-	}		
-	
 	
 	protected void setDimensions() {
 		setMinimumSize(new Dimension(100, 56));
-		//setPreferredSize(new Dimension(500, 200));
 		setMaximumSize(new Dimension(5000, 500));
 	}	
 	
 	private LabeledComponent getGroupLabeledComponent() {
 		if (groupLabeledComponent == null) {
 			ListPanel pnl = getGroupListPanel();
-			groupLabeledComponent = new LabeledComponent("Queries", new JScrollPane(pnl));
+			groupLabeledComponent = new LabeledComponent("Negated Queries", new JScrollPane(pnl));
 			groupLabeledComponent.setBorder(BorderFactory.createCompoundBorder(
 					BorderFactory.createEmptyBorder(0, 2, 0, 2), 
 					BorderFactory.createLoweredBevelBorder()));
@@ -121,18 +105,12 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 					}
 				};
 			});
-			groupListPanel.setPreferredSize(new Dimension(400, 150));
+			groupListPanel.setPreferredSize(new Dimension(600, 400));
 			//groupListPanel.setMaximumSize(new Dimension(5000, 300));
 		}
 		return groupListPanel;
 	}
 
-	protected JPanel getQueryComponentsPanel() {
-		if (pnlQueryComponents == null) {
-			pnlQueryComponents = new JPanel(new GridLayout(1, /* 4 */ 3, 5, 0));
-		}
-		return pnlQueryComponents;
-	}
 	
 	private void addQueryComponent() {
 		QueryUtil.addQueryComponent(kb, plugin, groupListPanel);
@@ -141,7 +119,8 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 
 	@Override
 	public VisitableQuery getQuery() throws InvalidQueryException {
-		throw new UnsupportedOperationException();
+		VisitableQuery queryToNegate = QueryUtil.getQueryFromListPanel(groupListPanel, btnAndQuery.isSelected());
+		return new NegatedQuery(queryToNegate);
 	}
 
 }
