@@ -32,6 +32,8 @@ public class OWLRestrictionQuery implements VisitableQuery {
 
 	private OWLProperty property;
 	private VisitableQuery query;
+	
+	private OWLModel owlModel;
 
 	public OWLRestrictionQuery(OWLModel om,
 			OWLProperty property,
@@ -39,6 +41,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
 		initializeOWLEntities(om);
 		this.property = property;
 		this.query = query;
+		owlModel = om;
 	}
 
 	private void initializeOWLEntities(OWLModel om) {
@@ -75,7 +78,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
 
 	public Set<Frame> executeQueryBasedOnQueryResult(Cls innerQueryResult, NarrowFrameStore nfs) {
 		Set<Frame> results = new HashSet<Frame>();
-		for (Frame restriction :getRestrictions(innerQueryResult, nfs)) {
+		for (Frame restriction : getRestrictions(innerQueryResult, nfs)) {
 			boolean done = false;
 			Frame owlHeadExpr = getOWLExprHead(restriction, nfs);
 			for (Frame equivCls : nfs.getFrames(equivalentClass, null, false, owlHeadExpr)) {
