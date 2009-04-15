@@ -320,7 +320,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			QueryResultsCollector innerCollector = new QueryResultsCollector();
 			q.getInnerQuery().accept(innerCollector);
 			for (Frame frame : innerCollector.getResults()) {
-				Set<Frame> frames = delegate.getFrames(q.getSlot(), null, false, frame);
+				Set<Frame> frames;
+				synchronized (kb) {
+					frames = delegate.getFrames(q.getSlot(), null, false, frame);
+				}
 				if (frames != null) {
 					addResults(frames);
 				}
@@ -334,7 +337,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			Collection<Frame> frames = inner.getResults();
 			for (Frame frame : frames) {
 				if (frame instanceof Cls) {
-					addResults(q.executeQueryBasedOnQueryResult((Cls) frame, getDelegate()));
+					synchronized (kb) {
+						addResults(q.executeQueryBasedOnQueryResult((Cls) frame, getDelegate()));
+					}
 				}
 			}
 		}
@@ -342,18 +347,25 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		public void visit(OwnSlotValueQuery q) {
 			String searchString = q.getExpr();
 			if (searchString.startsWith("*")) {
-				setResults(delegate.getMatchingFrames(q.getSlot(), null, false, searchString, q.getMaxMatches()));
+				synchronized (kb) {
+					setResults(delegate.getMatchingFrames(q.getSlot(), null, false, searchString, q.getMaxMatches()));
+				}
 			}
 			else {
 				SimpleStringMatcher matcher = new SimpleStringMatcher(searchString);
-				Set<Frame> frames = delegate.getMatchingFrames(q.getSlot(), null, false,
+				Set<Frame> frames;
+				synchronized (kb) {
+					frames  = delegate.getMatchingFrames(q.getSlot(), null, false,
 						"*" + searchString, KnowledgeBase.UNLIMITED_MATCHES);
+				}
 				for (Frame frame : frames)  {
 					boolean found = false;
-					for (Object o : delegate.getValues(frame, q.getSlot(), null, false)) {
-						if (o instanceof String && matcher.isMatch((String) o)) {
-							found = true;
-							break;
+					synchronized (kb) {
+						for (Object o : delegate.getValues(frame, q.getSlot(), null, false)) {
+							if (o instanceof String && matcher.isMatch((String) o)) {
+								found = true;
+								break;
+							}
 						}
 					}
 					if (found) {
