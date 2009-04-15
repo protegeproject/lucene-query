@@ -2,7 +2,6 @@ package edu.stanford.smi.protege.query.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -17,23 +16,14 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelListener;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.util.LabeledComponent;
-import edu.stanford.smi.protegex.owl.model.OWLProperty;
 
 /**
- * Extends {@link QueryComponent} to show an OWL restriction query.  
- * This component lets the user choose an {@link OWLProperty}, 
- * and then create a Query (can be an {@link OrQuery} or an {@link AndQuery}).
- * It is only used with OWL projects.
- *
- * @author Chris Callendar
- * @date 25-Sep-06
+ * The negated query panel.
  */
 public class NegatedQueryComponent extends QueryBuildingJPanel {
 	private static final long serialVersionUID = 4459233470406708315L;
@@ -50,7 +40,10 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 	public NegatedQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin) {
 		this.kb = kb;
 		this.plugin = plugin;
-
+		
+		setLayout(new BorderLayout(0, 0));
+		setDimensions();
+		
 		add(getGroupLabeledComponent(), BorderLayout.CENTER);
 		addQueryComponent();
 	}
@@ -105,8 +98,7 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 					}
 				};
 			});
-			groupListPanel.setPreferredSize(new Dimension(600, 400));
-			//groupListPanel.setMaximumSize(new Dimension(5000, 300));
+			groupListPanel.setPreferredSize(new Dimension(400, 150));
 		}
 		return groupListPanel;
 	}
