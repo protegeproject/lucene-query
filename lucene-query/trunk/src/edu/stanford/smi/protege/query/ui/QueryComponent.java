@@ -35,12 +35,12 @@ import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
-import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.OrQuery;
-import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
 import edu.stanford.smi.protege.query.util.JNumberTextField;
 import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.Icons;
@@ -57,7 +57,7 @@ import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
  * 
  * @author Chris Callendar
  */
-public class QueryComponent extends JPanel {
+public class QueryComponent extends QueryBuildingJPanel {
     private static final long serialVersionUID = -6087068847427663289L;
     public static final String EXACT_MATCH = "exact match";
 	public static final String CONTAINS = "contains";
