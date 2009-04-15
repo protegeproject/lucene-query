@@ -12,7 +12,7 @@ import com.tangentum.phonetix.lucene.PhoneticAnalyzer;
 
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Slot;
-import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
 
 public class PhoneticIndexer  extends AbstractIndexer {
   
