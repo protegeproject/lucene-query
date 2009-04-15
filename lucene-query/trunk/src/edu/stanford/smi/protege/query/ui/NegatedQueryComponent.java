@@ -57,7 +57,9 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 	private LabeledComponent getGroupLabeledComponent() {
 		if (groupLabeledComponent == null) {
 			ListPanel pnl = getGroupListPanel();
-			groupLabeledComponent = new LabeledComponent("Negated Queries", new JScrollPane(pnl));
+			groupLabeledComponent = new LabeledComponent(
+					"<html><font style=\"background-color:yellow\" color=\"#000000\"><b>Negated Queries (NOT)</b></font></html>",
+					new JScrollPane(pnl));
 			groupLabeledComponent.setBorder(BorderFactory.createCompoundBorder(
 					BorderFactory.createEmptyBorder(0, 2, 0, 2), 
 					BorderFactory.createLoweredBevelBorder()));
