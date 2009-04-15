@@ -75,6 +75,23 @@ public final class QueryUtil {
 		listPanel.addPanel(comp);
 	}
 
+	
+	/**
+	 * Adds a new Nested Negated query component to the {@link ListPanel}.
+	 * @param kb the {@link OWLModel}
+	 * @param slots the allowed slots for the restriction queries
+	 * @param defaultSlot the slot to display by default (must be contained in the slots Collection)
+	 * @param listPanel the {@link ListPanel} to add too
+	 */
+	public static void addNegatedNestedQuery(KnowledgeBase kb, LuceneQueryPlugin plugin, ListPanel listPanel) {
+		NegatedQueryComponent qc = new NegatedQueryComponent(kb, plugin);
+		ListPanelComponent comp = new ListPanelComponent(listPanel, qc, false, true);
+		comp.setMinimumSize(new Dimension(60, 100));
+		comp.setPreferredSize(new Dimension(500, 200));
+		comp.setMaximumSize(new Dimension(5000, 500));
+		comp.setRemoveActionToolTip("Remove query");
+		listPanel.addPanel(comp);
+	}
 
 
 	/**
