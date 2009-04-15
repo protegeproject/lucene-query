@@ -7,7 +7,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import edu.stanford.smi.protege.model.Frame;
-import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 
 
 public class StdIndexer extends AbstractIndexer {
