@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,9 +39,11 @@ import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.PropertyPresentQuery;
 import edu.stanford.smi.protege.query.util.JNumberTextField;
 import edu.stanford.smi.protege.query.util.LuceneQueryPluginDefaults;
 import edu.stanford.smi.protege.resource.Icons;
@@ -63,6 +66,8 @@ public class QueryComponent extends QueryBuildingJPanel {
 	public static final String CONTAINS = "contains";
 	public static final String STARTS_WITH = "starts with";
 	public static final String ENDS_WITH = "ends with";
+	public static final String PROPERTY_PRESENT = "property present";
+	public static final String PROPERTY_ABSENT = "property absent";
 	public static final String IS = "is";
 	public static final String GREATER_THAN = "greater than";
 	public static final String LESS_THAN = "less than";
@@ -156,7 +161,10 @@ public class QueryComponent extends QueryBuildingJPanel {
     throws InvalidQueryException {
 		VisitableQuery q = null;
 		String expr = getExpression();
-		if ((expr == null) || (expr.length() == 0)) {
+		String queryType = (String) getTypesComboBox().getSelectedItem();
+		boolean presentAbsent = PROPERTY_PRESENT.equals(queryType) || PROPERTY_ABSENT.equals(queryType);
+		
+		if (((expr == null) || (expr.length() == 0)) && !presentAbsent) {
 			JOptionPane.showMessageDialog(this, "Please enter an expression", "Enter an expression", JOptionPane.ERROR_MESSAGE);
 			if (valueComponent != null) {
 				valueComponent.focus();
@@ -164,7 +172,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 			throw new InvalidQueryException("An expression is required");
 		}
 		
-		if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type)) {
+		if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type) || presentAbsent) {
 			q = getStringQuery(slot, expr);
 		} else if (ValueType.BOOLEAN.equals(type) || ValueType.SYMBOL.equals(type) ||
 				   ValueType.INTEGER.equals(type) || ValueType.FLOAT.equals(type)) {
@@ -197,6 +205,12 @@ public class QueryComponent extends QueryBuildingJPanel {
 		}
 		else if (IndexMechanism.STANDARD_INDICIES.getCommand().equals(type)) {
 		    q = new LuceneOwnSlotValueQuery(slot, getExpression());
+		}
+		else if (PROPERTY_PRESENT.equals(type)) {
+			q = new PropertyPresentQuery(slot);
+		}
+		else if (PROPERTY_ABSENT.equals(type)) {
+			q = new NegatedQuery(new PropertyPresentQuery(slot));
 		}
 		else {
 			boolean startsWith = STARTS_WITH.equals(type) || CONTAINS.equals(type);
@@ -267,10 +281,10 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 * Creates a map of {@link ValueType} objects to String[] values used in the types {@link JComboBox}.
 	 */
 	protected void initializeTypes() {
-		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH };	// any, string
-		String[] number = { IS, GREATER_THAN, LESS_THAN };	// integer, float
-		String[] contains = { CONTAINS };	// instance, class
-		String[] is = { IS };	// symbol, boolean
+		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH, PROPERTY_PRESENT,  PROPERTY_ABSENT };	// any, string
+		String[] number = { IS, GREATER_THAN, LESS_THAN , PROPERTY_PRESENT, PROPERTY_ABSENT};	// integer, float
+		String[] contains = { CONTAINS , PROPERTY_PRESENT, PROPERTY_ABSENT};	// instance, class
+		String[] is = { IS , PROPERTY_PRESENT, PROPERTY_ABSENT};	// symbol, boolean
 		typesMap.clear();
 		typesMap.put(ValueType.ANY, string);
 		typesMap.put(ValueType.BOOLEAN, is);
@@ -377,7 +391,19 @@ public class QueryComponent extends QueryBuildingJPanel {
 	
 	private JComboBox getTypesComboBox() {
 		if (cmbTypes == null) {
-			cmbTypes = new JComboBox(getTypesModel());	
+			cmbTypes = new JComboBox(getTypesModel());
+			cmbTypes.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					String type = (String) getTypesComboBox().getSelectedItem();
+					Component textField = valueComponent.getCenterComponent();
+					if (PROPERTY_PRESENT.equals(type) || PROPERTY_ABSENT.equals(type)) {
+						textField.setEnabled(false);
+					}
+					else {
+						textField.setEnabled(true);
+					}
+				}
+			});
 			
 			selectDefaultSearchType();
 		}
