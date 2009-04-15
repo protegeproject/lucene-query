@@ -33,6 +33,9 @@ import edu.stanford.smi.protege.util.ComponentUtilities;
 import edu.stanford.smi.protege.util.Disposable;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
+import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLOntology;
+import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
 
 /**
  * This class instantiates the Lucene Query Plugin, so that it can be called
@@ -90,6 +93,12 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 		showAdvanceQueryDialog(text);
 	}
 
+	private String getOntologyPrettyName() {
+		OWLOntology activeOntology = OWLUtil.getActiveOntology((OWLModel) kb);
+		String ontnam = activeOntology.getLocalName();
+		return ontnam.substring(0, ontnam.indexOf(".owl"));
+	}
+	
 	private void showAdvanceQueryDialog(String text) {
 		//Initial case - should be called only once. It could also be moved to the constructor or initialize.
 		if (advanceQueryTabWidget == null) {
@@ -99,6 +108,7 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 				return;
 			}			
 			frame.getContentPane().add(advanceQueryTabWidget);
+			frame.setTitle(getOntologyPrettyName() + " Lucene Query");
 			frame.pack();
 		}
 		
