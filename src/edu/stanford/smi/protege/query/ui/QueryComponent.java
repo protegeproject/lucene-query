@@ -396,11 +396,11 @@ public class QueryComponent extends QueryBuildingJPanel {
 				public void actionPerformed(ActionEvent e) {
 					String type = (String) getTypesComboBox().getSelectedItem();
 					Component textField = valueComponent.getCenterComponent();
-					if (PROPERTY_PRESENT.equals(type) || PROPERTY_ABSENT.equals(type)) {
-						textField.setEnabled(false);
+					if (PROPERTY_PRESENT.equals(type) || PROPERTY_ABSENT.equals(type)) {						
+						valueComponent.setVisible(false);
 					}
 					else {
-						textField.setEnabled(true);
+						if (!valueComponent.isVisible()) { valueComponent.setVisible(true); }						
 					}
 				}
 			});
