@@ -11,9 +11,9 @@ import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
-import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.util.ListPanel;
 import edu.stanford.smi.protege.query.util.ListPanelComponent;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
@@ -40,7 +40,7 @@ public final class QueryUtil {
 		ArrayList<VisitableQuery> queries = new ArrayList<VisitableQuery>(panels.size());
 		for (Object element : panels) {
 			ListPanelComponent comp = (ListPanelComponent) element;
-			QueryComponent qc = (QueryComponent) comp.getMainPanel();
+			QueryBuildingJPanel qc = (QueryBuildingJPanel) comp.getMainPanel();
 			// this throws InvalidQueryException
 			VisitableQuery q = qc.getQuery();
 			queries.add(q);
