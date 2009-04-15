@@ -96,7 +96,8 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 	private String getOntologyPrettyName() {
 		OWLOntology activeOntology = OWLUtil.getActiveOntology((OWLModel) kb);
 		String ontnam = activeOntology.getLocalName();
-		return ontnam.substring(0, ontnam.indexOf(".owl"));
+		int ind = ontnam.indexOf(".owl");
+		return ontnam.substring(0, ind < 0 ? ontnam.length() : ind);
 	}
 	
 	private void showAdvanceQueryDialog(String text) {
