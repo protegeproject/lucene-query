@@ -5,9 +5,9 @@ import java.awt.Color;
 import javax.swing.ListCellRenderer;
 
 import edu.stanford.smi.protege.model.query.Query;
-import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
-import edu.stanford.smi.protege.query.querytypes.OrQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 
 public interface QueryRenderer extends ListCellRenderer {
 
