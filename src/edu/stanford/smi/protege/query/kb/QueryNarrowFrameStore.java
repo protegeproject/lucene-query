@@ -37,16 +37,17 @@ import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.indexer.Indexer;
 import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
 import edu.stanford.smi.protege.query.indexer.StdIndexer;
-import edu.stanford.smi.protege.query.querytypes.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.LuceneOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.MaxMatchQuery;
-import edu.stanford.smi.protege.query.querytypes.NestedOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.OWLRestrictionQuery;
-import edu.stanford.smi.protege.query.querytypes.OrQuery;
-import edu.stanford.smi.protege.query.querytypes.OwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.PhoneticQuery;
 import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
+import edu.stanford.smi.protege.query.querytypes.SubsetQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.NestedOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SimpleStringMatcher;
 import edu.stanford.smi.protege.util.transaction.TransactionMonitor;
@@ -292,6 +293,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			setResults(innerCollector.getResults());
 			while (conjunctIterator.hasNext()) {
 				conjunct = conjunctIterator.next();
+				if (conjunct instanceof SubsetQuery) {
+					((SubsetQuery) conjunct).setFramesToSearch(getResults());
+				}
 				innerCollector = new QueryResultsCollector();
 				conjunct.accept(innerCollector);
 				retainResults(innerCollector.getResults());
