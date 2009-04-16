@@ -50,9 +50,14 @@ public class ConfigureLuceneTabsPanel extends JComponent {
     }
     
     private void initTitles() {
+    	boolean isOwl = configuration.isOwl();
         titleMap.put(BooleanConfigItem.SEARCH_FOR_CLASSES, "Include Classes in search results");
         titleMap.put(BooleanConfigItem.SEARCH_FOR_PROPERTIES, 
-                     configuration.isOwl() ? "Include Properties in search results" : "Include Slots in search Results");
+        		     isOwl ? "Include Properties in search results" : 
+        		    	      "Include Slots in search Results");
+        titleMap.put(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS, 
+        			 isOwl ? "Include Individuals in search results" : 
+        				     "Include instances in search Results");
     }
     
     private void addBooleanConfigurationItems() {
