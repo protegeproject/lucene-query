@@ -38,6 +38,7 @@ import edu.stanford.smi.protege.storage.database.DatabaseFrameDb;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SimpleStringMatcher;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLOntology;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 
 public class QueryResultsCollector implements QueryVisitor {
@@ -154,6 +155,9 @@ public class QueryResultsCollector implements QueryVisitor {
 			Collection<Frame> toRemove = new HashSet<Frame>();
 			for (Frame frame : frames) {
 				if (frame instanceof RDFResource && ((RDFResource) frame).isAnonymous()) {
+					toRemove.add(frame);
+				}
+				if (frame instanceof OWLOntology) {
 					toRemove.add(frame);
 				}
 			}
