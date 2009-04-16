@@ -36,6 +36,7 @@ import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
+import edu.stanford.smi.protege.model.SimpleInstance;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
@@ -77,6 +78,7 @@ import edu.stanford.smi.protege.util.ViewAction;
 import edu.stanford.smi.protege.widget.AbstractTabWidget;
 import edu.stanford.smi.protege.widget.TabWidget;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.RDFResource;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
 import edu.stanford.smi.protegex.util.PagedFrameList;
@@ -578,7 +580,14 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
 					toRemove.add(wrappedFrame);
 				}
-				if (!frame.isVisible()) {
+				if (!configuration.isSearchResultsIncludeIndividuals() && frame instanceof SimpleInstance) {
+					toRemove.add(wrappedFrame);
+				}
+				if (isOWL && frame instanceof RDFResource
+						&& ((RDFResource) frame).isAnonymous()) {
+					toRemove.add(wrappedFrame);
+				}
+				if (!frame.isVisible() || frame.isSystem()) {
 					toRemove.add(wrappedFrame);
 				}
 			}
