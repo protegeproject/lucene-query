@@ -45,7 +45,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     
     public enum BooleanConfigItem {
         SEARCH_FOR_CLASSES("lucene.search.classes", true),
-        SEARCH_FOR_PROPERTIES("lucene.search.properties", true);
+        SEARCH_FOR_PROPERTIES("lucene.search.properties", true),
+        SEARCH_FOR_INDIVIDUALS("lucene.search.individuals", true);
         
         private String protegeProperty;
         private boolean defaultValue;
@@ -221,6 +222,14 @@ public class QueryUIConfiguration implements Serializable, Localizable {
 
     public void setSearchResultsIncludeProperties(boolean searchResultsIncludeProperties) {
         setBooleanConfiguration(BooleanConfigItem.SEARCH_FOR_PROPERTIES, searchResultsIncludeProperties);
+    }
+    
+    public boolean isSearchResultsIncludeIndividuals() {
+    	return getBooleanConfiguration(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS);
+    }
+    
+    public void setSearchResultsIncludeIndividuals(boolean searchResultsIncludeIndividuals) {
+    	setBooleanConfiguration(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS, searchResultsIncludeIndividuals);
     }
     
     public Set<Slot> getLuceneSlots() {
