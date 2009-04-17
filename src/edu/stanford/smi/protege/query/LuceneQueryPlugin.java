@@ -52,6 +52,7 @@ import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.ui.NCIExportToCsvAction;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
@@ -581,13 +582,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 					toRemove.add(wrappedFrame);
 				}
 				if (!configuration.isSearchResultsIncludeIndividuals() && frame instanceof SimpleInstance) {
-					toRemove.add(wrappedFrame);
-				}
-				if (isOWL && frame instanceof RDFResource
-						&& ((RDFResource) frame).isAnonymous()) {
-					toRemove.add(wrappedFrame);
-				}
-				if (!frame.isVisible() || frame.isSystem()) {
 					toRemove.add(wrappedFrame);
 				}
 			}
