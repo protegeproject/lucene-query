@@ -107,6 +107,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 	private KnowledgeBase kb;
 	private boolean isOWL;
+	private boolean runsInWindow = false;	
+
 	private ViewAction viewAction;
 	private ViewAction editAction;
 	private AllowableAction createWorkflowItemAction;
@@ -396,13 +398,24 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
 			btnSearch = new JButton(new AbstractAction("Search", Icons.getFindIcon()) {
 				public void actionPerformed(ActionEvent e) {
-					doSearch();
+					//TODO:
+					//This is a terrible fix for setting the default button. 
+					//When the default button is fixed, we can remove the checks
+						TabWidget tabWidget = ProjectManager.getProjectManager().getCurrentProjectView().getSelectedTab();
+						if ((tabWidget != null && tabWidget.getClass().equals(LuceneQueryPlugin.class)) ||
+								isRunsInWindow()) {
+							doSearch();
+						}					
 				}
 			});
 			pnlQueryBottom.add(btnSearch);
 
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
+					//FIXME 
+					//TT: this is not a good solution and should be fixed
+					//It sets the default button for the entire Protege UI, for all tabs, etc.
+					//This means that the ENTER key anywhere in the Protege UI will always be executed by this button 
 					if (getRootPane() != null) {
 						getRootPane().setDefaultButton(btnSearch);
 					}
@@ -615,4 +628,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		return query;
 	}
 
+	public boolean isRunsInWindow() {
+		return runsInWindow;
+	}
+
+	public void setRunsInWindow(boolean runsInWindow) {
+		this.runsInWindow = runsInWindow;
+	}
+	
 }
