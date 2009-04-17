@@ -15,6 +15,8 @@ import edu.stanford.smi.protege.server.framestore.ServerFrameStore;
 import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.FrameWithBrowserTextComparator;
 import edu.stanford.smi.protege.util.ProtegeJob;
+import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.RDFResource;
 
 
 public class DoQueryJob extends ProtegeJob {
@@ -38,7 +40,15 @@ public class DoQueryJob extends ProtegeJob {
             ServerFrameStore.setCurrentSession(null);
         }
         try {
+        	boolean isOWL = (getKnowledgeBase() instanceof OWLModel);
             for (Frame result : results) {
+				if (isOWL && result instanceof RDFResource
+						&& ((RDFResource) result).isAnonymous()) {
+					continue;
+				}
+				if (!result.isVisible() || result.isSystem()) {
+					continue;
+				}
                 wrappedResults.add(new FrameWithBrowserText(result, result.getBrowserText(), ((Instance) result).getDirectTypes()));
             }
             Collections.sort(wrappedResults, new FrameWithBrowserTextComparator());
