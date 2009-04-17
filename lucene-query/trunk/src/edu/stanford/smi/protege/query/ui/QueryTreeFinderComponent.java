@@ -221,6 +221,7 @@ public class QueryTreeFinderComponent extends JPanel implements Disposable {
 			
 			advanceQueryTabWidget.setup(wd, prj);			
 			advanceQueryTabWidget.initialize();
+			advanceQueryTabWidget.setRunsInWindow(true);
 		}	
 		
 		return advanceQueryTabWidget;
