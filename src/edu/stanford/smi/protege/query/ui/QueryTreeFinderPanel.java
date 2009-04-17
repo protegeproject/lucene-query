@@ -205,7 +205,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			Project prj = kb.getProject();
 
 			// instantiate LQT but disable double clicking of search results
-			advanceQueryTabWidget = new LuceneQueryPlugin(false);
+			advanceQueryTabWidget = new LuceneQueryPlugin(false);		
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
 			wd.setName("Lucene Query");
@@ -213,6 +213,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 			advanceQueryTabWidget.setup(wd, prj);
 			advanceQueryTabWidget.initialize();
+			advanceQueryTabWidget.setRunsInWindow(true);
 		}
 
 		return advanceQueryTabWidget;
