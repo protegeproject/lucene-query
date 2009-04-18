@@ -148,6 +148,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         slots.add(frames.getRdfsIsDefinedByProperty());
         slots.add(frames.getRdfsLabelProperty());
         slots.add(frames.getRdfsSeeAlsoProperty());
+        slots.add(frames.getNameSlot());
         return slots;
     }
     
