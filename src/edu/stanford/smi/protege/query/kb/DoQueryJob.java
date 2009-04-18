@@ -17,6 +17,7 @@ import edu.stanford.smi.protege.util.FrameWithBrowserTextComparator;
 import edu.stanford.smi.protege.util.ProtegeJob;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
+import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 
 
 public class DoQueryJob extends ProtegeJob {
@@ -49,7 +50,8 @@ public class DoQueryJob extends ProtegeJob {
 				if (!result.isVisible() || result.isSystem()) {
 					continue;
 				}
-                wrappedResults.add(new FrameWithBrowserText(result, result.getBrowserText(), ((Instance) result).getDirectTypes()));
+                wrappedResults.add(new FrameWithBrowserText(result, result.getBrowserText(), 
+                		((Instance) result).getDirectTypes(), ProtegeUI.getPotentialIconName(result)));
             }
             Collections.sort(wrappedResults, new FrameWithBrowserTextComparator());
             results = new ArrayList<Frame>();
