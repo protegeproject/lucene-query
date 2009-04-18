@@ -125,7 +125,12 @@ public class QueryComponent extends QueryBuildingJPanel {
 		initialize();
 		
 		if (value != null && value.length() > 0 ) {
-			((JTextField)this.valueComponent.getCenterComponent()).setText(value);
+			Component valueCenterComponent = valueComponent.getCenterComponent();
+			if (!(valueCenterComponent instanceof JTextField)) {
+				selectSlot.setObject(kb.getNameSlot());
+				valueCenterComponent = valueComponent.getCenterComponent();
+			} 
+			((JTextField)valueCenterComponent).setText(value);
 		} 
 	}
 	
