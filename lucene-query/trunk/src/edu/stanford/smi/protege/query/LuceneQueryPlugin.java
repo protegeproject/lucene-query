@@ -52,7 +52,6 @@ import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.ui.NCIExportToCsvAction;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
@@ -79,7 +78,6 @@ import edu.stanford.smi.protege.util.ViewAction;
 import edu.stanford.smi.protege.widget.AbstractTabWidget;
 import edu.stanford.smi.protege.widget.TabWidget;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
-import edu.stanford.smi.protegex.owl.model.RDFResource;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
 import edu.stanford.smi.protegex.owl.ui.icons.OverlayIcon;
 import edu.stanford.smi.protegex.util.PagedFrameList;
@@ -116,7 +114,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private JButton viewButton;
 	private JButton editButton;
 	private ListPanel queriesListPanel;
-	private SelectableList lstResults;
+	private SelectableList searchResultsList;
 
 	// boolean to disable double click on results when using search in modal dialogs
 	private boolean enableClickLstResults = true;
@@ -226,13 +224,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		pnlLeft.add(getQueryBottomPanel(), BorderLayout.SOUTH);
 
 		resultsComponent = new PagedFrameList(SEARCH_RESULTS);
-		lstResults = resultsComponent.getSelectableList();
-		lstResults.setCellRenderer(queryRenderer);
+		searchResultsList = resultsComponent.getSelectableList();
+		searchResultsList.setCellRenderer(queryRenderer);
 		if (enableClickLstResults) {
-			lstResults.addMouseListener(new DoubleClickActionAdapter(
+			searchResultsList.addMouseListener(new DoubleClickActionAdapter(
 							getEditAction() != null ? getEditAction() : getViewAction()));
 		}
-		lstResults.addMouseListener(new PopupMenuMouseListener(lstResults) {
+		searchResultsList.addMouseListener(new PopupMenuMouseListener(searchResultsList) {
 			@Override
 			protected JPopupMenu getPopupMenu() {
 				return createPopupMenu();
@@ -262,7 +260,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		if (editAction == null) {
 			if (NCIEditAction.isValid()) {
 				// Add action for showing the selected cls in NCI Edit Tab
-				editAction = new NCIEditAction("Edit Cls in the NCI Edit Tab", lstResults, Icons.getViewClsIcon());
+				editAction = new NCIEditAction("Edit Cls in the NCI Edit Tab", searchResultsList, Icons.getViewClsIcon());
 			}
 			// null otherwise
 		}
@@ -272,10 +270,10 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private Action getViewAction() {
 		if (viewAction == null) {
 			if (NCIViewAction.isValid()) {
-				viewAction = new NCIViewAction("View Cls", lstResults, Icons.getViewInstanceIcon());
+				viewAction = new NCIViewAction("View Cls", searchResultsList, Icons.getViewInstanceIcon());
 			} else {
 				// add the default view instance action
-				viewAction = new ViewAction("View Instance", lstResults, Icons.getViewClsIcon()) {
+				viewAction = new ViewAction("View Instance", searchResultsList, Icons.getViewClsIcon()) {
 
 					public void onView(Object o) {
 						if (o instanceof FrameWithBrowserText) {
@@ -298,7 +296,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	private AllowableAction getCreateWorkflowItemAction() {
 		if (createWorkflowItemAction == null) {
 			createWorkflowItemAction = new NCICreateWorkflowAction(
-					"Create workflow item", lstResults); 
+					"Create workflow item", searchResultsList); 
 		}
 		return createWorkflowItemAction;
 	}
@@ -333,7 +331,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 			
 			@Override
 			protected Collection getClsesToExport() {
-				Collection<?> listToExport = ComponentUtilities.getListValues(lstResults);
+				Collection<?> listToExport = ComponentUtilities.getListValues(searchResultsList);
 				if (listToExport.size() == 0 || 
 						(listToExport.size() == 1 && 
 						CollectionUtilities.getSoleItem(listToExport).equals(SEARCH_NO_RESULTS_FOUND))) {
@@ -430,7 +428,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 	@Override
 	@SuppressWarnings("unchecked")
 	public Collection getSelection() {
-		return lstResults.getSelection();
+		return searchResultsList.getSelection();
 	}
 
 	// KLO end
@@ -520,7 +518,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		resultsComponent.setHeaderLabel(SEARCH_IN_PROGRESS);
 		final Cursor oldCursor = getCursor();
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		lstResults.setListData(new String[] { SEARCHING_ITEM });
+		searchResultsList.setListData(new String[] { SEARCHING_ITEM });
 
 		// start searching in a new thread
 		SwingUtilities.invokeLater(new Runnable() {
@@ -536,7 +534,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 					final String msg = "Invalid query: " + e.getMessage();
 					System.err.println(msg);
 					error = true;
-					lstResults.setListData(new String[] { msg });
+					searchResultsList.setListData(new String[] { msg });
 				} catch (Exception ex) {
 					// IOException happens for "sounds like" queries when the
 					// ontology hasn't been indexed
@@ -545,7 +543,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 							+ ex.getMessage();
 					JOptionPane.showMessageDialog(LuceneQueryPlugin.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
 					error = true;
-					lstResults.setListData(new String[] { "An exception occurred during the query." });
+					searchResultsList.setListData(new String[] { "An exception occurred during the query." });
 				} finally {
 					setCursor(oldCursor);
 					btnSearch.setEnabled(true);
@@ -604,12 +602,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		if (hits == 0) {
 			queryRenderer.setQuery(null); // don't bold anything
 			resultsComponent.setAllFrames(new ArrayList<FrameWithBrowserText>());
-			lstResults.setListData(new String[] { SEARCH_NO_RESULTS_FOUND });
+			searchResultsList.setListData(new String[] { SEARCH_NO_RESULTS_FOUND });
 		} else {
 			queryRenderer.setQuery(q); // bold the matching results
 			resultsComponent.setAllFrames(results);
 			resultsComponent.setPageSize(configuration.getMaxResultsDisplayed());
-			lstResults.setSelectedIndex(0);
+			searchResultsList.setSelectedIndex(0);
 		}
 		return hits;
 	}
