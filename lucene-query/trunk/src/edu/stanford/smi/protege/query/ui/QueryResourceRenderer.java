@@ -11,8 +11,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JList;
 
+import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.SimpleInstance;
 import edu.stanford.smi.protege.model.query.Query;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
@@ -21,12 +23,15 @@ import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
+import edu.stanford.smi.protege.resource.Icons;
+import edu.stanford.smi.protege.resource.ResourceKey;
 import edu.stanford.smi.protege.util.DefaultRenderer;
 import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.ModalDialog;
+import edu.stanford.smi.protege.util.StringUtilities;
 import edu.stanford.smi.protegex.owl.model.Deprecatable;
 import edu.stanford.smi.protegex.owl.model.OWLAnonymousClass;
-import edu.stanford.smi.protegex.owl.model.OWLNamedClass;
+import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.RDFSClass;
 import edu.stanford.smi.protegex.owl.ui.ResourceRenderer;
 import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
@@ -297,29 +302,56 @@ public class QueryResourceRenderer extends ResourceRenderer implements QueryRend
 	
 	@Override
 	public void load(Object o) {
-	    if (o instanceof FrameWithBrowserText) {
-	        FrameWithBrowserText fbt = (FrameWithBrowserText) o;
-	        setMainText(fbt.getBrowserText());
-	        if (fbt.getFrame() != null) {
-	            setMainIcon(fbt.getFrame().getIcon());
-	        }
-	        if (o instanceof RDFSClass) {
-	            loadedClass = (RDFSClass) o;
-	            if (loadedClass instanceof OWLAnonymousClass) {
-	                addAnnotationFlag(this, loadedClass);
-	            }
-	            if (loadedClass instanceof Deprecatable && ((Deprecatable) loadedClass).isDeprecated()) {
-	                addIcon(OWLIcons.getDeprecatedIcon());
-	            }
-	        }
-	        else if (o instanceof SimpleInstance) {
-	            loadedInstance = (SimpleInstance) o;
-	        }
-	    } else {
-	        super.load(o);
-	    }
+		if (o instanceof FrameWithBrowserText) {
+			FrameWithBrowserText fbt = (FrameWithBrowserText) o;
+			setMainText(StringUtilities.unquote(fbt.getBrowserText()));
+			if (fbt.getFrame() != null) {
+				setMainIcon(getFbtIcon(fbt));
+			}
+			Frame frame = fbt.getFrame();
+			if (frame != null && frame instanceof Deprecatable && ((Deprecatable) frame).isDeprecated()) {
+				addIcon(OWLIcons.getDeprecatedIcon());				
+			}
+		} else if (o instanceof RDFSClass) {
+			loadedClass = (RDFSClass) o;
+			if (loadedClass instanceof OWLAnonymousClass) {
+				addAnnotationFlag(this, loadedClass);
+			}
+			if (loadedClass instanceof Deprecatable && ((Deprecatable) loadedClass).isDeprecated()) {
+				addIcon(OWLIcons.getDeprecatedIcon());
+			}
+		} else if (o instanceof SimpleInstance) {
+			loadedInstance = (SimpleInstance) o;
+		} else {
+			super.load(o);
+		}
 	}
 
+
+	
+	protected Icon getFbtIcon(FrameWithBrowserText fbt) {
+		String iconName = fbt.getIconName();
+		Frame frame = fbt.getFrame();
+		if (iconName != null) {			
+			return (frame.getKnowledgeBase() instanceof OWLModel) ?
+					  (frame.isEditable() ? OWLIcons.getImageIcon(iconName) : OWLIcons.getReadOnlyClsIcon(iconName)) :
+					   getFramesFbtIcon(fbt);
+		} else {
+			return null;
+		}
+	}
+
+
+	protected Icon getFramesFbtIcon(FrameWithBrowserText fbt) {
+		String iconName = fbt.getIconName();
+		Frame frame = fbt.getFrame();
+		if (iconName != null) {
+			return Icons.getIcon(new ResourceKey(iconName));
+		} else {
+			return frame.getIcon(); //could go to the server
+		}
+	}
+	
 	// tester
 	public static void main(String[] args) {
 		QueryResourceRenderer renderer = new QueryResourceRenderer();
