@@ -47,7 +47,7 @@ public class NCICreateWorkflowAction extends AllowableAction {
 				ProjectView projectView = ProjectManager.getProjectManager().getCurrentProjectView();
 				TabWidget tab = projectView.getTabByClassName(NCITAB);
 				Method getClassPanelMethod = tab.getClass().getMethod("showSuggestionDialog", new Class[] {String.class, Collection.class});
-				getClassPanelMethod.invoke(tab, new Object[] {"Task Description", getSelection()});
+				getClassPanelMethod.invoke(tab, new Object[] {"Concepts Need Updating", getSelection()});
 				
 			} catch (Throwable t) {
 				log.warning("Warning - couldn't invoke showSuggestionDialog in NCIEditTab");
