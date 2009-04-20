@@ -35,6 +35,9 @@ import edu.stanford.smi.protege.util.FrameWithBrowserText;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.StandardAction;
+import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLOntology;
+import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 import edu.stanford.smi.protegex.owl.ui.dialogs.ModalDialogFactory;
 
@@ -93,6 +96,13 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 
 		showAdvanceQueryDialog(text);
 	}
+    
+    private String getOntologyPrettyName() {
+        OWLOntology activeOntology = OWLUtil.getActiveOntology((OWLModel) kb);
+        String ontnam = activeOntology.getLocalName();
+        int ind = ontnam.indexOf(".owl");
+        return ontnam.substring(0, ind < 0 ? ontnam.length() : ind);
+    }
 
 	private void showAdvanceQueryDialog(String text) {
 		//Initial case - should be called only once. It could also be moved to the constructor or initialize.
@@ -104,6 +114,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 				Log.getLogger().warning("Lucene Query Plugin not found. Please check whether the plugin is installed correctly.");
 				return;
 			}
+            
 		}
 
 		if (advanceQueryTabWidget != null) {
@@ -120,7 +131,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			lc.setPreferredSize(new Dimension(750, 350));
 
 			selectedCls = null;
-			int r = ProtegeUI.getModalDialogFactory().showDialog(this, lc, "Search for Class", ModalDialogFactory.MODE_OK_CANCEL);
+			int r = ProtegeUI.getModalDialogFactory().showDialog(this, lc, getOntologyPrettyName() + " Lucene Query", ModalDialogFactory.MODE_OK_CANCEL);
 			if (r == ModalDialogFactory.OPTION_OK) {
 				// Get user selection
 				Collection selections = advanceQueryTabWidget.getSelection();
@@ -208,7 +219,8 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			advanceQueryTabWidget = new LuceneQueryPlugin(false);		
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
-			wd.setName("Lucene Query");
+            wd.setName(getOntologyPrettyName() + " Lucene Query");
+			
 			wd.setWidgetClassName(ADVANCED_QUERY_JAVA_CLASS);
 
 			advanceQueryTabWidget.setup(wd, prj);
