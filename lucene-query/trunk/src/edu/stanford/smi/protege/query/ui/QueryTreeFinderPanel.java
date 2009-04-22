@@ -148,6 +148,8 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 					setExpandedCls(selectedCls, selections);
 				}				
 			}
+            // TODO: Tania, this seems odd to do this, as it defeats the purpose of reusing the advancedQueryTabWidget
+            // it seems to be set up to reuse it but if I comment out this line the panel doesn't show up
 			dispose();
 		}
 	}
@@ -215,17 +217,17 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 		if (advanceQueryTabWidget == null) {
 			Project prj = kb.getProject();
 
-			// instantiate LQT but disable double clicking of search results
-			advanceQueryTabWidget = new LuceneQueryPlugin(false);		
+			// instantiate LQT but disable double clicking of search results and don't add project menu
+			advanceQueryTabWidget = new LuceneQueryPlugin(false, false);		
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
-            wd.setName(getOntologyPrettyName() + " Lucene Query");
-			
+            wd.setName(getOntologyPrettyName() + " Lucene Query");			
 			wd.setWidgetClassName(ADVANCED_QUERY_JAVA_CLASS);
 
 			advanceQueryTabWidget.setup(wd, prj);
+            advanceQueryTabWidget.setRunsInWindow(true);
 			advanceQueryTabWidget.initialize();
-			advanceQueryTabWidget.setRunsInWindow(true);
+			
 		}
 
 		return advanceQueryTabWidget;
