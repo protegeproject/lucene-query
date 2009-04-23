@@ -218,7 +218,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
 			Project prj = kb.getProject();
 
 			// instantiate LQT but disable double clicking of search results and don't add project menu
-			advanceQueryTabWidget = new LuceneQueryPlugin(false, false);		
+			advanceQueryTabWidget = new LuceneQueryPlugin(false);		
 
 			WidgetDescriptor wd = prj.createWidgetDescriptor();
             wd.setName(getOntologyPrettyName() + " Lucene Query");			
