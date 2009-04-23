@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -112,8 +113,6 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private boolean runsInWindow = false;
 
-    private boolean addProjMenu = true;
-
     private ViewAction viewAction;
 
     private ViewAction editAction;
@@ -144,17 +143,16 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private QueryRenderer queryRenderer;
 
-    private JMenu menu;
+    
 
     public LuceneQueryPlugin() {
         super();
         this.isOWL = false;
-    }
-
-    public LuceneQueryPlugin(boolean enableClicks, boolean addMenu) {
+    } 
+    
+    public LuceneQueryPlugin(boolean enableClicks) {
         this();
-        enableClickLstResults = enableClicks;
-        addProjMenu = addMenu;
+        enableClickLstResults = enableClicks;        
     }
 
     /**
@@ -180,23 +178,24 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             configuration.setIndexers(qc.getIndexers());
         }
         // add lucene query menu
-        addMenu();
+        addLuceneMenu();
         // add UI components
         createGUI();
         // add the default first query component
         addQueryComponent();
     }
 
-    private void addMenu() {
-        if (addProjMenu) {
-            JMenuBar menuBar = ProjectManager.getProjectManager()
-                                             .getCurrentProjectMenuBar();
-            menu = new JMenu(LUCENE_MENU_NAME);
+    public void addLuceneMenu() {
+    	JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
+    	JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);    	
+    	if (menu == null) {   	
+    		menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME, true, menuBar.getMenuCount() - 2);
+    		menu.setMnemonic(KeyEvent.VK_L);
             if (getUIConfiguration().canIndex()) {
                 menu.add(new InstallIndiciesAction(this, kb));
             }
             menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
-            menuBar.add(menu);
+            menuBar.add(menu);            
         }
     }
 
@@ -729,4 +728,19 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         this.runsInWindow = runsInWindow;
     }
 
+    
+    @Override
+    public void dispose() {    	
+    	if (!runsInWindow) {    		    	
+    		JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
+    		if (menuBar != null) {
+    			JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);
+    			if (menu != null) {
+    				menuBar.remove(menu);
+    			}
+    		}
+    		super.dispose();
+    	}
+    }
+    
 }
