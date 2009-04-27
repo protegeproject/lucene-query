@@ -1,5 +1,7 @@
 package edu.stanford.smi.protege.query.menu;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -44,11 +47,13 @@ public class IndexConfigurer extends JPanel {
     private void createGui() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(getSlotsListComponent());
+        add(Box.createRigidArea(new Dimension(0, 10)));
         for (final IndexMechanism mechanism : IndexMechanism.values()) {
             boolean defaultValue = mechanism.isEnabledByDefault();
             mechanism.setEnabled(configuration, defaultValue);
             final JCheckBox box = new JCheckBox(mechanism.getDescription());
             box.setSelected(defaultValue);
+            box.setAlignmentX(Component.LEFT_ALIGNMENT);
             box.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
@@ -108,7 +113,8 @@ public class IndexConfigurer extends JPanel {
             }
 
         });
-
+        
+        labeledComp.setAlignmentX(Component.LEFT_ALIGNMENT);
         return labeledComp;
     }
     

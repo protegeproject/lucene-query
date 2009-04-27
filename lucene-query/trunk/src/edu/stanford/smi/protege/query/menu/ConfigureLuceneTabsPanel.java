@@ -1,39 +1,37 @@
 package edu.stanford.smi.protege.query.menu;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.text.NumberFormat;
 import java.util.EnumMap;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.BooleanConfigItem;
 import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.ui.DisplayUtilities;
+import edu.stanford.smi.protege.util.AbstractValidatableComponent;
 import edu.stanford.smi.protege.util.AllowableAction;
+import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.LabeledComponent;
-import edu.stanford.smi.protege.util.Log;
 
 
 
-public class ConfigureLuceneTabsPanel extends JComponent {
+public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
     private static final long serialVersionUID = 1835328900385886439L;
     
     private QueryUIConfiguration configuration;
     private JFormattedTextField maxResultsDisplayedField;
+    private JComponent centerComponent;
     private EnumMap<BooleanConfigItem, String> titleMap = new EnumMap<BooleanConfigItem, String>(BooleanConfigItem.class);
 
     
@@ -41,12 +39,14 @@ public class ConfigureLuceneTabsPanel extends JComponent {
         this.configuration = configuration;
         initTitles();
         
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout());
+        centerComponent = new Box(BoxLayout.Y_AXIS);    
+        
         addBooleanConfigurationItems();
-        add(Box.createRigidArea(new Dimension(0, 10)));
+        centerComponent.add(Box.createRigidArea(new Dimension(0, 10)));
         addDefaultSearchSlot();
-        add(Box.createRigidArea(new Dimension(0, 10)));
-        addMaxDisplayed();
+        addMaxDisplayed();        
+        add(centerComponent);
     }
     
     private void initTitles() {
@@ -63,7 +63,8 @@ public class ConfigureLuceneTabsPanel extends JComponent {
     private void addBooleanConfigurationItems() {
         for (final BooleanConfigItem configItem : BooleanConfigItem.values()) {
             boolean enabled = configuration.getBooleanConfiguration(configItem);
-            final JCheckBox box = new JCheckBox(titleMap.get(configItem));
+            final JCheckBox box = ComponentFactory.createCheckBox(titleMap.get(configItem));
+            box.setAlignmentX(Component.LEFT_ALIGNMENT);            
             box.setSelected(enabled);
             box.addActionListener(new ActionListener() {
 
@@ -72,7 +73,7 @@ public class ConfigureLuceneTabsPanel extends JComponent {
                 }
                 
             });
-            add(box);
+            centerComponent.add(box);
         }
     }
     
@@ -92,17 +93,26 @@ public class ConfigureLuceneTabsPanel extends JComponent {
                 }
             }
         });
-        add(lc);
+        lc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerComponent.add(lc);
     }
     
     private void addMaxDisplayed() {
         maxResultsDisplayedField = new JFormattedTextField(NumberFormat.getIntegerInstance());
         maxResultsDisplayedField.setValue(configuration.getMaxResultsDisplayed());
         LabeledComponent lc = new LabeledComponent("Max results displayed (-1=all)", maxResultsDisplayedField);
-        add(lc);
+        lc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerComponent.add(lc);
     }
     
     public int getMaxResultsDisplayed() {
         return ((Number) maxResultsDisplayedField.getValue()).intValue();
+    }
+
+    public void saveContents() {                
+    }
+
+    public boolean validateContents() {
+        return true;
     }
 }

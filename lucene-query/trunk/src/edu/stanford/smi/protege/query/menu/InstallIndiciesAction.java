@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
@@ -25,7 +24,7 @@ public class InstallIndiciesAction extends AbstractAction {
     private KnowledgeBase kb;
 
     public InstallIndiciesAction(LuceneQueryPlugin plugin, KnowledgeBase kb) {
-        super("Index Ontologies");
+        super("Index Ontologies...");
         this.plugin = plugin;
         this.kb = kb;
     }
