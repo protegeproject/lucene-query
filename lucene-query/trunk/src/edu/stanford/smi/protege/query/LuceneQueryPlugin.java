@@ -143,21 +143,18 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private QueryRenderer queryRenderer;
 
-    
-
     public LuceneQueryPlugin() {
         super();
         this.isOWL = false;
-    } 
-    
+    }
+
     public LuceneQueryPlugin(boolean enableClicks) {
         this();
-        enableClickLstResults = enableClicks;        
+        enableClickLstResults = enableClicks;
     }
 
     /**
-     * Initializes this {@link TabWidget}. Installs the
-     * {@link NarrowFrameStore} and initializes the UI.
+     * Initializes this {@link TabWidget}. Installs the {@link NarrowFrameStore} and initializes the UI.
      */
     @SuppressWarnings("unchecked")
     public void initialize() {
@@ -167,8 +164,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         // OWLProperty values
         this.isOWL = getKnowledgeBase() instanceof OWLModel;
 
-        this.queryRenderer = this.isOWL ? new QueryResourceRenderer()
-                : new QueryFrameRenderer();
+        this.queryRenderer = this.isOWL ? new QueryResourceRenderer() : new QueryFrameRenderer();
         this.queryRenderer.setMatchColor(new Color(24, 72, 124));
 
         configuration = new QueryUIConfiguration(kb);
@@ -186,16 +182,15 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     public void addLuceneMenu() {
-    	JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
-    	JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);    	
-    	if (menu == null) {   	
-    		menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME, true, menuBar.getMenuCount() - 2);
-    		menu.setMnemonic(KeyEvent.VK_L);
+        JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
+        JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);
+        if (menu == null) {
+            menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME, true, menuBar.getMenuCount() - 1);
+            menu.setMnemonic(KeyEvent.VK_L);
             if (getUIConfiguration().canIndex()) {
                 menu.add(new InstallIndiciesAction(this, kb));
             }
-            menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
-            menuBar.add(menu);            
+            menu.add(new JMenuItem(new ConfigureLuceneAction(this)));          
         }
     }
 
@@ -212,8 +207,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
      */
     private void createGUI() {
         setLabel("Lucene Query Tab");
-        setIcon(ComponentUtilities.loadImageIcon(LuceneQueryPlugin.class,
-                                                 "querytab.gif")); // Icons.getQueryIcon(),
+        setIcon(ComponentUtilities.loadImageIcon(LuceneQueryPlugin.class, "querytab.gif")); // Icons.getQueryIcon(),
         // Icons.getQueryExportIcon();
         setLayout(new BorderLayout());
 
@@ -249,38 +243,26 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         searchResultsList = resultsComponent.getSelectableList();
         searchResultsList.setCellRenderer(queryRenderer);
         if (enableClickLstResults) {
-            searchResultsList
-                             .addMouseListener(new DoubleClickActionAdapter(
-                                                                            getEditAction() != null ? getEditAction()
-                                                                                    : getViewAction()));
+            searchResultsList.addMouseListener(new DoubleClickActionAdapter(getEditAction() != null ? getEditAction()
+                    : getViewAction()));
         }
-        searchResultsList
-                         .addMouseListener(new PopupMenuMouseListener(
-                                                                      searchResultsList) {
-                             @Override
-                             protected JPopupMenu getPopupMenu() {
-                                 return createPopupMenu();
-                             }
+        searchResultsList.addMouseListener(new PopupMenuMouseListener(searchResultsList) {
+            @Override
+            protected JPopupMenu getPopupMenu() {
+                return createPopupMenu();
+            }
 
-                             @Override
-                             protected void setSelection(JComponent c, int x,
-                                                         int y) {
-                             }
-                         });
+            @Override
+            protected void setSelection(JComponent c, int x, int y) {
+            }
+        });
 
-        editButton = resultsComponent.addHeaderButton(getEditAction()); // might
-                                                                        // be
-                                                                        // null
-        viewButton = resultsComponent.addHeaderButton(getViewAction()); // won't
-                                                                        // be
-                                                                        // null
+        editButton = resultsComponent.addHeaderButton(getEditAction());
+        viewButton = resultsComponent.addHeaderButton(getViewAction());
         // init de create workflow action
         createWorkflowItemAction = getCreateWorkflowItemAction();
 
-        if (RemoteClientFrameStore
-                                  .isOperationAllowed(
-                                                      getKnowledgeBase(),
-                                                      ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
+        if (RemoteClientFrameStore.isOperationAllowed(getKnowledgeBase(), ExportToCsvAction.EXPORT_TO_CSV_OPERATION)) {
             resultsComponent.addHeaderButton(createExportAction());
         }
 
@@ -294,9 +276,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         if (editAction == null) {
             if (NCIEditAction.isValid()) {
                 // Add action for showing the selected cls in NCI Edit Tab
-                editAction = new NCIEditAction("Edit Cls in the NCI Edit Tab",
-                                               searchResultsList,
-                                               Icons.getViewClsIcon());
+                editAction = new NCIEditAction("Edit Cls in the NCI Edit Tab", searchResultsList, Icons
+                        .getViewClsIcon());
             }
             // null otherwise
         }
@@ -306,20 +287,14 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private Action getViewAction() {
         if (viewAction == null) {
             if (NCIViewAction.isValid()) {
-                viewAction = new NCIViewAction("View Cls", searchResultsList,
-                                               Icons.getViewInstanceIcon());
+                viewAction = new NCIViewAction("View Cls", searchResultsList, Icons.getViewInstanceIcon());
             } else {
                 // add the default view instance action
-                viewAction = new ViewAction("View Instance", searchResultsList,
-                                            Icons.getViewClsIcon()) {
+                viewAction = new ViewAction("View Instance", searchResultsList, Icons.getViewClsIcon()) {
 
                     public void onView(Object o) {
                         if (o instanceof FrameWithBrowserText) {
-                            kb
-                              .getProject()
-                              .show(
-                                    (Instance) ((FrameWithBrowserText) o)
-                                                                         .getFrame());
+                            kb.getProject().show((Instance) ((FrameWithBrowserText) o).getFrame());
                         }
                     }
 
@@ -337,9 +312,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private AllowableAction getCreateWorkflowItemAction() {
         if (createWorkflowItemAction == null) {
-            createWorkflowItemAction = new NCICreateWorkflowAction(
-                                                                   "Create workflow item",
-                                                                   searchResultsList);
+            createWorkflowItemAction = new NCICreateWorkflowAction("Create workflow item", searchResultsList);
         }
         return createWorkflowItemAction;
     }
@@ -360,41 +333,34 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private Action createExportAction() {
         // initialize NCI defaults for export configuration
-        ExportToCsvUtil.setExportBrowserText(false);
+        ExportToCsvUtil.setExportBrowserText(true);
         ExportToCsvUtil.setExportMetadata(true);
         ExportToCsvUtil.setExportSuperclass(true);
 
-        return new NCIExportToCsvAction(getKnowledgeBase(),
-                                        LuceneQueryPlugin.this, false) {
+        return new NCIExportToCsvAction(getKnowledgeBase(), LuceneQueryPlugin.this, false) {
             @Override
             protected String getStringToExport() {
                 VisitableQuery query = getQuery();
-                String exportString = query == null ? "Invalid query"
-                        : "Query:\n\n" + query.toString(0);
+                String exportString = query == null ? "Invalid query" : "Query:\n\n" + query.toString(0);
                 return exportString;
             }
 
             @Override
             protected Collection getClsesToExport() {
-                Collection<?> listToExport = ComponentUtilities
-                                                               .getListValues(searchResultsList);
+                Collection<?> listToExport = ComponentUtilities.getListValues(searchResultsList);
                 if (listToExport.size() == 0
-                        || (listToExport.size() == 1 && CollectionUtilities
-                                                                           .getSoleItem(
-                                                                                        listToExport)
-                                                                           .equals(
-                                                                                   SEARCH_NO_RESULTS_FOUND))) {
+                        || (listToExport.size() == 1 && 
+                            CollectionUtilities.getSoleItem(listToExport).equals(SEARCH_NO_RESULTS_FOUND))) {
                     listToExport.clear();
                 }
-                return FrameWithBrowserText
-                                           .getFrames((Collection<FrameWithBrowserText>) listToExport);
+                return FrameWithBrowserText.getFrames((Collection<FrameWithBrowserText>) listToExport);
             }
         };
     }
 
     /**
-     * Initializes and returns the query {@link ListPanel}. This is the panel
-     * that contains all the queries (there will always be at least one query).
+     * Initializes and returns the query {@link ListPanel}. This is the panel that contains all the queries (there will
+     * always be at least one query).
      */
     private ListPanel getQueryList() {
         if (queriesListPanel == null) {
@@ -416,28 +382,19 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     /**
      * Initializes and returns the bottom query panel which contains the "Add
-     * Query", "Clear" and "Search" buttons, as well as the "Match All" and
-     * "Match Any" checkboxes.
+     * Query", "Clear" and "Search" buttons, as well as the "Match All" and "Match Any" checkboxes.
      */
     private JPanel getQueryBottomPanel() {
         if (pnlQueryBottom == null) {
             pnlQueryBottom = new JPanel();
-            pnlQueryBottom.setLayout(new BoxLayout(pnlQueryBottom,
-                                                   BoxLayout.LINE_AXIS));
+            pnlQueryBottom.setLayout(new BoxLayout(pnlQueryBottom, BoxLayout.LINE_AXIS));
             pnlQueryBottom.setPreferredSize(new Dimension(500, 28));
 
-            JButton btn = new JButton(
-                                      new AbstractAction(
-                                                         "Clear",
-                                                         Icons
-                                                              .getClearIcon(
-                                                                            false,
-                                                                            false)) {
-                                          public void actionPerformed(
-                                                                      ActionEvent e) {
-                                              clearComponents();
-                                          }
-                                      });
+            JButton btn = new JButton(new AbstractAction("Clear", Icons.getClearIcon(false, false)) {
+                public void actionPerformed(ActionEvent e) {
+                    clearComponents();
+                }
+            });
             btn.setToolTipText("Remove all queries and start over");
             pnlQueryBottom.add(btn);
             pnlQueryBottom.add(Box.createRigidArea(new Dimension(8, 0)));
@@ -452,22 +409,14 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
             pnlQueryBottom.add(Box.createHorizontalGlue());
 
-            btnSearch = new JButton(new AbstractAction("Search",
-                                                       Icons.getFindIcon()) {
+            btnSearch = new JButton(new AbstractAction("Search", Icons.getFindIcon()) {
                 public void actionPerformed(ActionEvent e) {
                     // TODO:
                     // This is a terrible fix for setting the default button.
                     // When the default button is fixed, we can remove the
                     // checks
-                    TabWidget tabWidget = ProjectManager
-                                                        .getProjectManager()
-                                                        .getCurrentProjectView()
-                                                        .getSelectedTab();
-                    if ((tabWidget != null && tabWidget
-                                                       .getClass()
-                                                       .equals(
-                                                               LuceneQueryPlugin.class))
-                            || isRunsInWindow()) {
+                    TabWidget tabWidget = ProjectManager.getProjectManager().getCurrentProjectView().getSelectedTab();
+                    if ((tabWidget != null && tabWidget.getClass().equals(LuceneQueryPlugin.class)) || isRunsInWindow()) {
                         doSearch();
                     }
                 }
@@ -510,28 +459,19 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     private Action getAddNegatedNestedQueryAction() {
-        return new AbstractAction("Add Negated Query",
-                                  Icons.getAddQueryLibraryIcon()) {
+        return new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
             public void actionPerformed(ActionEvent e) {
-                QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this,
-                                                queriesListPanel);
+                QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this, queriesListPanel);
             }
         };
     }
 
     private Action getAddRestrictionQueryAction() {
-        Icon icon = new OverlayIcon(
-                                    OWLIcons
-                                            .getImageIcon(
-                                                          OWLIcons.PRIMITIVE_OWL_CLASS)
-                                            .getImage(), 5, 5,
-                                    OWLIcons.getImageIcon(OWLIcons.ADD_OVERLAY)
-                                            .getImage(), 15, 13, 15, 16);
+        Icon icon = new OverlayIcon(OWLIcons.getImageIcon(OWLIcons.PRIMITIVE_OWL_CLASS).getImage(), 5, 5, OWLIcons
+                .getImageIcon(OWLIcons.ADD_OVERLAY).getImage(), 15, 13, 15, 16);
         return new AbstractAction("Add a nested query", icon) {
             public void actionPerformed(ActionEvent e) {
-                QueryUtil.addRestrictionQueryComponent((OWLModel) kb,
-                                                       LuceneQueryPlugin.this,
-                                                       queriesListPanel);
+                QueryUtil.addRestrictionQueryComponent((OWLModel) kb, LuceneQueryPlugin.this, queriesListPanel);
             }
         };
     }
@@ -544,8 +484,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     /**
-     * Enables or disables the view and edit buttons in the top right corner of
-     * the results panel.
+     * Enables or disables the view and edit buttons in the top right corner of the results panel.
      */
     public void setViewButtonsEnabled(boolean enabled) {
         if (getEditAction() != null) {
@@ -557,8 +496,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     /**
-     * Shows or hides the view and edit buttons in the top right corner of the
-     * results panel.
+     * Shows or hides the view and edit buttons in the top right corner of the results panel.
      */
     public void setViewButtonsVisible(boolean visible) {
         if (viewButton != null) {
@@ -574,8 +512,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     /**
-     * Removes all the query components and then adds one back as the starting
-     * query.
+     * Removes all the query components and then adds one back as the starting query.
      */
     private void clearComponents() {
         queriesListPanel.removeAllPanels();
@@ -584,10 +521,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     /**
-     * test permissions Creates the {@link Query} object from all the
-     * {@link QueryComponent}s. If there are multiple queries then either an
-     * {@link AndQuery} or an {@link OrQuery} are used. Passes the {@link Query}
-     * on to {@link LuceneQueryPlugin#doQuery(Query)} if the query is valid.
+     * test permissions Creates the {@link Query} object from all the {@link QueryComponent}s. If there are multiple
+     * queries then either an {@link AndQuery} or an {@link OrQuery} are used. Passes the {@link Query} on to
+     * {@link LuceneQueryPlugin#doQuery(Query)} if the query is valid.
      */
     public void doSearch() {
         btnSearch.setEnabled(false);
@@ -602,11 +538,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
                 int hits = 0;
                 boolean error = false;
                 try {
-                    VisitableQuery query = QueryUtil
-                                                    .getQueryFromListPanel(
-                                                                           queriesListPanel,
-                                                                           btnAndQuery
-                                                                                      .isSelected());
+                    VisitableQuery query = QueryUtil.getQueryFromListPanel(queriesListPanel, btnAndQuery.isSelected());
                     hits = doQuery(query);
                     indicateSearchDone(hits, false);
                     setViewButtonsEnabled((hits > 0));
@@ -619,14 +551,10 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
                     // IOException happens for "sounds like" queries when the
                     // ontology hasn't been indexed
                     final String msg = "An exception occurred during the query.\n"
-                            + "This possibly happened because this ontology hasn't been indexed.\n"
-                            + ex.getMessage();
-                    JOptionPane.showMessageDialog(LuceneQueryPlugin.this, msg,
-                                                  "Error",
-                                                  JOptionPane.ERROR_MESSAGE);
+                            + "This possibly happened because this ontology hasn't been indexed.\n" + ex.getMessage();
+                    JOptionPane.showMessageDialog(LuceneQueryPlugin.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
                     error = true;
-                    searchResultsList
-                                     .setListData(new String[] { "An exception occurred during the query." });
+                    searchResultsList.setListData(new String[] { "An exception occurred during the query." });
                 } finally {
                     setCursor(oldCursor);
                     btnSearch.setEnabled(true);
@@ -645,9 +573,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         } else {
             matchString = "  (" + hits + " match" + (hits > 1 ? "es" : "");
             if (hits > configuration.getMaxResultsDisplayed()) {
-                matchString = matchString + " shown "
-                        + configuration.getMaxResultsDisplayed()
-                        + " results at a time)";
+                matchString = matchString + " shown " + configuration.getMaxResultsDisplayed() + " results at a time)";
             } else {
                 matchString = matchString + ")";
             }
@@ -656,11 +582,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     /**
-     * Executes the query using the {@link KnowledgeBase} and puts the results
-     * into the list.
+     * Executes the query using the {@link KnowledgeBase} and puts the results into the list.
      * 
-     * @param q
-     *            the query to perform
+     * @param q the query to perform
      * @see KnowledgeBase#executeQuery(Query)
      * @return int number of hits for the query
      */
@@ -671,16 +595,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             Collection<FrameWithBrowserText> toRemove = new HashSet<FrameWithBrowserText>();
             for (FrameWithBrowserText wrappedFrame : results) {
                 Frame frame = wrappedFrame.getFrame();
-                if (!configuration.isSearchResultsIncludeClasses()
-                        && frame instanceof Cls) {
+                if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
                     toRemove.add(wrappedFrame);
                 }
-                if (!configuration.isSearchResultsIncludeProperties()
-                        && frame instanceof Slot) {
+                if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
                     toRemove.add(wrappedFrame);
                 }
-                if (!configuration.isSearchResultsIncludeIndividuals()
-                        && frame instanceof SimpleInstance) {
+                if (!configuration.isSearchResultsIncludeIndividuals() && frame instanceof SimpleInstance) {
                     toRemove.add(wrappedFrame);
                 }
             }
@@ -689,15 +610,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         int hits = results != null ? results.size() : 0;
         if (hits == 0) {
             queryRenderer.setQuery(null); // don't bold anything
-            resultsComponent
-                            .setAllFrames(new ArrayList<FrameWithBrowserText>());
-            searchResultsList
-                             .setListData(new String[] { SEARCH_NO_RESULTS_FOUND });
+            resultsComponent.setAllFrames(new ArrayList<FrameWithBrowserText>());
+            searchResultsList.setListData(new String[] { SEARCH_NO_RESULTS_FOUND });
         } else {
             queryRenderer.setQuery(q); // bold the matching results
             resultsComponent.setAllFrames(results);
-            resultsComponent
-                            .setPageSize(configuration.getMaxResultsDisplayed());
+            resultsComponent.setPageSize(configuration.getMaxResultsDisplayed());
             searchResultsList.setSelectedIndex(0);
         }
         return hits;
@@ -706,15 +624,12 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     public VisitableQuery getQuery() {
         VisitableQuery query = null;
         try {
-            query = QueryUtil.getQueryFromListPanel(queriesListPanel,
-                                                    btnAndQuery.isSelected());
+            query = QueryUtil.getQueryFromListPanel(queriesListPanel, btnAndQuery.isSelected());
         } catch (Exception e) {
             if (Log.getLogger().isLoggable(Level.FINE)) {
                 Log.getLogger().log(Level.FINE, "Invalid query", e);
             } else {
-                Log.getLogger().warning(
-                                        "Invalid query. Message: "
-                                                + e.getMessage());
+                Log.getLogger().warning("Invalid query. Message: " + e.getMessage());
             }
         }
         return query;
@@ -728,19 +643,18 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         this.runsInWindow = runsInWindow;
     }
 
-    
     @Override
-    public void dispose() {    	
-    	if (!runsInWindow) {    		    	
-    		JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
-    		if (menuBar != null) {
-    			JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);
-    			if (menu != null) {
-    				menuBar.remove(menu);
-    			}
-    		}
-    		super.dispose();
-    	}
+    public void dispose() {
+        if (!runsInWindow) {
+            JMenuBar menuBar = ProjectManager.getProjectManager().getCurrentProjectMenuBar();
+            if (menuBar != null) {
+                JMenu menu = ComponentUtilities.getMenu(menuBar, LUCENE_MENU_NAME);
+                if (menu != null) {
+                    menuBar.remove(menu);
+                }
+            }
+            super.dispose();
+        }
     }
-    
+
 }
