@@ -8,10 +8,12 @@ import java.util.Iterator;
 
 import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.model.Cls;
+import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.util.ModalDialog;
+import edu.stanford.smi.protege.util.StringUtilities;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 
@@ -94,5 +96,12 @@ public class NCIExportToCsvAction extends ExportToCsvAction {
 	protected Collection<Cls> getClsesToExport() {
 		return new ArrayList<Cls>();
 	}
+	
+	@Override
+	protected String getExportName(Frame frame) {
+	    if (!isExportBrowserTextEnabled()) { return super.getExportName(frame); }	    
+	    return StringUtilities.unquote(frame.getBrowserText());
+	}
+	
 
 }
