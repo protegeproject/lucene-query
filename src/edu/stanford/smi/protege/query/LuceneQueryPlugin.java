@@ -20,6 +20,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -112,6 +113,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private boolean isOWL;
 
     private boolean runsInWindow = false;
+    
+    
 
     private ViewAction viewAction;
 
@@ -321,7 +324,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         JPopupMenu menu = null;
         if (!getSelection().isEmpty()) {
             menu = new JPopupMenu();
-            if (getSelection().size() == 1) {
+            if (getSelection().size() == 1 && this.enableClickLstResults) {
                 menu.add(getViewAction());
                 menu.add(getEditAction());
                 menu.addSeparator();
