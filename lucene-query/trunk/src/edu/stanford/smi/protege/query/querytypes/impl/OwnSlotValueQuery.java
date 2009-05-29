@@ -71,7 +71,14 @@ public class OwnSlotValueQuery implements VisitableQuery, BoundableQuery {
 			buffer.append(QueryUtil.getQueryType(expr));
 		}
 		buffer.append(" ");
-		buffer.append(expr);
+		String pexpr = expr;
+		if (pexpr.startsWith("*")) {
+			pexpr = pexpr.substring(1);
+		}
+		if (pexpr.endsWith("*")) {
+			pexpr = pexpr.substring(0, pexpr.length()-1);
+		}
+		buffer.append(pexpr);
 		buffer.append(")");
 		return buffer.toString();
 	}

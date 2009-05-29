@@ -122,10 +122,10 @@ public final class QueryUtil {
 			return "contains";
 		}
 		if (queryString.startsWith("*")) {
-			return "starts with";
+			return "ends with";
 		}
 		if (queryString.endsWith("*")) {
-			return "ends with";
+			return "starts with";
 		}
 		return "exact match";
 	}
