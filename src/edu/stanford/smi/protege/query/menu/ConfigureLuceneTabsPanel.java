@@ -100,7 +100,7 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
     private void addMaxDisplayed() {
         maxResultsDisplayedField = new JFormattedTextField(NumberFormat.getIntegerInstance());
         maxResultsDisplayedField.setValue(configuration.getMaxResultsDisplayed());
-        LabeledComponent lc = new LabeledComponent("Max results displayed (-1=all)", maxResultsDisplayedField);
+        LabeledComponent lc = new LabeledComponent("Max results displayed per page", maxResultsDisplayedField);
         lc.setAlignmentX(Component.LEFT_ALIGNMENT);
         centerComponent.add(lc);
     }
