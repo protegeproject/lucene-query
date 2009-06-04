@@ -259,7 +259,9 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     }
 
     public void setMaxResultsDisplayed(int maxResultsDisplayed) {
-        this.maxResultsDisplayed = maxResultsDisplayed;
+    	if (maxResultsDisplayed > 0) {
+    		this.maxResultsDisplayed = maxResultsDisplayed;
+    	}
     }
     
 
