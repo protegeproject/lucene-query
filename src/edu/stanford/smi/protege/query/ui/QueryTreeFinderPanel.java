@@ -131,6 +131,7 @@ public class QueryTreeFinderPanel extends JPanel implements Disposable {
                 return;
             }
             if (!modal) {
+                frame.setTitle(getOntologyPrettyName() + " Lucene Query");
                 frame.getContentPane().add(advanceQueryTabWidget);
                 frame.pack();
             }
