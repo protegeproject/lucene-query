@@ -58,10 +58,14 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
         titleMap.put(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS, 
         			 isOwl ? "Include Individuals in search results" : 
         				     "Include instances in search Results");
+        titleMap.put(BooleanConfigItem.ALLOW_METAMODELING, "Allow meta-modelling");
     }
     
     private void addBooleanConfigurationItems() {
         for (final BooleanConfigItem configItem : BooleanConfigItem.values()) {
+        	if  (!configuration.isOwl() && configItem  == BooleanConfigItem.ALLOW_METAMODELING) {
+        		continue;
+        	}
             boolean enabled = configuration.getBooleanConfiguration(configItem);
             final JCheckBox box = ComponentFactory.createCheckBox(titleMap.get(configItem));
             box.setAlignmentX(Component.LEFT_ALIGNMENT);            

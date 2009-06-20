@@ -17,6 +17,7 @@ import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NestedOwnSlotValueQuery;
@@ -47,7 +48,7 @@ public class OWLRestrictionQueryComponent extends QueryComponent {
 	private JRadioButton btnOrQuery;
 	
 	public OWLRestrictionQueryComponent(OWLModel model, LuceneQueryPlugin plugin) {
-		super(model, plugin);
+		super(model, plugin, SlotFilterType.PROPERTIES_USED_IN_RESTRICTIONS);
 		// add the default component (must be after searchable slot is set)
 		addQueryComponent();
 	}
@@ -166,7 +167,7 @@ public class OWLRestrictionQueryComponent extends QueryComponent {
 	}
 
 	private void addQueryComponent() {
-		QueryUtil.addQueryComponent(getKnowledgeBase(), getLuceneQueryPlugin(), groupListPanel);
+		QueryUtil.addQueryComponent(getKnowledgeBase(), getLuceneQueryPlugin(), groupListPanel, SlotFilterType.PROPERTIES_APPLICABLE_TO_CLASSES_ONLY);
 	}
 
 }

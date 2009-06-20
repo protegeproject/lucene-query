@@ -46,7 +46,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     public enum BooleanConfigItem {
         SEARCH_FOR_CLASSES("lucene.search.classes", true),
         SEARCH_FOR_PROPERTIES("lucene.search.properties", true),
-        SEARCH_FOR_INDIVIDUALS("lucene.search.individuals", true);
+        SEARCH_FOR_INDIVIDUALS("lucene.search.individuals", true),
+        ALLOW_METAMODELING("Allow meta-modeling", false);
         
         private String protegeProperty;
         private boolean defaultValue;
@@ -66,7 +67,11 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         
     }
 
-
+    public enum SlotFilterType {
+    	TOP_LEVEL_SEARCH_PROPERTY,
+    	PROPERTIES_APPLICABLE_TO_CLASSES_ONLY,
+    	PROPERTIES_USED_IN_RESTRICTIONS;
+    }
     
     public QueryUIConfiguration(KnowledgeBase kb) {
         canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
@@ -187,6 +192,49 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         }
     }
     
+    public Set<Slot> filterSlots(Set<Slot> slots, SlotFilterType slotFilterType) {
+    	switch (slotFilterType) {
+    	case TOP_LEVEL_SEARCH_PROPERTY:
+        	if (isOwl && !allowMetaModeling() && !isSearchResultsIncludeIndividuals()) {
+        		return filterForAnnotationPropertiesOnly(slots);
+        	}
+        	else {
+        		return slots;
+        	}
+    	case PROPERTIES_APPLICABLE_TO_CLASSES_ONLY:
+    		if (isOwl && !allowMetaModeling()) {
+    			return filterForAnnotationPropertiesOnly(slots);
+    		}
+    		else {
+    			return slots;
+    		}
+    	case PROPERTIES_USED_IN_RESTRICTIONS:
+    		return filterForRestrictionProperties(slots);
+    	default:
+    		throw new IllegalStateException("Programmer error: he missed a case");
+    	}
+
+    }
+    
+    private Set<Slot> filterForAnnotationPropertiesOnly(Set<Slot> slots) {
+		Set<Slot> filtered = new HashSet<Slot>();
+		for (Slot slot : slots) {
+			if (slot instanceof RDFProperty && ((RDFProperty) slot).isAnnotationProperty()) {
+				filtered.add(slot);
+			}
+		}
+		return filtered;
+    }
+    
+    private Set<Slot> filterForRestrictionProperties(Set<Slot> slots) {
+		Set<Slot> filtered = new HashSet<Slot>();
+		for (Slot slot : slots) {
+			if (slot instanceof RDFProperty && !((RDFProperty) slot).isAnnotationProperty()) {
+				filtered.add(slot);
+			}
+		}
+		return filtered;
+    }
     /*
      * Getters and setters.
      */
@@ -233,8 +281,20 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     	setBooleanConfiguration(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS, searchResultsIncludeIndividuals);
     }
     
+    public boolean allowMetaModeling() {
+    	return getBooleanConfiguration(BooleanConfigItem.ALLOW_METAMODELING);
+    }
+    
+    public void setAllowMetaModeling(boolean allowMetaModeling) {
+    	setBooleanConfiguration(BooleanConfigItem.ALLOW_METAMODELING, allowMetaModeling);
+    }
+    
     public Set<Slot> getLuceneSlots() {
         return luceneSlots;
+    }
+    
+    public Set<Slot> getLuceneSlots(SlotFilterType slotFilter) {
+        return filterSlots(luceneSlots, slotFilter);
     }
     
     public void setLuceneSlots(Set<Slot> luceneSlots) {
@@ -244,6 +304,10 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     
     public Set<Slot> getAllSlots() {
         return allSlots;
+    }
+    
+    public Set<Slot> getAllSlots(SlotFilterType slotFilter) {
+    	return filterSlots(allSlots, slotFilter);
     }
 
     public Set<IndexMechanism> getIndexers() {
@@ -264,6 +328,6 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     	}
     }
     
-
+    
     
 }

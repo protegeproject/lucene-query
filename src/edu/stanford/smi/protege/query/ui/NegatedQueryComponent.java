@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.util.ListPanel;
@@ -37,9 +38,12 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 	private JRadioButton btnAndQuery;
 	private JRadioButton btnOrQuery;
 	
-	public NegatedQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin) {
+	private SlotFilterType slotFilterType;
+	
+	public NegatedQueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, SlotFilterType filterType) {
 		this.kb = kb;
 		this.plugin = plugin;
+		this.slotFilterType = filterType;
 		
 		setLayout(new BorderLayout(0, 0));
 		setDimensions();
@@ -107,7 +111,7 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 
 	
 	private void addQueryComponent() {
-		QueryUtil.addQueryComponent(kb, plugin, groupListPanel);
+		QueryUtil.addQueryComponent(kb, plugin, groupListPanel, slotFilterType);
 	}
 
 

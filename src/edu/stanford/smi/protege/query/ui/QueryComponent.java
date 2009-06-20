@@ -36,6 +36,7 @@ import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
@@ -52,6 +53,7 @@ import edu.stanford.smi.protege.util.Assert;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.ModalDialog;
 import edu.stanford.smi.protege.util.ModalDialog.CloseCallback;
+import edu.stanford.smi.protegex.changes.ChangeTableModel.FilterMethod;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 
@@ -99,13 +101,15 @@ public class QueryComponent extends QueryBuildingJPanel {
 	
 	private LuceneQueryPlugin plugin;
 	
+	private SlotFilterType slotFilterType;
+	
 	/**
 	 * Initializes this component with the given {@link KnowledgeBase} and selectable {@link Slot}s.
 	 * The Name Slot (:NAME) is used as the default Slot.
 	 * @param slots the available slots (which the user can choose from)
 	 */
-	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin) {
-		this(kb, plugin, "");
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, QueryUIConfiguration.SlotFilterType slotFilter) {
+		this(kb, plugin, slotFilter, "");
 	}
 
 	
@@ -116,12 +120,12 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 * @param defaultSlot the slot to display by default
 	 * @param value the default value to be searched
 	 */
-	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, String value) {
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, QueryUIConfiguration.SlotFilterType slotFilter, String value) {
 		this.kb = kb;
 		this.plugin = plugin;
 		this.typesMap = new HashMap<ValueType, String[]>(15);
 		this.typesToComponentMap = new HashMap<ValueType, QueryLabeledComponent>(15);
-					
+		this.slotFilterType = slotFilter;
 		initialize();
 		
 		if (value != null && value.length() > 0 ) {
@@ -504,7 +508,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 	protected Action createSelectSlotAction(final QueryListComponent comp, final String name, Icon icon) {
 		return new AbstractAction(name, icon) {
 			public void actionPerformed(ActionEvent e) {
-				Slot slot = DisplayUtilities.pickSlot(comp, getUIConfiguration().getAllSlots(), name);
+				Slot slot = DisplayUtilities.pickSlot(comp, getUIConfiguration().getAllSlots(slotFilterType), name);
 				// if the user pressed cancel then slot will be null
 				if (slot != null) {
 					comp.setObject(slot);
@@ -546,7 +550,7 @@ public class QueryComponent extends QueryBuildingJPanel {
     public static Query showQueryDialog(KnowledgeBase kb, LuceneQueryPlugin  plugin, Component parent, String title) {
     	// This method is not used at the moment
     	Query query = null;
-    	final QueryComponent comp = new QueryComponent(kb, plugin);
+    	final QueryComponent comp = new QueryComponent(kb, plugin, SlotFilterType.TOP_LEVEL_SEARCH_PROPERTY);
 
     	// we need to get the query this way because when the dialog closes all the children components
     	// of QueryComponent are disposed which prevents us from getting the query afterwards
