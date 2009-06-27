@@ -53,7 +53,6 @@ import edu.stanford.smi.protege.util.Assert;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.ModalDialog;
 import edu.stanford.smi.protege.util.ModalDialog.CloseCallback;
-import edu.stanford.smi.protegex.changes.ChangeTableModel.FilterMethod;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 
