@@ -49,7 +49,7 @@ import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.ConfigureLuceneAction;
 import edu.stanford.smi.protege.query.menu.InstallIndiciesAction;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
-import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
+import edu.stanford.smi.protege.query.menu.SlotFilterType;
 import edu.stanford.smi.protege.query.nci.NCICreateWorkflowAction;
 import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
@@ -465,7 +465,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private Action getAddNegatedNestedQueryAction() {
         return new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
             public void actionPerformed(ActionEvent e) {
-                QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this, queriesListPanel, SlotFilterType.TOP_LEVEL_SEARCH_PROPERTY);
+                QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this, queriesListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES);
             }
         };
     }
@@ -482,7 +482,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     public void setQueryComponent(Slot slot, String defaultValue) {
         queriesListPanel.removeAllPanels();
-        QueryUtil.addQueryComponent(kb, this, queriesListPanel, SlotFilterType.TOP_LEVEL_SEARCH_PROPERTY, defaultValue);
+        QueryUtil.addQueryComponent(kb, this, queriesListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES, defaultValue);
         queriesListPanel.repaint();
         queriesListPanel.revalidate();
     }
@@ -512,7 +512,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     }
 
     private void addQueryComponent() {
-        QueryUtil.addQueryComponent(kb, this, queriesListPanel, SlotFilterType.TOP_LEVEL_SEARCH_PROPERTY);
+        QueryUtil.addQueryComponent(kb, this, queriesListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES);
     }
 
     /**

@@ -36,7 +36,7 @@ import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
-import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
+import edu.stanford.smi.protege.query.menu.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
@@ -107,7 +107,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 * The Name Slot (:NAME) is used as the default Slot.
 	 * @param slots the available slots (which the user can choose from)
 	 */
-	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, QueryUIConfiguration.SlotFilterType slotFilter) {
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, SlotFilterType slotFilter) {
 		this(kb, plugin, slotFilter, "");
 	}
 
@@ -119,7 +119,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 * @param defaultSlot the slot to display by default
 	 * @param value the default value to be searched
 	 */
-	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, QueryUIConfiguration.SlotFilterType slotFilter, String value) {
+	public QueryComponent(KnowledgeBase kb, LuceneQueryPlugin plugin, SlotFilterType slotFilter, String value) {
 		this.kb = kb;
 		this.plugin = plugin;
 		this.typesMap = new HashMap<ValueType, String[]>(15);
@@ -291,17 +291,17 @@ public class QueryComponent extends QueryBuildingJPanel {
 	protected void initializeTypes() {
 		String[] string = { CONTAINS, STARTS_WITH, ENDS_WITH, EXACT_MATCH, PROPERTY_PRESENT,  PROPERTY_ABSENT };	// any, string
 		String[] number = { IS, GREATER_THAN, LESS_THAN , PROPERTY_PRESENT, PROPERTY_ABSENT};	// integer, float
-		String[] contains = { CONTAINS , PROPERTY_PRESENT, PROPERTY_ABSENT};	// instance, class
-		String[] is = { IS , PROPERTY_PRESENT, PROPERTY_ABSENT};	// symbol, boolean
+		String[] objects = { PROPERTY_PRESENT, PROPERTY_ABSENT};	// instance, class
+		String[] enumerated = { IS , PROPERTY_PRESENT, PROPERTY_ABSENT};	// symbol, boolean
 		typesMap.clear();
 		typesMap.put(ValueType.ANY, string);
-		typesMap.put(ValueType.BOOLEAN, is);
-		typesMap.put(ValueType.CLS, contains);
+		typesMap.put(ValueType.BOOLEAN, enumerated);
+		typesMap.put(ValueType.CLS, objects);
 		typesMap.put(ValueType.FLOAT, number);
-		typesMap.put(ValueType.INSTANCE, contains);
+		typesMap.put(ValueType.INSTANCE, objects);
 		typesMap.put(ValueType.INTEGER, number);
 		typesMap.put(ValueType.STRING, string);
-		typesMap.put(ValueType.SYMBOL, is);
+		typesMap.put(ValueType.SYMBOL, enumerated);
 	}
 	
 	/**
@@ -549,7 +549,7 @@ public class QueryComponent extends QueryBuildingJPanel {
     public static Query showQueryDialog(KnowledgeBase kb, LuceneQueryPlugin  plugin, Component parent, String title) {
     	// This method is not used at the moment
     	Query query = null;
-    	final QueryComponent comp = new QueryComponent(kb, plugin, SlotFilterType.TOP_LEVEL_SEARCH_PROPERTY);
+    	final QueryComponent comp = new QueryComponent(kb, plugin, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES);
 
     	// we need to get the query this way because when the dialog closes all the children components
     	// of QueryComponent are disposed which prevents us from getting the query afterwards

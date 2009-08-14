@@ -67,12 +67,6 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         
     }
 
-    public enum SlotFilterType {
-    	TOP_LEVEL_SEARCH_PROPERTY,
-    	PROPERTIES_APPLICABLE_TO_CLASSES_ONLY,
-    	PROPERTIES_USED_IN_RESTRICTIONS;
-    }
-    
     public QueryUIConfiguration(KnowledgeBase kb) {
         canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
         isOwl = (kb instanceof OWLModel);
@@ -192,49 +186,6 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         }
     }
     
-    public Set<Slot> filterSlots(Set<Slot> slots, SlotFilterType slotFilterType) {
-    	switch (slotFilterType) {
-    	case TOP_LEVEL_SEARCH_PROPERTY:
-        	if (isOwl && !allowMetaModeling() && !isSearchResultsIncludeIndividuals()) {
-        		return filterForAnnotationPropertiesOnly(slots);
-        	}
-        	else {
-        		return slots;
-        	}
-    	case PROPERTIES_APPLICABLE_TO_CLASSES_ONLY:
-    		if (isOwl && !allowMetaModeling()) {
-    			return filterForAnnotationPropertiesOnly(slots);
-    		}
-    		else {
-    			return slots;
-    		}
-    	case PROPERTIES_USED_IN_RESTRICTIONS:
-    		return filterForRestrictionProperties(slots);
-    	default:
-    		throw new IllegalStateException("Programmer error: he missed a case");
-    	}
-
-    }
-    
-    private Set<Slot> filterForAnnotationPropertiesOnly(Set<Slot> slots) {
-		Set<Slot> filtered = new HashSet<Slot>();
-		for (Slot slot : slots) {
-			if (slot instanceof RDFProperty && ((RDFProperty) slot).isAnnotationProperty()) {
-				filtered.add(slot);
-			}
-		}
-		return filtered;
-    }
-    
-    private Set<Slot> filterForRestrictionProperties(Set<Slot> slots) {
-		Set<Slot> filtered = new HashSet<Slot>();
-		for (Slot slot : slots) {
-			if (slot instanceof RDFProperty && !((RDFProperty) slot).isAnnotationProperty()) {
-				filtered.add(slot);
-			}
-		}
-		return filtered;
-    }
     /*
      * Getters and setters.
      */
@@ -246,8 +197,6 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     public boolean isOwl() {
         return isOwl;
     }
-    
-    
     
     public Slot getDefaultSlot() {
         return defaultSlot;
@@ -294,7 +243,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     }
     
     public Set<Slot> getLuceneSlots(SlotFilterType slotFilter) {
-        return filterSlots(luceneSlots, slotFilter);
+        return slotFilter.filterSlots(this, luceneSlots);
     }
     
     public void setLuceneSlots(Set<Slot> luceneSlots) {
@@ -307,7 +256,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     }
     
     public Set<Slot> getAllSlots(SlotFilterType slotFilter) {
-    	return filterSlots(allSlots, slotFilter);
+    	return slotFilter.filterSlots(this, allSlots);
     }
 
     public Set<IndexMechanism> getIndexers() {

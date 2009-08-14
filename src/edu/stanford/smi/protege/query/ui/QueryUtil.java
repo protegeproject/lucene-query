@@ -12,7 +12,7 @@ import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
 import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
-import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
+import edu.stanford.smi.protege.query.menu.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
@@ -105,7 +105,7 @@ public final class QueryUtil {
 	 * @param listPanel the {@link ListPanel} to add too
 	 */
 	public static void addRestrictionQueryComponent(OWLModel model, LuceneQueryPlugin plugin, ListPanel listPanel) {
-		OWLRestrictionQueryComponent qc = new OWLRestrictionQueryComponent(model, plugin);
+		OWLRestrictionOrOwnSlotQuery qc = new OWLRestrictionOrOwnSlotQuery(model, plugin);
 		ListPanelComponent comp = new ListPanelComponent(listPanel, qc, false, true);
 		comp.setMinimumSize(new Dimension(60, 100));
 		comp.setPreferredSize(new Dimension(500, 200));
