@@ -15,7 +15,7 @@ import javax.swing.JScrollPane;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.query.LuceneQueryPlugin;
 import edu.stanford.smi.protege.query.kb.InvalidQueryException;
-import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.SlotFilterType;
+import edu.stanford.smi.protege.query.menu.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.util.ListPanel;
