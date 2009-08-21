@@ -170,9 +170,11 @@ public class QueryComponent extends QueryBuildingJPanel {
 		VisitableQuery q = null;
 		String expr = getExpression();
 		String queryType = (String) getTypesComboBox().getSelectedItem();
-		boolean presentAbsent = PROPERTY_PRESENT.equals(queryType) || PROPERTY_ABSENT.equals(queryType);
+		boolean presentAbsentEmpty = PROPERTY_PRESENT.equals(queryType) 
+		                                || PROPERTY_ABSENT.equals(queryType) 
+		                                || (EXACT_MATCH.equals(queryType) && (expr == null || expr.length() == 0));
 		
-		if (((expr == null) || (expr.length() == 0)) && !presentAbsent) {
+		if (((expr == null) || (expr.length() == 0)) && !presentAbsentEmpty) {
 			JOptionPane.showMessageDialog(this, "Please enter an expression", "Enter an expression", JOptionPane.ERROR_MESSAGE);
 			if (valueComponent != null) {
 				valueComponent.focus();
@@ -180,7 +182,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 			throw new InvalidQueryException("An expression is required");
 		}
 		
-		if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type) || presentAbsent) {
+		if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type) || presentAbsentEmpty) {
 			q = getStringQuery(slot, expr);
 		} else if (ValueType.BOOLEAN.equals(type) || ValueType.SYMBOL.equals(type) ||
 				   ValueType.INTEGER.equals(type) || ValueType.FLOAT.equals(type)) {
