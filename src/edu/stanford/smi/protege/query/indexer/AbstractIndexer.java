@@ -378,7 +378,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
   
   private String getFrameName(Frame frame) {
-    Collection values = delegate.getValues(frame, nameSlot, null, false);
+    Collection values;
+    synchronized (kbLock) {
+        values = delegate.getValues(frame, nameSlot, null, false);
+    }
     if (values == null || values.isEmpty()) {
       return null;
     }
@@ -386,7 +389,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
   
   private Frame getFrameByName(String name) {
-    Set<Frame> frames = delegate.getFrames(nameSlot, null, false, name);
+    Set<Frame> frames;
+    synchronized (kbLock) {
+        frames = delegate.getFrames(nameSlot, null, false, name);
+    }
     return frames.iterator().next();
   }
   
