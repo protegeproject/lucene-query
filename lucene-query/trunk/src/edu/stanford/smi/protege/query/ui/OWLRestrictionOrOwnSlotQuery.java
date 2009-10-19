@@ -124,6 +124,18 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 					BorderFactory.createEmptyBorder(0, 2, 0, 2), 
 					BorderFactory.createLoweredBevelBorder()));
 			
+			JButton btn2 = groupLabeledComponent.addHeaderButton(new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
+				public void actionPerformed(ActionEvent e) {
+					addNegatedQueryComponent();
+				}
+			});
+			btn2.setText("Add Negated Query");
+			// have to change the sizes to show the text
+			final Dimension dim2 = new Dimension(100, btn2.getPreferredSize().height);
+			btn2.setMinimumSize(dim2);
+			btn2.setPreferredSize(dim2);
+			btn2.setMaximumSize(dim2);
+			
 			JButton btn = groupLabeledComponent.addHeaderButton(new AbstractAction("Add another query", Icons.getAddQueryLibraryIcon()) {
 				public void actionPerformed(ActionEvent e) {
 					addQueryComponent();
@@ -168,6 +180,10 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 
 	private void addQueryComponent() {
 		QueryUtil.addQueryComponent(getKnowledgeBase(), getLuceneQueryPlugin(), groupListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES_APPLICABLE_TO_CLASSES);
+	}
+	
+	private void addNegatedQueryComponent() {
+		QueryUtil.addNegatedNestedQuery(getKnowledgeBase(), getLuceneQueryPlugin(), groupListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES_APPLICABLE_TO_CLASSES);
 	}
 
 }
