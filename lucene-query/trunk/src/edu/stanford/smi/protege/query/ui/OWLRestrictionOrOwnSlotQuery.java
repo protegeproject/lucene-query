@@ -9,6 +9,7 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -29,6 +30,7 @@ import edu.stanford.smi.protege.resource.Icons;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
+import edu.stanford.smi.protegex.owl.model.RDFProperty;
 
 /**
  * Extends {@link QueryComponent} to show an OWL restriction query.  
@@ -43,6 +45,7 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 
 	private LabeledComponent groupLabeledComponent;
 	private ListPanel groupListPanel;
+	private JLabel queryTypeLabel;
 	
 	private JRadioButton btnAndQuery;
 	private JRadioButton btnOrQuery;
@@ -92,10 +95,24 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 	@Override
 	protected QueryListComponent getSelectSlotComponent() {
 		if (selectSlot == null) {
+			if (queryTypeLabel == null) {
+				queryTypeLabel = new JLabel();
+			}
+			queryTypeLabel = new JLabel();
 			selectSlot = new QueryListComponent("OWLProperty", getKnowledgeBase());
 			selectSlot.setActions(createViewAction(selectSlot, "View Property", Icons.getViewSlotIcon()), 
 								  createSelectSlotAction(selectSlot, "Select Property", Icons.getAddSlotIcon()),
 								  createRemoveAction(selectSlot, "Remove Property", Icons.getRemoveSlotIcon()));
+			selectSlot.addListener(new QueryListComponentListener() {
+				public void valueChanged(Object value) {
+					if (value != null &&
+							value  instanceof RDFProperty) {
+						queryTypeLabel.setText(((RDFProperty) value).isAnnotationProperty() ?
+								"Property Value Query" :
+									"Property Restriction Query");
+					}
+				}
+			});
 		}
 		return selectSlot;
 	}	
@@ -103,8 +120,11 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 	/** Overridden to return a blank component. */
 	@Override
 	protected Component getTypesComponent() {
+		if (queryTypeLabel == null) {
+			queryTypeLabel = new JLabel();
+		}
 		if (typesComponent == null) {
-			typesComponent = getBlankComponent();
+			typesComponent = new QueryLabeledComponent("", queryTypeLabel);
 		}
 		return typesComponent;
 	}
