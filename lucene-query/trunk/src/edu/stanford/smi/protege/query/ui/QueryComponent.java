@@ -42,6 +42,8 @@ import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLNamedClassesQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionPropertyPresentQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
@@ -54,7 +56,10 @@ import edu.stanford.smi.protege.util.Assert;
 import edu.stanford.smi.protege.util.LabeledComponent;
 import edu.stanford.smi.protege.util.ModalDialog;
 import edu.stanford.smi.protege.util.ModalDialog.CloseCallback;
+import edu.stanford.smi.protegex.owl.model.OWLDatatypeProperty;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLObjectProperty;
+import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.ui.ProtegeUI;
 
 /**
@@ -68,14 +73,19 @@ public class QueryComponent extends QueryBuildingJPanel {
 	public static final String CONTAINS = "contains";
 	public static final String STARTS_WITH = "starts with";
 	public static final String ENDS_WITH = "ends with";
-	public static final String PROPERTY_PRESENT = "property present";
-	public static final String PROPERTY_ABSENT = "property absent";
+	public static final String PROPERTY_PRESENT = "property value present";
+	public static final String PROPERTY_ABSENT = "property value absent";
+	public static final String PROPERTY_RESTRICTION_PRESENT = "property restriction present";
+	public static final String PROPERTY_RESTRICTION_ABSENT = "property restriction absent";
 	public static final String IS = "is";
 	public static final String GREATER_THAN = "greater than";
 	public static final String LESS_THAN = "less than";
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	private static final String[] NULL = { "" };
+	
+	public static final String PROPERTY_RESTRICTION_QUERY="Restriction Query";
+	public static final String PROPERTY_VALUE_QUERY = "Property Value Query";
 	
 	private Map<ValueType, String[]> typesMap;
 	private Map<ValueType, QueryLabeledComponent> typesToComponentMap;
@@ -175,7 +185,8 @@ public class QueryComponent extends QueryBuildingJPanel {
 		                                || PROPERTY_ABSENT.equals(queryType) 
 		                                || (EXACT_MATCH.equals(queryType) && (expr == null || expr.length() == 0));
 		
-		if (((expr == null) || (expr.length() == 0)) && !presentAbsentEmpty) {
+		if (((expr == null) || (expr.length() == 0)) && !presentAbsentEmpty &&
+		        !PROPERTY_RESTRICTION_PRESENT.equals(queryType) && !PROPERTY_RESTRICTION_ABSENT.equals(queryType)) {
 			JOptionPane.showMessageDialog(this, "Please enter an expression", "Enter an expression", JOptionPane.ERROR_MESSAGE);
 			if (valueComponent != null) {
 				valueComponent.focus();
@@ -183,9 +194,19 @@ public class QueryComponent extends QueryBuildingJPanel {
 			throw new InvalidQueryException("An expression is required");
 		}
 		
-		if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type) || presentAbsentEmpty) {
+		if (PROPERTY_RESTRICTION_PRESENT.equals(queryType)) {
+		    q = new OWLRestrictionPropertyPresentQuery((OWLModel) kb, (OWLProperty) slot);
+		}
+		else if (PROPERTY_RESTRICTION_ABSENT.equals(queryType)) {
+		    List<VisitableQuery> conjuncts = new ArrayList<VisitableQuery>();
+		    conjuncts.add(new OWLNamedClassesQuery((OWLModel) kb));
+		    conjuncts.add(new NegatedQuery(new OWLRestrictionPropertyPresentQuery((OWLModel) kb, (OWLProperty) slot)));
+		    q = new AndQuery(conjuncts);
+		}
+		else if (ValueType.ANY.equals(type) || ValueType.STRING.equals(type) || presentAbsentEmpty) {
 			q = getStringQuery(slot, expr);
-		} else if (ValueType.BOOLEAN.equals(type) || ValueType.SYMBOL.equals(type) ||
+		}
+		else if (ValueType.BOOLEAN.equals(type) || ValueType.SYMBOL.equals(type) ||
 				   ValueType.INTEGER.equals(type) || ValueType.FLOAT.equals(type)) {
 			// TODO this doesn't work
 			q = new OwnSlotValueQuery(slot, expr);
@@ -332,7 +353,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 	/**
 	 * Initializes and returns the types {@link LabeledComponent}.
 	 */
-	protected Component getTypesComponent() {
+	protected LabeledComponent getTypesComponent() {
 		if (typesComponent == null) {
 			typesComponent = new LabeledComponent("Property Value Query", getTypesComboBox(), false);
 		}
@@ -405,20 +426,32 @@ public class QueryComponent extends QueryBuildingJPanel {
 			cmbTypes = new JComboBox(getTypesModel());
 			cmbTypes.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					String type = (String) getTypesComboBox().getSelectedItem();
 					Component textField = valueComponent.getCenterComponent();
-					if (PROPERTY_PRESENT.equals(type) || PROPERTY_ABSENT.equals(type)) {						
-						valueComponent.setVisible(false);
-					}
-					else {
-						if (!valueComponent.isVisible()) { valueComponent.setVisible(true); }						
-					}
+					updateValueComponentVisibility();
 				}
 			});
 			
 			selectDefaultSearchType();
 		}
 		return cmbTypes;
+	}
+	
+	private void updateValueComponentVisibility() {
+        String type = (String) getTypesComboBox().getSelectedItem();
+        if ((PROPERTY_ABSENT.equals(type) || PROPERTY_PRESENT.equals(type) ||
+                PROPERTY_RESTRICTION_PRESENT.equals(type) || PROPERTY_RESTRICTION_ABSENT.equals(type)) 
+                && valueComponent != null) {
+            valueComponent.setVisible(false);
+        }
+        else if (valueComponent != null) {
+            valueComponent.setVisible(true);
+        }
+        if (PROPERTY_RESTRICTION_PRESENT.equals(type) || PROPERTY_RESTRICTION_ABSENT.equals(type)) {
+            getTypesComponent().setHeaderLabel(PROPERTY_RESTRICTION_QUERY);
+        }
+        else {
+            getTypesComponent().setHeaderLabel(PROPERTY_VALUE_QUERY);
+        }
 	}
 
 	private void selectDefaultSearchType() {
@@ -435,13 +468,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				Object type = cmbTypes.getSelectedItem();
-				if ((PROPERTY_ABSENT.equals(type) || PROPERTY_PRESENT.equals(type)) && valueComponent != null) {
-					valueComponent.setVisible(false);
-				}
-				else if (valueComponent != null) {
-					valueComponent.setVisible(true);
-				}
+			    updateValueComponentVisibility();
 			}
 		});
 	}
@@ -642,6 +669,11 @@ public class QueryComponent extends QueryBuildingJPanel {
 			        for (IndexMechanism indexer : getUIConfiguration().getIndexers()) {
 			            types.add(indexer.getCommand());
 			        }
+			    }
+			    if (kb instanceof OWLModel && 
+			            (slot instanceof OWLObjectProperty || slot instanceof OWLDatatypeProperty)) {
+			        types.add(PROPERTY_RESTRICTION_PRESENT);
+			        types.add(PROPERTY_RESTRICTION_ABSENT);
 			    }
 			    model.removeAllElements();
 			    for (String queryType : types) {
