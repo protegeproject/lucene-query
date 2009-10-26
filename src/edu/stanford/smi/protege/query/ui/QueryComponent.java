@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import edu.stanford.smi.protege.model.BrowserSlotPattern;
 import edu.stanford.smi.protege.model.Cls;
@@ -333,7 +334,7 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 */
 	protected Component getTypesComponent() {
 		if (typesComponent == null) {
-			typesComponent = new LabeledComponent("", getTypesComboBox(), false);
+			typesComponent = new LabeledComponent("Property Value Query", getTypesComboBox(), false);
 		}
 		return typesComponent;
 	}
@@ -432,6 +433,17 @@ public class QueryComponent extends QueryBuildingJPanel {
 				cmbTypes.setSelectedIndex(0);
 			}
 		}
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				Object type = cmbTypes.getSelectedItem();
+				if ((PROPERTY_ABSENT.equals(type) || PROPERTY_PRESENT.equals(type)) && valueComponent != null) {
+					valueComponent.setVisible(false);
+				}
+				else if (valueComponent != null) {
+					valueComponent.setVisible(true);
+				}
+			}
+		});
 	}
 	
 	private DefaultComboBoxModel getTypesModel() {
