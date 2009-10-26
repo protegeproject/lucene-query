@@ -29,11 +29,14 @@ import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NestedOwnSlotValueQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLNamedClassesQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionPropertyPresentQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.PropertyPresentQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.Util;
 import edu.stanford.smi.protege.storage.database.DatabaseFrameDb;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SimpleStringMatcher;
@@ -243,6 +246,27 @@ public class QueryResultsCollector implements QueryVisitor {
 				addResults(frames);
 			}
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+    public void visit(OWLNamedClassesQuery q) {
+	    addResults(((OWLModel) kb).getUserDefinedOWLNamedClasses());
+	}
+	
+	public void visit(OWLRestrictionPropertyPresentQuery q) {
+	    for (Frame owlexpr : delegate.getFrames(q.getOnProperty(), null, false, q.getProperty())) {
+	        Frame owlHeadExpr = Util.getOWLExprHead(owlexpr, delegate);
+            for (Frame equivCls : delegate.getFrames(q.getOwlEquivalentClassProperty(), null, false, owlHeadExpr)) {
+                if (equivCls instanceof Cls && Util.isOWLNamedClass((Cls) equivCls, delegate)) {
+                    addResult(equivCls);
+                }
+            }
+            for (Object equivCls : delegate.getValues(owlHeadExpr, q.getDirectSubclassesSlot(), null, false)) {
+                if (equivCls instanceof Cls && Util.isOWLNamedClass((Cls) equivCls, delegate)) {
+                    addResult((Frame) equivCls);
+                }
+            }
+	    }
 	}
 
 	public void visit(OWLRestrictionQuery q) {
