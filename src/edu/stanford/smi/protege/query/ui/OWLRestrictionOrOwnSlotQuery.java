@@ -119,7 +119,7 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 	
 	/** Overridden to return a blank component. */
 	@Override
-	protected Component getTypesComponent() {
+	protected LabeledComponent getTypesComponent() {
 		if (queryTypeLabel == null) {
 			queryTypeLabel = new JLabel();
 		}
