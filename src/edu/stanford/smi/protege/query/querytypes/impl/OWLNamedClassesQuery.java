@@ -7,7 +7,7 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class OWLNamedClassesQuery implements VisitableQuery {
-    private OWLModel owlModel;
+    private transient OWLModel owlModel;
 
     public OWLNamedClassesQuery(OWLModel owlModel) {
         this.owlModel = owlModel;
