@@ -5,15 +5,18 @@ import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.ui.QueryUtil;
+import edu.stanford.smi.protege.util.LocalizeUtils;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
 import edu.stanford.smi.protegex.owl.model.impl.OWLSystemFrames;
 
 public class OWLRestrictionPropertyPresentQuery implements VisitableQuery {
-    private OWLModel owlModel;
+    private static final long serialVersionUID = -6765862878470667539L;
+    
+    private transient OWLModel owlModel;
     private OWLProperty property;
-    private OWLSystemFrames systemFrames;
+    private transient OWLSystemFrames systemFrames;
     
     public OWLRestrictionPropertyPresentQuery(OWLModel owlModel, OWLProperty property) {
         this.owlModel = owlModel;
@@ -57,6 +60,8 @@ public class OWLRestrictionPropertyPresentQuery implements VisitableQuery {
 
     public void localize(KnowledgeBase kb) {
         owlModel = (OWLModel) kb;
+        LocalizeUtils.localize(property, owlModel);
+        systemFrames = owlModel.getSystemFrames();
     }
 
 }
