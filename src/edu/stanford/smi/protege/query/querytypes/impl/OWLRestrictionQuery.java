@@ -19,8 +19,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
     private OWLProperty property;
     private VisitableQuery query;
         
-    private OWLModel owlModel;
-    private OWLSystemFrames systemFrames;
+    private transient OWLModel owlModel;
 
     public OWLRestrictionQuery(OWLModel om,
                                OWLProperty property,
@@ -28,7 +27,6 @@ public class OWLRestrictionQuery implements VisitableQuery {
         this.property = property;
         this.query = query;
         owlModel = om;
-        systemFrames = owlModel.getSystemFrames();
     }
 
     public void accept(QueryVisitor visitor) {
@@ -44,6 +42,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
     }
 
     public Set<Frame> executeQueryBasedOnQueryResult(Cls innerQueryResult, NarrowFrameStore nfs) {
+        OWLSystemFrames systemFrames = owlModel.getSystemFrames();
         Set<Frame> results = new HashSet<Frame>();
         for (Frame restriction : getRestrictions(innerQueryResult, nfs)) {
             Frame owlHeadExpr = Util.getOWLExprHead(restriction, nfs);
@@ -63,6 +62,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
     }
 
     private Set<Cls> getOWLNamedSubClasses(Cls cls, NarrowFrameStore nfs) {
+        OWLSystemFrames systemFrames = owlModel.getSystemFrames();
         Set<Cls> subClasses = new HashSet<Cls>();
         for (Object subCls : nfs.getClosure(cls, systemFrames.getDirectSubclassesSlot(), null, false)) {
             if (subCls instanceof Cls && Util.isOWLNamedClass((Cls) subCls, nfs)) {
@@ -73,6 +73,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
     }
 
     private Set<Frame> getRestrictions(Cls innerQueryResult, NarrowFrameStore nfs) {
+        OWLSystemFrames systemFrames = owlModel.getSystemFrames();
         Set<Frame> restrictions = new HashSet<Frame>();
         for (Frame restriction : nfs.getFrames(systemFrames.getOwlSomeValuesFromProperty(), null, false, innerQueryResult)) {
             for (Object restrictionProperty : nfs.getValues(restriction, systemFrames.getOwlOnPropertyProperty(), null, false)) {
@@ -92,6 +93,7 @@ public class OWLRestrictionQuery implements VisitableQuery {
     }
 
     public void localize(KnowledgeBase kb) {
+        owlModel = (OWLModel) kb;
         LocalizeUtils.localize(property, kb);
         query.localize(kb);
     }
