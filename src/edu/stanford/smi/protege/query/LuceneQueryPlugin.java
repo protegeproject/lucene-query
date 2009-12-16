@@ -344,7 +344,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             @Override
             protected String getStringToExport() {
                 VisitableQuery query = getQuery();
-                String exportString = query == null ? "Invalid query" : "Query:\n\n" + query.toString(0);
+                String exportString = query == null ? "Invalid query" : "Query: " + query.toString(0);
                 return exportString;
             }
 
