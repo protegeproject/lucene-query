@@ -116,14 +116,18 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
     private void addFilterSearchType() {
     	filterSearchType = new JComboBox();
     	for (SearchType st : SearchType.values()) {
-    		filterSearchType.addItem(st);
+    		filterSearchType.addItem(st.getName());
     	}
-    	filterSearchType.setSelectedItem(configuration.getFilterResultsSearchType());
+    	filterSearchType.setSelectedItem(configuration.getFilterResultsSearchType().getName());
     	filterSearchType.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				SearchType st = (SearchType) filterSearchType.getSelectedObjects()[0];
-				configuration.setFilterResultsSearchType(st);
+				String name = (String) filterSearchType.getSelectedObjects()[0];
+		    	for (SearchType st : SearchType.values()) {
+		    		if (st.getName().equals(name)) {
+						configuration.setFilterResultsSearchType(st);
+		    		}
+		    	}
 			}
 		});
         LabeledComponent lc = new LabeledComponent("Search Type for Filtering Search Results", filterSearchType);
