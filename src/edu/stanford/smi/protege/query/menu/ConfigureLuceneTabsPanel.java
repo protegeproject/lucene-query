@@ -11,6 +11,7 @@ import java.util.EnumMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
@@ -23,6 +24,7 @@ import edu.stanford.smi.protege.util.AbstractValidatableComponent;
 import edu.stanford.smi.protege.util.AllowableAction;
 import edu.stanford.smi.protege.util.ComponentFactory;
 import edu.stanford.smi.protege.util.LabeledComponent;
+import edu.stanford.smi.protegex.util.PagedFrameList.SearchType;
 
 
 
@@ -31,6 +33,7 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
     
     private QueryUIConfiguration configuration;
     private JFormattedTextField maxResultsDisplayedField;
+    private JComboBox filterSearchType;
     private JComponent centerComponent;
     private EnumMap<BooleanConfigItem, String> titleMap = new EnumMap<BooleanConfigItem, String>(BooleanConfigItem.class);
 
@@ -45,7 +48,8 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
         addBooleanConfigurationItems();
         centerComponent.add(Box.createRigidArea(new Dimension(0, 10)));
         addDefaultSearchSlot();
-        addMaxDisplayed();        
+        addMaxDisplayed();
+        addFilterSearchType();
         add(centerComponent);
     }
     
@@ -105,6 +109,24 @@ public class ConfigureLuceneTabsPanel extends AbstractValidatableComponent {
         maxResultsDisplayedField = new JFormattedTextField(NumberFormat.getIntegerInstance());
         maxResultsDisplayedField.setValue(configuration.getMaxResultsDisplayed());
         LabeledComponent lc = new LabeledComponent("Max results displayed per page", maxResultsDisplayedField);
+        lc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerComponent.add(lc);
+    }
+    
+    private void addFilterSearchType() {
+    	filterSearchType = new JComboBox();
+    	for (SearchType st : SearchType.values()) {
+    		filterSearchType.addItem(st);
+    	}
+    	filterSearchType.setSelectedItem(configuration.getFilterResultsSearchType());
+    	filterSearchType.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				SearchType st = (SearchType) filterSearchType.getSelectedObjects()[0];
+				configuration.setFilterResultsSearchType(st);
+			}
+		});
+        LabeledComponent lc = new LabeledComponent("Search Type for Filtering Search Results", filterSearchType);
         lc.setAlignmentX(Component.LEFT_ALIGNMENT);
         centerComponent.add(lc);
     }

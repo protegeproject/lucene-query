@@ -619,6 +619,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             queryRenderer.setQuery(q); // bold the matching results
             resultsComponent.setAllFrames(results);
             resultsComponent.setPageSize(configuration.getMaxResultsDisplayed());
+            resultsComponent.setSearchType(configuration.getFilterResultsSearchType());
             searchResultsList.setSelectedIndex(0);
         }
         return hits;

@@ -21,11 +21,14 @@ import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
 import edu.stanford.smi.protegex.owl.model.impl.OWLSystemFrames;
 import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
+import edu.stanford.smi.protegex.util.PagedFrameList.SearchType;
 
 public class QueryUIConfiguration implements Serializable, Localizable {
-    public static final Operation INDEX_OPERATION = new UnbackedOperationImpl("Generate Lucene Indices", "");
+	private static final long serialVersionUID = -3542931449877194245L;
+	public static final Operation INDEX_OPERATION = new UnbackedOperationImpl("Generate Lucene Indices", "");
     public static final String PROTEGE_PROP_KEY_DEFAULT_SLOT = "query_plugin.default.search_slot";
     public static final String LUCENE_MAX_SEARCH_RESULTS = "lucene.max.displayed.results";
+    public static final String LUCENE_FILTER_SEARCH_TYPE = "lucene.filter.search.type";
     
     private boolean canIndex;
     
@@ -40,6 +43,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     private Set<Slot> allSlots = new HashSet<Slot>();
     
     private int maxResultsDisplayed;
+    
+    private SearchType filterResultsSearchType;
     
     private EnumMap<BooleanConfigItem, Boolean> booleanConfigValue = new EnumMap<BooleanConfigItem, Boolean>(BooleanConfigItem.class);
     
@@ -84,7 +89,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         allSlots = original.allSlots;
         
         maxResultsDisplayed = original.getMaxResultsDisplayed();
-        
+        filterResultsSearchType = original.getFilterResultsSearchType();
+        	
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             boolean originalValue = original.getBooleanConfiguration(configItem);
             booleanConfigValue.put(configItem, originalValue);
@@ -94,6 +100,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     public void save() {
         ApplicationProperties.setString(PROTEGE_PROP_KEY_DEFAULT_SLOT, defaultSlot.getName());
         ApplicationProperties.setInt(LUCENE_MAX_SEARCH_RESULTS, getMaxResultsDisplayed());
+        ApplicationProperties.setString(LUCENE_FILTER_SEARCH_TYPE, filterResultsSearchType.toString());	
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             String protegeProperty = configItem.getProtegeProperty();
             boolean value = booleanConfigValue.get(configItem);
@@ -161,6 +168,14 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     
     private void initOther() {
         maxResultsDisplayed = ApplicationProperties.getIntegerProperty(LUCENE_MAX_SEARCH_RESULTS, 50);
+        filterResultsSearchType = SearchType.CONTAINS;
+        String preferredSearchType = ApplicationProperties.getString(LUCENE_FILTER_SEARCH_TYPE, SearchType.CONTAINS.toString());
+        for (SearchType possible : SearchType.values()) {
+        	if (possible.toString().equals(preferredSearchType)) {
+        		filterResultsSearchType = possible;
+        		break;
+        	}
+        }
     }
     
 
@@ -277,6 +292,12 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     	}
     }
     
+    public SearchType getFilterResultsSearchType() {
+		return filterResultsSearchType;
+	}
     
+    public void setFilterResultsSearchType(SearchType filterResultsSearchType) {
+		this.filterResultsSearchType = filterResultsSearchType;
+	}
     
 }
