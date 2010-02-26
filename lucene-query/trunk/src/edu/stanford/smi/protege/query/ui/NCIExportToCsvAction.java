@@ -4,7 +4,9 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.model.Cls;
@@ -14,8 +16,19 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.util.ModalDialog;
 import edu.stanford.smi.protege.util.StringUtilities;
+import edu.stanford.smi.protegex.owl.model.OWLAllValuesFrom;
+import edu.stanford.smi.protegex.owl.model.OWLClass;
+import edu.stanford.smi.protegex.owl.model.OWLIntersectionClass;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.OWLNAryLogicalClass;
+import edu.stanford.smi.protegex.owl.model.OWLObjectProperty;
+import edu.stanford.smi.protegex.owl.model.OWLQuantifierRestriction;
+import edu.stanford.smi.protegex.owl.model.OWLSomeValuesFrom;
+import edu.stanford.smi.protegex.owl.model.OWLUnionClass;
+import edu.stanford.smi.protegex.owl.model.RDFProperty;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
+import edu.stanford.smi.protegex.owl.model.RDFSClass;
+import edu.stanford.smi.protegex.owl.model.visitor.OWLModelVisitorAdapter;
 
 
 public class NCIExportToCsvAction extends ExportToCsvAction {
@@ -101,6 +114,86 @@ public class NCIExportToCsvAction extends ExportToCsvAction {
 	protected String getExportName(Frame frame) {
 	    if (!isExportBrowserTextEnabled()) { return super.getExportName(frame); }	    
 	    return StringUtilities.unquote(frame.getBrowserText());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	protected String getSlotValuesExportString(Instance instance, Slot slot) {
+		if ((slot instanceof OWLObjectProperty) 
+				&& (instance instanceof OWLClass) 
+				&& !((RDFProperty) slot).isAnnotationProperty()) {
+			OWLClass cls = (OWLClass) instance;
+			OWLObjectProperty p = (OWLObjectProperty) slot;
+			
+			OWLFillerCollector collector = new OWLFillerCollector(p);
+			Set<OWLClass> superClasses = new HashSet<OWLClass>();
+			superClasses.addAll(cls.getSuperclasses(false));
+			superClasses.addAll(cls.getEquivalentClasses());
+			for (OWLClass superClass : superClasses) {
+				superClass.accept(collector);
+			}
+			StringBuffer buffer = new StringBuffer();
+			Iterator<RDFResource> fillerIt = collector.getFillers().iterator();
+			while (fillerIt.hasNext()) {
+				RDFResource filler = fillerIt.next();
+				buffer.append(getExportName(filler));
+				if (fillerIt.hasNext()) {
+					buffer.append(getSlotValuesDelimiter());
+				}
+			}
+			return buffer.toString();
+		}
+		else {
+			return super.getSlotValuesExportString(instance, slot);
+		}
+	}
+	
+	private static class OWLFillerCollector extends OWLModelVisitorAdapter {
+		private Collection<RDFResource> fillers = new HashSet<RDFResource>();
+		private OWLObjectProperty p;
+		
+		public OWLFillerCollector(OWLObjectProperty p) {
+			this.p = p;
+		}
+		
+		public Collection<RDFResource> getFillers() {
+			return fillers;
+		}
+		
+		@Override
+		public void visitOWLIntersectionClass(OWLIntersectionClass owlIntersectionClass) {
+			visitNAryLogicalClass(owlIntersectionClass);
+		}
+		
+		@Override
+		public void visitOWLUnionClass(OWLUnionClass owlUnionClass) {
+			visitNAryLogicalClass(owlUnionClass);
+		}
+		
+		
+		private void visitNAryLogicalClass(OWLNAryLogicalClass logical) {
+			for (RDFSClass junct : logical.getOperands()) {
+				junct.accept(this);
+			}
+		}
+		
+		@Override
+		public void visitOWLAllValuesFrom(OWLAllValuesFrom owlAllValuesFrom) {
+			visitOWLQuantifierRestriction(owlAllValuesFrom);
+		}
+		
+		@Override
+		public void visitOWLSomeValuesFrom(OWLSomeValuesFrom someValuesFrom) {
+			visitOWLQuantifierRestriction(someValuesFrom);
+		}
+		
+		private void visitOWLQuantifierRestriction(OWLQuantifierRestriction restriction) {
+			if (restriction.getOnProperty().equals(p)) {
+				fillers.add(restriction.getFiller());
+			}
+			
+		}
+		
 	}
 	
 
