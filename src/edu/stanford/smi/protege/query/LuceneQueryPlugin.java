@@ -350,13 +350,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
             @Override
             protected Collection getClsesToExport() {
-                Collection<?> listToExport = ComponentUtilities.getListValues(searchResultsList);
+                Collection<FrameWithBrowserText> listToExport = resultsComponent.getAllFrames();
                 if (listToExport.size() == 0
                         || (listToExport.size() == 1 && 
                             CollectionUtilities.getSoleItem(listToExport).equals(SEARCH_NO_RESULTS_FOUND))) {
                     listToExport.clear();
                 }
-                return FrameWithBrowserText.getFrames((Collection<FrameWithBrowserText>) listToExport);
+                return FrameWithBrowserText.getFrames(listToExport);
             }
         };
     }
