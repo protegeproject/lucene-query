@@ -244,7 +244,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
         resultsComponent = new PagedFrameList(SEARCH_RESULTS);
         searchResultsList = resultsComponent.getSelectableList();
-        searchResultsList.setCellRenderer(queryRenderer);
+        resultsComponent.setCellRenderer(queryRenderer);
         if (enableClickLstResults) {
             searchResultsList.addMouseListener(new DoubleClickActionAdapter(getEditAction() != null ? getEditAction()
                     : getViewAction()));
