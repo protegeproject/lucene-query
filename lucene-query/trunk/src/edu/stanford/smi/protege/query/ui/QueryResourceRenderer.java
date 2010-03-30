@@ -314,12 +314,7 @@ public class QueryResourceRenderer extends ResourceRenderer implements QueryRend
 			}
 		} else if (o instanceof RDFSClass) {
 			loadedClass = (RDFSClass) o;
-			if (loadedClass instanceof OWLAnonymousClass) {
-				addAnnotationFlag(this, loadedClass);
-			}
-			if (loadedClass instanceof Deprecatable && ((Deprecatable) loadedClass).isDeprecated()) {
-				addIcon(OWLIcons.getDeprecatedIcon());
-			}
+			super.loadCls(loadedClass);
 		} else if (o instanceof SimpleInstance) {
 			loadedInstance = (SimpleInstance) o;
 		} else {
