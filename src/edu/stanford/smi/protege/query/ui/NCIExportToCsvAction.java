@@ -28,6 +28,7 @@ import edu.stanford.smi.protegex.owl.model.OWLUnionClass;
 import edu.stanford.smi.protegex.owl.model.RDFProperty;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 import edu.stanford.smi.protegex.owl.model.RDFSClass;
+import edu.stanford.smi.protegex.owl.model.impl.DefaultRDFSLiteral;
 import edu.stanford.smi.protegex.owl.model.visitor.OWLModelVisitorAdapter;
 
 
@@ -114,6 +115,17 @@ public class NCIExportToCsvAction extends ExportToCsvAction {
 	protected String getExportName(Frame frame) {
 	    if (!isExportBrowserTextEnabled()) { return super.getExportName(frame); }	    
 	    return StringUtilities.unquote(frame.getBrowserText());
+	}
+	
+	@Override
+	protected String getExportDataValueName(Object data) {
+	    if (getKnowledgeBase() instanceof OWLModel &&
+	            data instanceof String && 
+	            (((String) data).startsWith(DefaultRDFSLiteral.DATATYPE_PREFIX) || ((String) data).startsWith(DefaultRDFSLiteral.LANGUAGE_PREFIX))) {
+	        DefaultRDFSLiteral literal = new DefaultRDFSLiteral((OWLModel) getKnowledgeBase(), (String) data);
+	        return literal.getString();
+	    }
+	    return super.getExportDataValueName(data);
 	}
 	
 	@SuppressWarnings("unchecked")
