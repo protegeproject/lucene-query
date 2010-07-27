@@ -113,8 +113,8 @@ public class NCIExportToCsvAction extends ExportToCsvAction {
 	
 	@Override
 	protected String getExportName(Frame frame) {
-	    if (!isExportBrowserTextEnabled()) { return super.getExportName(frame); }	    
-	    return StringUtilities.unquote(frame.getBrowserText());
+	    if (!isExportBrowserTextEnabled()) { return getQuotedValule(super.getExportName(frame)); }	    
+	    return getQuotedValule(StringUtilities.unquote(frame.getBrowserText()));
 	}
 	
 	@Override
