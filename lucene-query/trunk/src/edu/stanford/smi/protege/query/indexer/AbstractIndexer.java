@@ -110,9 +110,13 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       return analyzer;
   }
   
+  protected IndexTaskRunner getIndexRunner() {
+      return indexRunner;
+  }
+  
   protected abstract Analyzer createAnalyzer();
 
-  private IndexWriter openWriter(boolean create) throws IOException {
+  protected IndexWriter openWriter(boolean create) throws IOException {
     return new IndexWriter(getFullIndexPath(), analyzer, create);
   }
   
@@ -160,8 +164,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       }
   }
   
-  @SuppressWarnings("unchecked")
-  private boolean addFrame(IndexWriter writer, Frame frame) {
+  protected boolean addFrameBrowserText(IndexWriter writer, Frame frame) {
       boolean errorsFound = false;
       try {
           Document doc = new Document();
@@ -174,6 +177,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           Log.getLogger().warning("continuing...");
           errorsFound = true;
       }
+      return errorsFound;
+  }
+  
+  @SuppressWarnings("unchecked")
+  private boolean addFrame(IndexWriter writer, Frame frame) {
+      boolean errorsFound = addFrameBrowserText(writer, frame);
       for (Slot slot : searchableSlots) {
           try {
               List values;
@@ -354,7 +363,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     return query;
   }
   
-  private void died(IOException ioe) {
+  protected void died(IOException ioe) {
     Log.getLogger().warning("Search index update failed " + ioe);
     Log.getLogger().warning("This exception will not interfere with normal (non-query) operations");
     Log.getLogger().warning("suggest reindexing to get the lucene indicies back");
@@ -381,7 +390,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       }
   }
   
-  private void forceClose(IndexWriter writer) {
+  protected void forceClose(IndexWriter writer) {
     try {
       if (writer != null) {
         writer.close();
@@ -431,7 +440,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       });
   }
   
-  private void deleteDocuments(Query q) throws IOException {
+  protected void deleteDocuments(Query q) throws IOException {
       List<Integer> deletions = new ArrayList<Integer>();
       IndexSearcher searcher = null;
       long start = System.currentTimeMillis();
