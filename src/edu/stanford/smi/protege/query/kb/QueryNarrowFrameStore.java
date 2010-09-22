@@ -207,6 +207,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		return (String) values.iterator().next();
 	}
+	
+	public Set<Indexer> getIndexers() {
+	    return indexers;
+	}
 
 
 	/*---------------------------------------------------------------------
