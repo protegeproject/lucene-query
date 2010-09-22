@@ -25,6 +25,21 @@ public class InstallNarrowFrameStore extends ProtegeJob {
   
   private File indexLocation;
   
+  
+  public static QueryNarrowFrameStore getQueryNarrowFrameStore(KnowledgeBase kb) {
+      SimpleFrameStore fs = (SimpleFrameStore) ((DefaultKnowledgeBase) kb).getTerminalFrameStore();
+      NarrowFrameStore nfs = fs.getHelper();
+      do {
+          if (nfs instanceof QueryNarrowFrameStore) {
+            if (log.isLoggable(Level.FINE)) {
+              log.fine("Query Narrow Frame store already found - no install needed");
+            }
+            return (QueryNarrowFrameStore) nfs;
+          }
+        } while ((nfs = nfs.getDelegate()) != null);
+        return null;
+  }
+  
   public InstallNarrowFrameStore(KnowledgeBase kb, File indexLocation) {
     super(kb);
     this.indexLocation = indexLocation;
@@ -41,28 +56,16 @@ public class InstallNarrowFrameStore extends ProtegeJob {
     if (indexLocation == null) { 
         indexLocation = new File(new QueryConfiguration(kb).getBaseIndexPath());
     }
-    
-    SimpleFrameStore fs = (SimpleFrameStore) kb.getTerminalFrameStore();
+    SimpleFrameStore fs = (SimpleFrameStore) ((DefaultKnowledgeBase) kb).getTerminalFrameStore();
     NarrowFrameStore nfs = fs.getHelper();
 
-    QueryNarrowFrameStore qnfs = getQueryNarrowFrameStore(nfs);
+    QueryNarrowFrameStore qnfs = getQueryNarrowFrameStore(kb);
     if (qnfs == null) {
     	qnfs = new QueryNarrowFrameStore(kb.getName(), nfs, getKnowledgeBase(), indexLocation);
     	fs.setHelper(qnfs);
     }
 	return qnfs.getConfiguration();
   }
-  
-  private QueryNarrowFrameStore getQueryNarrowFrameStore(NarrowFrameStore nfs) {
-    do {
-      if (nfs instanceof QueryNarrowFrameStore) {
-        if (log.isLoggable(Level.FINE)) {
-          log.fine("Query Narrow Frame store already found - no install needed");
-        }
-        return (QueryNarrowFrameStore) nfs;
-      }
-    } while ((nfs = nfs.getDelegate()) != null);
-    return null;
-  }
+
 
 }

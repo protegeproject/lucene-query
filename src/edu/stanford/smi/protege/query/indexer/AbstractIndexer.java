@@ -62,10 +62,11 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   
   private Slot nameSlot;
   
-  private static final String FRAME_NAME                = "frameName";
-  private static final String SLOT_NAME                 = "slotName";
-  private static final String CONTENTS_FIELD            = "contents";
-  private static final String LITERAL_CONTENTS          = "literalContents";
+  public static final String FRAME_NAME                = "frameName";
+  public static final String SLOT_NAME                 = "slotName";
+  public static final String BROWSER_TEXT              = "browserText";
+  public static final String CONTENTS_FIELD            = "contents";
+  public static final String LITERAL_CONTENTS          = "literalContents";
   
   private transient IndexTaskRunner indexRunner;
 
@@ -105,7 +106,9 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       kbLock = kb;
   }
   
-
+  protected Analyzer getAnalyzer() {
+      return analyzer;
+  }
   
   protected abstract Analyzer createAnalyzer();
 
@@ -160,6 +163,17 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   @SuppressWarnings("unchecked")
   private boolean addFrame(IndexWriter writer, Frame frame) {
       boolean errorsFound = false;
+      try {
+          Document doc = new Document();
+          doc.add(new Field(FRAME_NAME, getFrameName(frame), 
+                            Field.Store.YES, Field.Index.UN_TOKENIZED));
+          doc.add(new Field(BROWSER_TEXT, frame.getBrowserText(), Field.Store.YES, Field.Index.TOKENIZED));
+          writer.addDocument(doc);
+      } catch (Exception e) {
+          Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
+          Log.getLogger().warning("continuing...");
+          errorsFound = true;
+      }
       for (Slot slot : searchableSlots) {
           try {
               List values;

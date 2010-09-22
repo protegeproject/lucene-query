@@ -25,6 +25,7 @@ import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
 import edu.stanford.smi.protege.query.querytypes.SubsetQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
@@ -348,6 +349,22 @@ public class QueryResultsCollector implements QueryVisitor {
 			throw new ProtegeIOException(ioe);
 		}
 	}
+	
+	   public void visit(LuceneBrowserTextSearch q) {
+	        try {
+	            StdIndexer standardIndexer = getStdIndexer();
+	            if (standardIndexer != null) {
+	                setResults(standardIndexer.executeQuery(q));
+	            }
+	            else {
+	                log.warning("No standard lucene indicies installed");
+	            }
+	        }
+	        catch (IOException ioe) {
+	            Log.getLogger().log(Level.WARNING, "Search failed", ioe);
+	            throw new ProtegeIOException(ioe);
+	        }
+	    }
 	
 	public void visit(LuceneOwnSlotValueQuery q) {
 		try {
