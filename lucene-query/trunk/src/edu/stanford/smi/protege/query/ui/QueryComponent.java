@@ -30,6 +30,7 @@ import edu.stanford.smi.protege.model.BrowserSlotPattern;
 import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
+import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
 import edu.stanford.smi.protege.model.query.Query;
@@ -40,6 +41,7 @@ import edu.stanford.smi.protege.query.menu.QueryUIConfiguration;
 import edu.stanford.smi.protege.query.menu.SlotFilterType;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OWLNamedClassesQuery;
@@ -234,6 +236,9 @@ public class QueryComponent extends QueryBuildingJPanel {
 		
 		if (IndexMechanism.PHONETIX_INDICIES.getCommand().equals(type)) {
 			q = new PhoneticQuery(slot, getExpression());
+		}
+		else if (IndexMechanism.STANDARD_INDICIES.getCommand().equals(type) && slot.getName().equals(Model.Slot.NAME)) {
+		    q = new LuceneBrowserTextSearch(getExpression());
 		}
 		else if (IndexMechanism.STANDARD_INDICIES.getCommand().equals(type)) {
 		    q = new LuceneOwnSlotValueQuery(slot, getExpression());

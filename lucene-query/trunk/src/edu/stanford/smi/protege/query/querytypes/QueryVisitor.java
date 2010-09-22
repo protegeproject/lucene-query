@@ -1,6 +1,7 @@
 package edu.stanford.smi.protege.query.querytypes;
 
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.NegatedQuery;
@@ -34,6 +35,8 @@ public interface QueryVisitor {
     void visit(PropertyPresentQuery q);
     
     void visit(PhoneticQuery q);
+    
+    void visit(LuceneBrowserTextSearch q);
     
     void visit(LuceneOwnSlotValueQuery q);
     

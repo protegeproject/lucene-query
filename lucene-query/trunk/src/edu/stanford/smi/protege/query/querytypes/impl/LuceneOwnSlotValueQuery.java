@@ -13,7 +13,8 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 
 public class LuceneOwnSlotValueQuery implements VisitableQuery, BoundableQuery {
-	private Collection<Slot> slots;
+    private static final long serialVersionUID = 899715419112928852L;
+    private Collection<Slot> slots;
 	private String expr;
 	private int maxMatches = KnowledgeBase.UNLIMITED_MATCHES;
 	
