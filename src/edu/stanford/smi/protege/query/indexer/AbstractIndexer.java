@@ -45,11 +45,11 @@ public abstract class AbstractIndexer implements Indexer {
 
 private transient static final Logger log = Log.getLogger(AbstractIndexer.class);
 
-  private enum Status {
+  public enum Status {
     INDEXING, READY, DOWN
   };
 
-  private Object kbLock;
+  protected Object kbLock;
 
   private String baseIndexPath;
 
@@ -90,7 +90,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       this.baseIndexPath = baseIndexPath;
   }
 
-  private String getFullIndexPath() {
+  public String getFullIndexPath() {
       return baseIndexPath + File.separator + relativeIndexLocation();
     }
 
@@ -113,6 +113,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
 
   protected IndexTaskRunner getIndexRunner() {
       return indexRunner;
+  }
+  
+  public Status getStatus() {
+      return status;
   }
 
   protected abstract Analyzer createAnalyzer();
@@ -376,7 +380,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     status = Status.DOWN;
   }
 
-  private void forceClose(Searcher searcher) {
+  protected void forceClose(Searcher searcher) {
     try {
       if (searcher != null) {
         searcher.close();
