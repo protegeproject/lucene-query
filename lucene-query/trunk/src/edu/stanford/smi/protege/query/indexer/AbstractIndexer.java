@@ -27,7 +27,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.TermQuery;
-
 import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
@@ -66,6 +65,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   public static final String FRAME_NAME                = "frameName";
   public static final String SLOT_NAME                 = "slotName";
   public static final String BROWSER_TEXT              = "browserText";
+  public static final String BROWSER_TEXT_PRESENT      = "browserTextPresent";
   public static final String CONTENTS_FIELD            = "contents";
   public static final String LITERAL_CONTENTS          = "literalContents";
 
@@ -178,9 +178,9 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       boolean errorsFound = false;
       try {
           Document doc = new Document();
-          doc.add(new Field(FRAME_NAME, getFrameName(frame),
-                            Field.Store.YES, Field.Index.UN_TOKENIZED));
+          doc.add(new Field(FRAME_NAME, getFrameName(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           doc.add(new Field(BROWSER_TEXT, frame.getBrowserText(), Field.Store.YES, Field.Index.TOKENIZED));
+          doc.add(new Field(BROWSER_TEXT_PRESENT, Boolean.TRUE.toString(), Field.Store.YES, Field.Index.TOKENIZED));
           writer.addDocument(doc);
       } catch (Exception e) {
           Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
@@ -231,8 +231,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       return;
     }
     Document doc = new Document();
-    doc.add(new Field(FRAME_NAME, getFrameName(frame),
-                      Field.Store.YES, Field.Index.UN_TOKENIZED));
+    doc.add(new Field(FRAME_NAME, getFrameName(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
     if (slot != null) {
         doc.add(new Field(SLOT_NAME, getFrameName(slot),
                           Field.Store.YES, Field.Index.UN_TOKENIZED));
