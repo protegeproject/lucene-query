@@ -20,7 +20,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.WildcardQuery;
 
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
@@ -66,7 +65,7 @@ public class StdIndexer extends AbstractIndexer {
               Term term;
               term = new Term(FRAME_NAME, frame.getName());
               query.add(new TermQuery(term), BooleanClause.Occur.MUST);
-              query.add(new WildcardQuery(new Term(BROWSER_TEXT, "*")), BooleanClause.Occur.MUST);
+              query.add(new TermQuery(new Term(BROWSER_TEXT_PRESENT, Boolean.TRUE.toString())), BooleanClause.Occur.MUST);
               try {
                   deleteDocuments(query);
               }
