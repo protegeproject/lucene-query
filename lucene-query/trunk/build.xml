@@ -178,8 +178,6 @@
    <target name = "clean">
      <delete dir = "${plugins}"/>
      <delete dir = "${classes}"/>
-     <delete dir = "../lucene"/>
-     <delete dir = "../logs"/>
    </target>
 
 </project>
