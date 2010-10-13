@@ -48,6 +48,7 @@ import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
+import edu.stanford.smi.protege.server.RemoteSession;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protege.util.SimpleStringMatcher;
 import edu.stanford.smi.protege.util.transaction.TransactionMonitor;
@@ -416,6 +417,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 	public void reinitialize() {
 		delegate.reinitialize();
+	}
+	
+	public boolean setCaching(RemoteSession session, boolean doCache) {
+		return delegate.setCaching(session, doCache);
 	}
 
 	public void replaceFrame(Frame original, Frame replacement) {
