@@ -34,6 +34,9 @@ public class DoQueryJob extends ProtegeJob {
     @Override
     public List<FrameWithBrowserText> run() throws ProtegeException {
         Collection<Frame> results = getKnowledgeBase().executeQuery(query);
+        if (results == null) {
+            return new ArrayList<FrameWithBrowserText>();
+        }
         List<FrameWithBrowserText> wrappedResults = new ArrayList<FrameWithBrowserText>();
         RemoteSession session = null;
         if (getKnowledgeBase().getProject().isMultiUserServer()) { // disable frame calculator stuff
