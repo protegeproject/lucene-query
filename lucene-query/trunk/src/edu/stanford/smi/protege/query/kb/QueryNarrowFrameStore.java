@@ -141,6 +141,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	    if (configuration == null) {
 	        return;
 	    }
+	    for (Indexer indexer : indexers) {
+	        indexer.dispose();
+	    }
 	    indexers = new HashSet<Indexer>();
 	    for (IndexMechanism mechanism : configuration.getIndexers()) {
 	        try {
@@ -387,6 +390,9 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	}
 
 	public void close() {
+	    for (Indexer indexer : indexers) {
+	        indexer.dispose();
+	    }
 		delegate.close();
 	}
 

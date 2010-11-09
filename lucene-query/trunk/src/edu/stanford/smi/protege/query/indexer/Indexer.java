@@ -37,4 +37,5 @@ public interface Indexer {
     
     String relativeIndexLocation();
 
+    void dispose();
 }

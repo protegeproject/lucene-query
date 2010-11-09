@@ -8,7 +8,14 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,14 +34,13 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.TermQuery;
+
 import edu.stanford.smi.protege.exception.ProtegeException;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
-import edu.stanford.smi.protege.query.util.FutureTask;
-import edu.stanford.smi.protege.query.util.IndexTaskRunner;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protegex.owl.model.OWLAnonymousClass;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
@@ -55,6 +61,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   private Analyzer analyzer;
   private NarrowFrameStore delegate;
   private Status status = Status.INDEXING;
+  private Future<Boolean> optimizationTask;
 
   private Set<Slot> searchableSlots;
 
@@ -69,17 +76,34 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   public static final String CONTENTS_FIELD            = "contents";
   public static final String LITERAL_CONTENTS          = "literalContents";
 
-  private transient IndexTaskRunner indexRunner;
+  private transient ExecutorService indexRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
+      @Override
+      public Thread newThread(Runnable r) {
+          Thread thread = new Thread(r, "Lucene Query Thread");
+          thread.setDaemon(true);
+          return thread;
+      }
+  });
 
 
   public AbstractIndexer() {
       analyzer = createAnalyzer();
-      indexRunner = new IndexTaskRunner();
-      indexRunner.startBackgroundThread();
   }
 
   public void dispose() {
-      indexRunner.dispose();
+      indexRunner.shutdown();
+      boolean done = false;
+      while (!done) {
+          try {
+              done = indexRunner.awaitTermination(10, TimeUnit.SECONDS);
+          }
+          catch (InterruptedException ie) {
+              log.warning("Strange interrupt");
+          }
+          if (!done) {
+              log.info("Dispose of Lucene Query Search Index waiting for query tasks to complete");
+          }
+      }
   }
 
   public void setSearchableSlots(Set<Slot> searchableSlots) {
@@ -111,7 +135,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       return analyzer;
   }
 
-  protected IndexTaskRunner getIndexRunner() {
+  protected ExecutorService getIndexRunner() {
       return indexRunner;
   }
   
@@ -128,45 +152,46 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
 
 
   public void indexOntologies() throws ProtegeException {
-      FutureTask indexTask = new FutureTask() {
-          public void run() {
-              boolean errorsFound = false;
-              long start = System.currentTimeMillis();
-              Log.getLogger().info("Started indexing ontology with " + searchableSlots.size() + " searchable slots");
-              IndexWriter myWriter = null;
-              try {
-                  myWriter = openWriter(true);
-                  Set<Frame> frames;
-                  synchronized (kbLock) {
-                      frames = delegate.getFrames();
-                  }
-                  for (Frame frame : frames) {
-                      if (indexable(frame)) {
-                          errorsFound = errorsFound || !addFrame(myWriter, frame);
-                      }
-                  }
-                  myWriter.optimize();
-                  status = Status.READY;
-                  Log.getLogger().info("Finished indexing ontology ("
-                                       + ((System.currentTimeMillis() - start)/1000) + " seconds)");
-              } catch (IOException ioe) {
-                  died(ioe);
-                  errorsFound = true;
-              } finally {
-                  forceClose(myWriter);
-              }
-              if (errorsFound) {  // ToDo - do this *much* better
-                  throw new ProtegeException("Errors Found - see console log for details");
-              }
-          }
-      };
-      indexRunner.addTask(indexTask);
+      Future<Boolean> indexTask = indexRunner.submit(new IndexOntologiesRunner(), true);
       try {
           indexTask.get();
       } catch (ExecutionException ee) {
           throw new RuntimeException(ee);
       } catch (InterruptedException interrupt) {
           throw new RuntimeException(interrupt);
+      }
+  }
+
+  private class IndexOntologiesRunner implements Runnable {
+      public void run() {
+          boolean errorsFound = false;
+          long start = System.currentTimeMillis();
+          Log.getLogger().info("Started indexing ontology with " + searchableSlots.size() + " searchable slots");
+          IndexWriter myWriter = null;
+          try {
+              myWriter = openWriter(true);
+              Set<Frame> frames;
+              synchronized (kbLock) {
+                  frames = delegate.getFrames();
+              }
+              for (Frame frame : frames) {
+                  if (indexable(frame)) {
+                      errorsFound = errorsFound || !addFrame(myWriter, frame);
+                  }
+              }
+              myWriter.optimize();
+              status = Status.READY;
+              Log.getLogger().info("Finished indexing ontology ("
+                                   + ((System.currentTimeMillis() - start)/1000) + " seconds)");
+          } catch (IOException ioe) {
+              died(ioe);
+              errorsFound = true;
+          } finally {
+              forceClose(myWriter);
+          }
+          if (errorsFound) {  // ToDo - do this *much* better
+              throw new ProtegeException("Errors Found - see console log for details");
+          }
       }
   }
 
@@ -246,35 +271,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   public Collection<Frame> executeQuery(final Query luceneQuery) throws IOException {
-      FutureTask queryTask = new FutureTask() {
-          public void run() {
-              if (status == Status.DOWN) {
-                  set(null);
-              }
-              Searcher searcher = null;
-              Collection<Frame> results = new LinkedHashSet<Frame>();
-              try {
-                  searcher = new IndexSearcher(getFullIndexPath());
-                  Hits hits = searcher.search(luceneQuery);
-                  for (int i = 0; i < hits.length(); i++) {
-                      Document doc = hits.doc(i);
-                      String frameName = doc.get(FRAME_NAME);
-                      synchronized (kbLock) {
-                          results.add(getFrameByName(frameName));
-                      }
-                  }
-              } catch (IOException ioe) {
-                  setException(ioe);
-              } finally {
-                  forceClose(searcher);
-              }
-              set(results);
-          }
-      };
-
       try {
-          indexRunner.addTask(queryTask);
-          return (Collection<Frame>) queryTask.get();
+          return indexRunner.submit(new ExecuteQueryCallable(luceneQuery)).get();
       } catch (InterruptedException e) {
           throw new RuntimeException(e);
       } catch (ExecutionException e) {
@@ -285,6 +283,39 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           else {
               throw new RuntimeException(e);
           }
+      }
+  }
+
+  private class ExecuteQueryCallable implements Callable<Collection<Frame>> {
+      private Query luceneQuery;
+
+      public ExecuteQueryCallable(Query luceneQuery) {
+          this.luceneQuery = luceneQuery;
+      }
+
+      public Collection<Frame> call() throws IOException {
+          if (status == Status.DOWN) {
+              return new ArrayList<Frame>();
+          }
+          Searcher searcher = null;
+          Collection<Frame> results = new LinkedHashSet<Frame>();
+          try {
+              searcher = new IndexSearcher(getFullIndexPath());
+              Hits hits = searcher.search(luceneQuery);
+              for (int i = 0; i < hits.length(); i++) {
+                  Document doc = hits.doc(i);
+                  String frameName = doc.get(FRAME_NAME);
+                  synchronized (kbLock) {
+                      Frame frame = getFrameByName(frameName);
+                      if (frame != null) {
+                          results.add(frame);
+                      }
+                  }
+              }
+          } finally {
+              forceClose(searcher);
+          }
+          return results;
       }
   }
 
@@ -418,7 +449,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     synchronized (kbLock) {
         frames = delegate.getFrames(nameSlot, null, false, name);
     }
-    return frames.iterator().next();
+    return frames != null && !frames.isEmpty() ? frames.iterator().next() : null;
   }
 
   private boolean isAnonymous(Frame frame) {
@@ -434,7 +465,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   private void installOptimizeTask() {
-      indexRunner.setCleanUpTask(new Runnable() {
+      if (optimizationTask != null) {
+          optimizationTask.cancel(false);
+      }
+      optimizationTask = indexRunner.submit(new Runnable() {
           public void run() {
               IndexWriter myWriter = null;
               try {
@@ -446,8 +480,9 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                   forceClose(myWriter);
               }
           }
-      });
+      }, true);
   }
+
 
   protected void deleteDocuments(Query q) throws IOException {
       List<Integer> deletions = new ArrayList<Integer>();
@@ -489,121 +524,168 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       if (status == Status.DOWN || !searchableSlots.contains(slot) || isAnonymous(frame)) {
           return;
       }
-      indexRunner.addTask(new FutureTask() {
-          public void run() {
-              if (status == Status.DOWN || !searchableSlots.contains(slot) || isAnonymous(frame)) {
+      indexRunner.submit(new AddValuesRunnable(frame, slot, values), true);
+      installOptimizeTask();
+  }
+
+  private class AddValuesRunnable implements Runnable {
+      private Frame frame;
+      private Slot slot;
+      private Collection values;
+
+      public AddValuesRunnable(final Frame frame, 
+                               final Slot slot, 
+                               final Collection values) {
+          this.frame = frame;
+          this.slot = slot;
+          this.values = values;
+      }
+
+      public void run() {
+          if (status == Status.DOWN || !searchableSlots.contains(slot) || isAnonymous(frame)) {
+              return;
+          }
+          if (log.isLoggable(Level.FINER)) {
+              log.finer("Adding values for frame named " + frame.getName() + " and slot " + slot.getName());
+          }
+          IndexWriter writer = null;
+          try {
+              long start = System.currentTimeMillis();
+              writer = openWriter(false);
+              if (slot.equals(nameSlot)) {
+                  addFrame(writer, frame);
                   return;
               }
-              if (log.isLoggable(Level.FINER)) {
-                  log.finer("Adding values for frame named " + frame.getName() + " and slot " + slot.getName());
+              for (Object value : values) {
+                  if (value instanceof String) {
+                      addUpdate(writer, frame, slot, (String) value);
+                  }
               }
-              IndexWriter writer = null;
-              try {
-                  long start = System.currentTimeMillis();
-                  writer = openWriter(false);
-                  if (slot.equals(nameSlot)) {
-                      addFrame(writer, frame);
-                      return;
-                  }
-                  for (Object value : values) {
-                      if (value instanceof String) {
-                          addUpdate(writer, frame, slot, (String) value);
-                      }
-                  }
-                  if (log.isLoggable(Level.FINE)) {
-                      log.fine("updated " + values.size() + " values in " + (System.currentTimeMillis() - start) + "ms");
-                  }
-              } catch (IOException ioe) {
-                  died(ioe);
-              } catch (Throwable t) {
-                  Log.getLogger().warning("Error during indexing" + t);
-              } finally {
-                  forceClose(writer);
+              if (log.isLoggable(Level.FINE)) {
+                  log.fine("updated " + values.size() + " values in " + (System.currentTimeMillis() - start) + "ms");
               }
+          } catch (IOException ioe) {
+              died(ioe);
+          } catch (Throwable t) {
+              Log.getLogger().warning("Error during indexing" + t);
+          } finally {
+              forceClose(writer);
           }
-      });
-      installOptimizeTask();
+      }
   }
 
   public void removeValue(final Frame frame, final Slot slot, final Object value) {
       if (status == Status.DOWN || !searchableSlots.contains(slot) || !(value instanceof String)) {
           return;
       }
-      indexRunner.addTask(new FutureTask() {
-          public void run() {
-              if (status == Status.DOWN || !searchableSlots.contains(slot) || !(value instanceof String)) {
-                  return;
-              }
-              if (log.isLoggable(Level.FINER)) {
-                  log.finer("Removing value " + value + " for frame " + frame.getName() + " and slot " + slot.getName());
-              }
-              try {
-                  deleteDocuments(generateLuceneQuery(frame, slot, (String) value));
-              } catch (IOException ioe) {
-                  died(ioe);
-              } catch (Throwable t) {
-                  Log.getLogger().warning("Exception caught during indexing" + t);
-              }
-          }
-      });
+      indexRunner.submit(new RemoveValueRunnable(frame, slot, value) , true);
       installOptimizeTask();
   }
+
+  private class RemoveValueRunnable implements Runnable {
+      private Frame frame;
+      private Slot slot;
+      private Object value;
+
+      public RemoveValueRunnable(final Frame frame, 
+                                 final Slot slot, 
+                                 final Object value) {
+          this.frame = frame;
+          this.slot = slot;
+          this.value = value;
+      }
+
+      public void run() {
+          if (status == Status.DOWN || !searchableSlots.contains(slot) || !(value instanceof String)) {
+              return;
+          }
+          if (log.isLoggable(Level.FINER)) {
+              log.finer("Removing value " + value + " for frame " + frame.getName() + " and slot " + slot.getName());
+          }
+          try {
+              deleteDocuments(generateLuceneQuery(frame, slot, (String) value));
+          } catch (IOException ioe) {
+              died(ioe);
+          } catch (Throwable t) {
+              Log.getLogger().warning("Exception caught during indexing" + t);
+          }
+      }
+  }
+
 
   public void removeValues(final Frame frame, final Slot slot) {
       if (status == Status.DOWN || !searchableSlots.contains(slot)) {
           return;
       }
-      indexRunner.addTask(new FutureTask() {
-          public void run() {
-              if (status == Status.DOWN || !searchableSlots.contains(slot)) {
-                  return;
-              }
-              if (log.isLoggable(Level.FINER)) {
-                  log.finer("Removing all values for frame " + frame.getName() + " and slot " + slot.getName());
-              }
-              try {
-                  Query q = null;
-                  if (slot.equals(nameSlot)) {
-                      String fname = getFrameName(frame);
-                      q = generateLuceneQuery(fname);
-                  }
-                  else {
-                      q = generateLuceneQuery(frame, slot);
-                  }
-                  deleteDocuments(q);
-              } catch (IOException ioe) {
-                  died(ioe);
-              } catch (Throwable t) {
-                  Log.getLogger().warning("Exception caught during indexing " + t);
-              }
-          }
-      });
+      indexRunner.submit(new RemoveValuesRunnable(frame, slot) , true);
       installOptimizeTask();
+  }
+
+  private class RemoveValuesRunnable implements Runnable {
+      private Frame frame;
+      private Slot slot;
+
+      public RemoveValuesRunnable(final Frame frame, final Slot slot) {
+          this.frame = frame;
+          this.slot = slot;
+      }
+      public void run() {
+          if (status == Status.DOWN || !searchableSlots.contains(slot)) {
+              return;
+          }
+          if (log.isLoggable(Level.FINER)) {
+              log.finer("Removing all values for frame " + frame.getName() + " and slot " + slot.getName());
+          }
+          try {
+              Query q = null;
+              if (slot.equals(nameSlot)) {
+                  String fname = getFrameName(frame);
+                  q = generateLuceneQuery(fname);
+              }
+              else {
+                  q = generateLuceneQuery(frame, slot);
+              }
+              deleteDocuments(q);
+          } catch (IOException ioe) {
+              died(ioe);
+          } catch (Throwable t) {
+              Log.getLogger().warning("Exception caught during indexing " + t);
+          }
+      }
   }
 
   public void removeValues(final String fname) {
       if (status == Status.DOWN) {
           return;
       }
-      indexRunner.addTask(new FutureTask() {
-          public void run() {
-              if (status == Status.DOWN) {
-                  return;
-              }
-              if (log.isLoggable(Level.FINER)) {
-                  log.finer("Removing all values for frame named " + fname);
-              }
-              try {
-                  deleteDocuments(generateLuceneQuery(fname));
-              } catch (IOException ioe) {
-                  died(ioe);
-              } catch (Throwable t) {
-                  Log.getLogger().warning("Exception caught during indexing " + t);
-              }
-          }
-      });
+      indexRunner.submit(new RemoveValuesByNameRunnable(fname));
       installOptimizeTask();
   }
+
+  private class RemoveValuesByNameRunnable implements Runnable {
+      final String fname;
+
+      public RemoveValuesByNameRunnable(final String fname) {
+          this.fname = fname;
+      }
+
+      public void run() {
+          if (status == Status.DOWN) {
+              return;
+          }
+          if (log.isLoggable(Level.FINER)) {
+              log.finer("Removing all values for frame named " + fname);
+          }
+          try {
+              deleteDocuments(generateLuceneQuery(fname));
+          } catch (IOException ioe) {
+              died(ioe);
+          } catch (Throwable t) {
+              Log.getLogger().warning("Exception caught during indexing " + t);
+          }
+      }
+  }
+
 
   public void localize(KnowledgeBase kb) {
       kbLock = kb;
