@@ -30,7 +30,7 @@ import edu.stanford.smi.protege.util.Log;
 
 
 public class StdIndexer extends AbstractIndexer {
-  
+
   public StdIndexer() {
     super();
   }
@@ -39,28 +39,29 @@ public class StdIndexer extends AbstractIndexer {
   protected Analyzer createAnalyzer() {
     return new StandardAnalyzer();
   }
-  
+
   public Collection<Frame> executeQuery(LuceneOwnSlotValueQuery query) throws IOException {
     return executeQuery(query.getSlots(), query.getExpr());
   }
-  
+
   public Collection<Frame> executeQuery(LuceneBrowserTextSearch q) throws IOException {
-      Query query = null;
-      QueryParser parser = new QueryParser(BROWSER_TEXT, getAnalyzer());
-      parser.setAllowLeadingWildcard(true);
+      BooleanQuery query  = new  BooleanQuery();
+      BooleanQuery.setMaxClauseCount(100000) ;
+
       try {
-          query = parser.parse(q.getText());
-      } catch (ParseException e) {
+          QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
+          queryExpander.parsePrefixQuery(query, q.getText());
+      } catch (Exception e) {
           IOException ioe = new IOException(e.getMessage());
           ioe.initCause(e);
           throw ioe;
       }
+
       return executeQuery(query);
   }
-  
+
   public void browserTextChanged(final Frame frame){
       getIndexRunner().submit(new BrowserTextChangedRunnable(frame) , true);
-
   }
 
   private class BrowserTextChangedRunnable implements Runnable {
@@ -97,7 +98,7 @@ public class StdIndexer extends AbstractIndexer {
           }
       }
   }
-  
+
   public Map<String, String> queryBrowserText(String luceneQuery) throws IOException {
       QueryParser parser = new QueryParser(BROWSER_TEXT, getAnalyzer());
       parser.setAllowLeadingWildcard(true);
