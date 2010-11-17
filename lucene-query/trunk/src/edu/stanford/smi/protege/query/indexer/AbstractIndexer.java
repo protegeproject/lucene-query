@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -77,7 +76,6 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   public static final String LITERAL_CONTENTS          = "literalContents";
 
   private transient ExecutorService indexRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
-      @Override
       public Thread newThread(Runnable r) {
           Thread thread = new Thread(r, "Lucene Query Thread");
           thread.setDaemon(true);
@@ -138,7 +136,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   protected ExecutorService getIndexRunner() {
       return indexRunner;
   }
-  
+
   public Status getStatus() {
       return status;
   }
@@ -533,8 +531,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       private Slot slot;
       private Collection values;
 
-      public AddValuesRunnable(final Frame frame, 
-                               final Slot slot, 
+      public AddValuesRunnable(final Frame frame,
+                               final Slot slot,
                                final Collection values) {
           this.frame = frame;
           this.slot = slot;
@@ -587,8 +585,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       private Slot slot;
       private Object value;
 
-      public RemoveValueRunnable(final Frame frame, 
-                                 final Slot slot, 
+      public RemoveValueRunnable(final Frame frame,
+                                 final Slot slot,
                                  final Object value) {
           this.frame = frame;
           this.slot = slot;
