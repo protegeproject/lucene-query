@@ -21,11 +21,8 @@ import edu.stanford.smi.protege.util.Log;
 
 public class QueryExpander {
 
-    @SuppressWarnings("unused")
-    private static final String SINGLE_LETTER_WORD_PATTERN = "^\\w$|\\s+\\w$";
     private static final char WILDCARD_CHAR = '*';
-    private static final String WILDCARD_LEADING_TRAILING_PATTERN = "^\\"
-            + WILDCARD_CHAR + "|\\" + WILDCARD_CHAR + "$";
+    private static final String WILDCARD_LEADING_TRAILING_PATTERN = "^\\" + WILDCARD_CHAR + "|\\" + WILDCARD_CHAR + "$";
     private static final int EXACT_MATCH_BOOST = 10;
 
     private final Analyzer analyzer;
