@@ -21,7 +21,6 @@ import edu.stanford.smi.protege.util.Log;
 
 public class QueryExpander {
 
-    private static final String SPACES_PATTERN = "\\s+";
     @SuppressWarnings("unused")
     private static final String SINGLE_LETTER_WORD_PATTERN = "^\\w$|\\s+\\w$";
     private static final char WILDCARD_CHAR = '*';
@@ -74,25 +73,12 @@ public class QueryExpander {
         expr = expr.replaceAll(WILDCARD_LEADING_TRAILING_PATTERN, "");
 
         QueryParser parser = new QueryParser(field, analyzer);
-
-        //expr = expr.replaceAll("\\(", "");
-        //expr = expr.replaceAll("\\)", "");
-
         Query query = parser.parse(expr);
 
         expr = query.toString().replace(field + ":", "");
         expr = expr.replace("\"", "");
         expr = expr.toLowerCase();
         expr = expr.replaceAll(":", " ");
-
-        // replace single-letter words with empty strings
-        // Pattern mask = Pattern.compile(SINGLE_LETTER_WORD_PATTERN);
-        // Matcher matcher = mask.matcher(expr);
-        // boolean found = matcher.find();
-        //
-        // if (found) {
-        // expr = expr.replace(matcher.group(), "");
-        // }
 
         return expr;
     }
