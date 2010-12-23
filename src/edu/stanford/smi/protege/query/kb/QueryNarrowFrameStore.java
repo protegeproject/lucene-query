@@ -8,8 +8,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -22,7 +20,6 @@ import edu.stanford.smi.protege.exception.ModificationException;
 import edu.stanford.smi.protege.exception.OntologyException;
 import edu.stanford.smi.protege.exception.ProtegeError;
 import edu.stanford.smi.protege.exception.ProtegeIOException;
-import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Facet;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.FrameID;
@@ -35,28 +32,16 @@ import edu.stanford.smi.protege.model.query.QueryCallback;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
 import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.query.indexer.Indexer;
-import edu.stanford.smi.protege.query.indexer.PhoneticIndexer;
-import edu.stanford.smi.protege.query.indexer.StdIndexer;
-import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
-import edu.stanford.smi.protege.query.querytypes.SubsetQuery;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.MaxMatchQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.NestedOwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.OWLRestrictionQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.OwnSlotValueQuery;
-import edu.stanford.smi.protege.query.querytypes.impl.PhoneticQuery;
 import edu.stanford.smi.protege.server.RemoteSession;
+import edu.stanford.smi.protege.util.CollectionUtilities;
 import edu.stanford.smi.protege.util.Log;
-import edu.stanford.smi.protege.util.SimpleStringMatcher;
 import edu.stanford.smi.protege.util.transaction.TransactionMonitor;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class QueryNarrowFrameStore implements NarrowFrameStore {
 	private static transient Logger log = Log.getLogger(QueryNarrowFrameStore.class);
-	
+
 	public static final String CONFIGURATION_FILE = "configuration.xml";
 
 	private KnowledgeBase kb;
@@ -67,19 +52,19 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	private Slot nameSlot;
 
 	private boolean indexingInProgress = false;
-	
+
 	private File indexLocation;
-	
+
 	private QueryConfiguration configuration;
-	
+
 	private Set<Indexer> indexers = new HashSet<Indexer>();
 
 	/*-----------------------------------------------------------
 	 * Query Narrow Frame Store support methods.
 	 */
 
-	public QueryNarrowFrameStore(String name, 
-	                             NarrowFrameStore delegate, 
+	public QueryNarrowFrameStore(String name,
+	                             NarrowFrameStore delegate,
 	                             KnowledgeBase kb,
 	                             File indexLocation) {
 		if (log.isLoggable(Level.FINE)) {
@@ -92,7 +77,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		readConfigFile();
 		initialize();
 	}
-	
+
 	public void readConfigFile() {
 	    if (indexLocation == null || !indexLocation.exists() || !indexLocation.isDirectory()) {
 	        return;
@@ -119,7 +104,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	        return;
 	    }
 	}
-	
+
 	public void writeConfigFile() {
 	    if (indexLocation == null || !indexLocation.exists() || !indexLocation.isDirectory()) {
 	        return;
@@ -135,7 +120,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	        log.log(Level.WARNING, "Could not write indexer configuration", ioe);
 	    }
 	}
-	
+
 	public void initialize() {
 	    getConfiguration();
 	    if (configuration == null) {
@@ -149,6 +134,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	        try {
 	            Indexer indexer = mechanism.getIndexerClass().newInstance();
 	            indexer.setSearchableSlots(configuration.getSearchableSlots());
+	            indexer.setIndexedFrameTypes(configuration.getIndexedFrameTypes());
 	            indexer.setBaseIndexPath(configuration.getBaseIndexPath());
 	            indexer.setKnowledgeBase(kb);
 	            indexer.setOWLMode(kb instanceof OWLModel);
@@ -163,17 +149,17 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	        }
 	    }
 	}
-	
+
 	public QueryConfiguration getConfiguration() {
 	    return configuration;
 	}
-	
+
 	public void setConfiguration(QueryConfiguration configuration) {
 	    this.configuration = configuration;
 	    initialize();
 	}
-	
-	
+
+
 	public Set<Slot> getSearchableSlots() {
 		return getConfiguration().getSearchableSlots();
 	}
@@ -211,7 +197,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		}
 		return (String) values.iterator().next();
 	}
-	
+
 	public Set<Indexer> getIndexers() {
 	    return indexers;
 	}
@@ -424,14 +410,24 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	public void reinitialize() {
 		delegate.reinitialize();
 	}
-	
+
 	public boolean setCaching(RemoteSession session, boolean doCache) {
 		return delegate.setCaching(session, doCache);
 	}
 
 	public void replaceFrame(Frame original, Frame replacement) {
 		checkWriteable();
+		Slot slot = original.getKnowledgeBase().getSystemFrames().getNameSlot();
+		for (Indexer indexer : indexers) {
+		    indexer.removeValues(original.getName());
+        }
+
 		delegate.replaceFrame(original, replacement);
+
+		  for (Indexer indexer : indexers) {
+		      //TODO: not the ideal method. We need to index also the slots. Should call the indexer.addFrame
+              indexer.addValues(replacement, slot, CollectionUtilities.createCollection(replacement.getName()));
+          }
 	}
 
 }
