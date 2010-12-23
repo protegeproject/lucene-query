@@ -14,7 +14,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Hits;
@@ -100,10 +99,16 @@ public class StdIndexer extends AbstractIndexer {
   }
 
   public Map<String, String> queryBrowserText(String luceneQuery) throws IOException {
-      QueryParser parser = new QueryParser(BROWSER_TEXT, getAnalyzer());
-      parser.setAllowLeadingWildcard(true);
+      //QueryParser parser = new QueryParser(BROWSER_TEXT, getAnalyzer());
+      //parser.setAllowLeadingWildcard(true);
       try {
-          final Query query = parser.parse(luceneQuery);
+          //final Query query = parser.parse(luceneQuery);
+          BooleanQuery query  = new  BooleanQuery();
+          BooleanQuery.setMaxClauseCount(100000) ;
+
+          QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
+          queryExpander.parsePrefixQuery(query, luceneQuery);
+
           return getIndexRunner().submit(new QueryBrowserTextCallable(query)).get();
       } catch (ParseException e) {
           IOException ioe = new IOException(e.getMessage());
@@ -119,6 +124,10 @@ public class StdIndexer extends AbstractIndexer {
           else {
               throw new RuntimeException(e);
           }
+      } catch (Exception e) {
+          IOException ioe = new IOException(e.getMessage());
+          ioe.initCause(e);
+          throw ioe;
       }
   }
 
