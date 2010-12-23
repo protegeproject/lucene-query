@@ -28,12 +28,18 @@ public class QueryExpander {
     private final Analyzer analyzer;
     private final String field;
     private final String fullIndexPath;
+    private final Set<String> frameTypes;
 
     public QueryExpander(Analyzer analyzer, String field, String fullIndexPath) {
+        this(analyzer, field, fullIndexPath, null);
+    }
+
+    public QueryExpander(Analyzer analyzer, String field, String fullIndexPath, Set<String> frameTypes) {
         super();
         this.analyzer = analyzer;
         this.field = field;
         this.fullIndexPath = fullIndexPath;
+        this.frameTypes = frameTypes;
     }
 
     /**
