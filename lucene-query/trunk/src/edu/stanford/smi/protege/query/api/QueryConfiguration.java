@@ -11,6 +11,7 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Localizable;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.ValueType;
+import edu.stanford.smi.protege.query.indexer.AbstractIndexer;
 import edu.stanford.smi.protege.query.indexer.IndexMechanism;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 import edu.stanford.smi.protege.util.Log;
@@ -18,23 +19,24 @@ import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class QueryConfiguration implements Localizable, Serializable {
     private static final long serialVersionUID = 720591441102651371L;
-    
+
     private static transient final Logger log = Log.getLogger(QueryConfiguration.class);
-    
+
     private transient KnowledgeBase kb;
     private Set<Slot> searchableSlots;
     private Set<IndexMechanism> indexers = EnumSet.allOf(IndexMechanism.class);
     private String baseIndexPath;
-    
-    
+    private Set<String> indexedFrameTypes ; //cls, slot, instance
+
+
     public QueryConfiguration(KnowledgeBase kb) {
         this.kb = kb;
     }
-    
+
     public KnowledgeBase getKnowledgeBase() {
         return kb;
     }
-    
+
     @SuppressWarnings("unchecked")
     public Set<Slot> getSearchableSlots() {
         if (searchableSlots != null) {
@@ -48,7 +50,7 @@ public class QueryConfiguration implements Localizable, Serializable {
             allSlots.add(owl.getRDFSLabelProperty());
             allSlots.add(owl.getRDFSCommentProperty());
             allSlots.add(kb.getSystemFrames().getNameSlot());
-        } 
+        }
         else {
             allSlots.addAll(kb.getSlots());
         }
@@ -60,21 +62,50 @@ public class QueryConfiguration implements Localizable, Serializable {
         }
         return searchableSlots;
     }
-    
+
     public void setSearchableSlots(Set<Slot> searchableSlots) {
         this.searchableSlots = searchableSlots;
     }
-    
-    
+
+
     public Set<IndexMechanism> getIndexers() {
         return indexers;
     }
-    
+
+    public Set<String> getIndexedFrameTypes() {
+        if (indexedFrameTypes != null) {
+            return indexedFrameTypes;
+        }
+
+        indexedFrameTypes = new HashSet<String>();
+        indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_CLS); //backwards compatibility
+        indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_SLOT);
+        indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_INSTANCE);
+
+        return indexedFrameTypes;
+    }
+
+    public boolean isIndexedClasses() {
+        return getIndexedFrameTypes().contains(AbstractIndexer.FRAME_TYPE_CLS);
+    }
+
+    public boolean isIndexedSlots() {
+        return getIndexedFrameTypes().contains(AbstractIndexer.FRAME_TYPE_SLOT);
+    }
+
+    public boolean isIndexedInstances() {
+        return getIndexedFrameTypes().contains(AbstractIndexer.FRAME_TYPE_INSTANCE);
+    }
+
+    public void setIndexedFrameTypes(Set<String> indexedFrameTypes) {
+        this.indexedFrameTypes = indexedFrameTypes;
+    }
+
     public void setIndexers(Set<IndexMechanism> indexers) {
         this.indexers = indexers;
     }
-    
-    
+
+
     public String getBaseIndexPath() {
         if (baseIndexPath != null) {
             return baseIndexPath;
@@ -83,7 +114,7 @@ public class QueryConfiguration implements Localizable, Serializable {
         baseIndexPath = baseIndexPath + File.separator + "lucene" + File.separator + kb.getProject().getName();
         return baseIndexPath;
     }
-    
+
     public void setBaseIndexPath(String baseIndexPath) {
         this.baseIndexPath = baseIndexPath;
     }
@@ -97,7 +128,7 @@ public class QueryConfiguration implements Localizable, Serializable {
         }
     }
 
-    
-    
-    
+
+
+
 }
