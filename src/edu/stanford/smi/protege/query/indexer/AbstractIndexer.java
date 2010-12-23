@@ -35,6 +35,7 @@ import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.TermQuery;
 
 import edu.stanford.smi.protege.exception.ProtegeException;
+import edu.stanford.smi.protege.model.Cls;
 import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Model;
@@ -63,17 +64,23 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   private Future<Boolean> optimizationTask;
 
   private Set<Slot> searchableSlots;
+  private Set<String> indexableFrameTypes;
 
   boolean owlMode = false;
 
   private Slot nameSlot;
 
-  public static final String FRAME_NAME                = "frameName";
-  public static final String SLOT_NAME                 = "slotName";
-  public static final String BROWSER_TEXT              = "browserText";
-  public static final String BROWSER_TEXT_PRESENT      = "browserTextPresent";
-  public static final String CONTENTS_FIELD            = "contents";
-  public static final String LITERAL_CONTENTS          = "literalContents";
+    public static final String FRAME_NAME = "frameName";
+    public static final String SLOT_NAME = "slotName";
+    public static final String BROWSER_TEXT = "browserText";
+    public static final String BROWSER_TEXT_PRESENT = "browserTextPresent";
+    public static final String CONTENTS_FIELD = "contents";
+    public static final String LITERAL_CONTENTS = "literalContents";
+
+    public static final String FRAME_TYPE = "frameType";
+    public static final String FRAME_TYPE_CLS = "C";
+    public static final String FRAME_TYPE_SLOT = "S";
+    public static final String FRAME_TYPE_INSTANCE = "I";
 
   private transient ExecutorService indexRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
       public Thread newThread(Runnable r) {
@@ -114,7 +121,15 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
 
   public String getFullIndexPath() {
       return baseIndexPath + File.separator + relativeIndexLocation();
-    }
+  }
+
+  public Set<String> getIndexableFrameTypes() {
+    return indexableFrameTypes;
+}
+
+  public void setIndexedFrameTypes(Set<String> indexableFrameTypes) {
+    this.indexableFrameTypes = indexableFrameTypes;
+  }
 
   public void setOWLMode(boolean owlMode) {
       this.owlMode = owlMode;
@@ -194,16 +209,32 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   public boolean indexable(Frame frame) {
-      return !frame.isSystem() &&  !(frame instanceof OWLAnonymousClass);
+      return    !frame.isSystem() &&
+                      !(frame instanceof OWLAnonymousClass) &&
+                      isIndexableFrameType(frame);
+  }
+
+  private boolean isIndexableFrameType(Frame frame) {
+      if (frame instanceof Cls) {
+          return indexableFrameTypes.contains(AbstractIndexer.FRAME_TYPE_CLS);
+      } else if (frame instanceof Slot) {
+          return indexableFrameTypes.contains(AbstractIndexer.FRAME_TYPE_SLOT);
+      }
+      return indexableFrameTypes.contains(AbstractIndexer.FRAME_TYPE_INSTANCE);
   }
 
   protected boolean addFrameBrowserText(IndexWriter writer, Frame frame) {
+      if (status == Status.DOWN  || !isIndexableFrameType(frame)) {
+          return false;
+        }
+
       boolean errorsFound = false;
       try {
           Document doc = new Document();
           doc.add(new Field(FRAME_NAME, getFrameName(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           doc.add(new Field(BROWSER_TEXT, frame.getBrowserText(), Field.Store.YES, Field.Index.TOKENIZED));
           doc.add(new Field(BROWSER_TEXT_PRESENT, Boolean.TRUE.toString(), Field.Store.YES, Field.Index.TOKENIZED));
+          doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.TOKENIZED));
           writer.addDocument(doc);
       } catch (Exception e) {
           Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
@@ -250,7 +281,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     if (owlMode && value.startsWith("~#")) {
       value = value.substring(5);
     }
-    if (status == Status.DOWN || !searchableSlots.contains(slot)) {
+    if (status == Status.DOWN || !searchableSlots.contains(slot) || !isIndexableFrameType(frame)) {
       return;
     }
     Document doc = new Document();
@@ -261,6 +292,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     }
     doc.add(new Field(CONTENTS_FIELD, value, Field.Store.YES, Field.Index.TOKENIZED));
     doc.add(new Field(LITERAL_CONTENTS, value, Field.Store.YES, Field.Index.UN_TOKENIZED));
+    doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.TOKENIZED));
     writer.addDocument(doc);
   }
 
@@ -317,6 +349,14 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       }
   }
 
+  private String getFrameType(Frame frame) {
+      if (frame instanceof Cls) {
+          return FRAME_TYPE_CLS;
+      } else if (frame instanceof Slot) {
+          return FRAME_TYPE_SLOT;
+      }
+      return FRAME_TYPE_INSTANCE;
+  }
 
 
   /*
@@ -504,7 +544,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           for (Integer i : deletions) {
               reader.deleteDocument(i);
           }
-      } finally {
+
+      } catch (Exception e) {
+          if (log.isLoggable(Level.FINE)) {
+              log.log(Level.FINE, "Exception at deleting document from index " + q, e);
+          }
+      }  finally {
           forceClose(reader);
       }
       if (log.isLoggable(Level.FINE)) {
