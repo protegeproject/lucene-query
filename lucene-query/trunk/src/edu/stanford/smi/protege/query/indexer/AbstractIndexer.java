@@ -41,6 +41,7 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Model;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
+import edu.stanford.smi.protege.query.menu.QueryUIConfiguration.BooleanConfigItem;
 import edu.stanford.smi.protege.util.Log;
 import edu.stanford.smi.protegex.owl.model.OWLAnonymousClass;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
@@ -122,10 +123,6 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   public String getFullIndexPath() {
       return baseIndexPath + File.separator + relativeIndexLocation();
   }
-
-  public Set<String> getIndexableFrameTypes() {
-    return indexableFrameTypes;
-}
 
   public void setIndexedFrameTypes(Set<String> indexableFrameTypes) {
     this.indexableFrameTypes = indexableFrameTypes;
@@ -397,12 +394,27 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   protected Query getFrameTypeInnerQuery() {
-	  BooleanQuery query = new BooleanQuery();	  
-	  for (String frameType : indexableFrameTypes) {
-		  Term term = new Term(FRAME_TYPE, frameType);
-		  query.add(new TermQuery(term), BooleanClause.Occur.SHOULD);
-	  }	  
+	  BooleanQuery query = new BooleanQuery();
+	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_CLASSES.getProtegeProperty())) {
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_CLS)), 
+				  BooleanClause.Occur.SHOULD);
+	  }
+	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_PROPERTIES.getProtegeProperty())) {
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_SLOT)), 
+				  BooleanClause.Occur.SHOULD);
+	  }
+	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS.getProtegeProperty())) {
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_INSTANCE)), 
+				  BooleanClause.Occur.SHOULD);
+	  }   
 	  return query;
+  }
+  
+  private boolean isSearchFrameType(String searchTypeProp) {
+	  KnowledgeBase kb = (KnowledgeBase)kbLock; //not nice
+	  Object val = kb.getProject().getClientInformation(searchTypeProp);
+	  if (val == null) { return true; }	  
+	  return (Boolean) val;
   }
 
   /*
