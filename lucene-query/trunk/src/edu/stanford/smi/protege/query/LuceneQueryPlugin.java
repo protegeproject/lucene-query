@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -33,11 +32,8 @@ import javax.swing.SwingUtilities;
 
 import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.action.ExportToCsvUtil;
-import edu.stanford.smi.protege.model.Cls;
-import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
-import edu.stanford.smi.protege.model.SimpleInstance;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
@@ -594,21 +590,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private int doQuery(Query q) {
         List<FrameWithBrowserText> results = null;
         if (q != null) {
-            results = new DoQueryJob(kb, q).execute();
-            Collection<FrameWithBrowserText> toRemove = new HashSet<FrameWithBrowserText>();
-            for (FrameWithBrowserText wrappedFrame : results) {
-                Frame frame = wrappedFrame.getFrame();
-                if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
-                    toRemove.add(wrappedFrame);
-                }
-                if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
-                    toRemove.add(wrappedFrame);
-                }
-                if (!configuration.isSearchResultsIncludeIndividuals() && frame instanceof SimpleInstance) {
-                    toRemove.add(wrappedFrame);
-                }
-            }
-            results.removeAll(toRemove);
+            results = new DoQueryJob(kb, q).execute();            
         }
         int hits = results != null ? results.size() : 0;
         if (hits == 0) {
