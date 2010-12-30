@@ -2,7 +2,6 @@ package edu.stanford.smi.protege.query.menu;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -30,6 +29,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     public static final String LUCENE_MAX_SEARCH_RESULTS = "lucene.max.displayed.results";
     public static final String LUCENE_FILTER_SEARCH_TYPE = "lucene.filter.search.type";
     
+    private KnowledgeBase kb;
+    
     private boolean canIndex;
     
     private boolean isOwl;
@@ -46,7 +47,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     
     private SearchType filterResultsSearchType;
     
-    private EnumMap<BooleanConfigItem, Boolean> booleanConfigValue = new EnumMap<BooleanConfigItem, Boolean>(BooleanConfigItem.class);
+    //private EnumMap<BooleanConfigItem, Boolean> booleanConfigValue = new EnumMap<BooleanConfigItem, Boolean>(BooleanConfigItem.class);
     
     public enum BooleanConfigItem {
         SEARCH_FOR_CLASSES("lucene.search.classes", true),
@@ -73,6 +74,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
     }
 
     public QueryUIConfiguration(KnowledgeBase kb) {
+    	this.kb = kb;
         canIndex = RemoteClientFrameStore.isOperationAllowed(kb, INDEX_OPERATION);
         isOwl = (kb instanceof OWLModel);
         
@@ -81,8 +83,9 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         initOther();
     }
     
-    public QueryUIConfiguration(QueryUIConfiguration original) {
-        canIndex = original.canIndex();
+    public QueryUIConfiguration(KnowledgeBase kb, QueryUIConfiguration original) {
+        this.kb = kb;
+    	canIndex = original.canIndex();
         isOwl = original.isOwl();
         
         defaultSlot = original.getDefaultSlot();
@@ -93,7 +96,8 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         	
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             boolean originalValue = original.getBooleanConfiguration(configItem);
-            booleanConfigValue.put(configItem, originalValue);
+            //this might be a no-op. Config is stored in the pprj
+            setBooleanConfiguration(configItem, originalValue);
         }
     }
     
@@ -103,7 +107,7 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         ApplicationProperties.setString(LUCENE_FILTER_SEARCH_TYPE, filterResultsSearchType.toString());	
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             String protegeProperty = configItem.getProtegeProperty();
-            boolean value = booleanConfigValue.get(configItem);
+            boolean value = getBooleanConfiguration(configItem);
             ApplicationProperties.setBoolean(protegeProperty, value);
         }
     }
@@ -158,11 +162,13 @@ public class QueryUIConfiguration implements Serializable, Localizable {
         return slots;
     }
     
-    private void initBooleans() {
+    //FIXME: TT: this is obsolete now. Config saved as part of pprj. Might be required by NCI?
+    //Tim, please delete, if OK.
+    private void initBooleans() { 
         for (BooleanConfigItem configItem : BooleanConfigItem.values()) {
             String protegeProperty = configItem.getProtegeProperty();
             boolean value = ApplicationProperties.getBooleanProperty(protegeProperty, configItem.getDefaultValue());
-            booleanConfigValue.put(configItem, value);
+            setBooleanConfiguration(configItem, value);
         } 
     }
     
@@ -184,11 +190,17 @@ public class QueryUIConfiguration implements Serializable, Localizable {
      */
     
     public boolean getBooleanConfiguration(BooleanConfigItem configItem) {
-        return booleanConfigValue.get(configItem);
+    	Object val = kb.getProject().getClientInformation(configItem.getProtegeProperty());
+    	if (val == null) {
+    		return true;
+    	}
+    	return (Boolean)val;
+        //return booleanConfigValue.get(configItem);
     }
    
     public void setBooleanConfiguration(BooleanConfigItem configItem, boolean value) {
-        booleanConfigValue.put(configItem, value);
+    	kb.getProject().setClientInformation(configItem.getProtegeProperty(), value);
+        //booleanConfigValue.put(configItem, value);
     }
     
     public void localize(KnowledgeBase kb) {
