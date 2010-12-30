@@ -44,19 +44,23 @@ public class StdIndexer extends AbstractIndexer {
   }
 
   public Collection<Frame> executeQuery(LuceneBrowserTextSearch q) throws IOException {
-      BooleanQuery query  = new  BooleanQuery();
-      BooleanQuery.setMaxClauseCount(100000) ;
+	  BooleanQuery outerQuery = new BooleanQuery();
+      BooleanQuery expandedQuery  = new BooleanQuery();
+      BooleanQuery.setMaxClauseCount(100000);
 
       try {
           QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
-          queryExpander.parsePrefixQuery(query, q.getText());
+          queryExpander.parsePrefixQuery(expandedQuery, q.getText());      
       } catch (Exception e) {
           IOException ioe = new IOException(e.getMessage());
           ioe.initCause(e);
           throw ioe;
       }
 
-      return executeQuery(query);
+      outerQuery.add(expandedQuery, BooleanClause.Occur.MUST);
+      //outerQuery.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_CLS)), BooleanClause.Occur.MUST);
+      outerQuery.add(getFrameTypeInnerQuery(), BooleanClause.Occur.MUST);
+      return executeQuery(outerQuery);
   }
 
   public void browserTextChanged(final Frame frame){
@@ -99,17 +103,18 @@ public class StdIndexer extends AbstractIndexer {
   }
 
   public Map<String, String> queryBrowserText(String luceneQuery) throws IOException {
-      //QueryParser parser = new QueryParser(BROWSER_TEXT, getAnalyzer());
-      //parser.setAllowLeadingWildcard(true);
       try {
-          //final Query query = parser.parse(luceneQuery);
-          BooleanQuery query  = new  BooleanQuery();
-          BooleanQuery.setMaxClauseCount(100000) ;
-
+    	  BooleanQuery outerQuery = new BooleanQuery();
+          BooleanQuery expandedQuery  = new BooleanQuery();
+          BooleanQuery.setMaxClauseCount(100000);
+        
           QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
-          queryExpander.parsePrefixQuery(query, luceneQuery);
-
-          return getIndexRunner().submit(new QueryBrowserTextCallable(query)).get();
+          queryExpander.parsePrefixQuery(expandedQuery, luceneQuery);      
+        
+          outerQuery.add(expandedQuery, BooleanClause.Occur.MUST);
+          outerQuery.add(getFrameTypeInnerQuery(), BooleanClause.Occur.MUST);
+      
+          return getIndexRunner().submit(new QueryBrowserTextCallable(outerQuery)).get();
       } catch (ParseException e) {
           IOException ioe = new IOException(e.getMessage());
           ioe.initCause(e);
