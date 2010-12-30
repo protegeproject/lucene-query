@@ -78,7 +78,8 @@ public class QueryConfiguration implements Localizable, Serializable {
         }
 
         indexedFrameTypes = new HashSet<String>();
-        indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_CLS); //backwards compatibility
+        //backwards compatibility
+        indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_CLS); 
         indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_SLOT);
         indexedFrameTypes.add(AbstractIndexer.FRAME_TYPE_INSTANCE);
 
