@@ -5,9 +5,11 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -18,7 +20,9 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,8 +36,11 @@ import javax.swing.SwingUtilities;
 
 import edu.stanford.smi.protege.action.ExportToCsvAction;
 import edu.stanford.smi.protege.action.ExportToCsvUtil;
+import edu.stanford.smi.protege.model.Cls;
+import edu.stanford.smi.protege.model.Frame;
 import edu.stanford.smi.protege.model.Instance;
 import edu.stanford.smi.protege.model.KnowledgeBase;
+import edu.stanford.smi.protege.model.SimpleInstance;
 import edu.stanford.smi.protege.model.Slot;
 import edu.stanford.smi.protege.model.framestore.NarrowFrameStore;
 import edu.stanford.smi.protege.model.query.Query;
@@ -50,6 +57,8 @@ import edu.stanford.smi.protege.query.nci.NCIEditAction;
 import edu.stanford.smi.protege.query.nci.NCIViewAction;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.AndQuery;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
+import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.query.querytypes.impl.OrQuery;
 import edu.stanford.smi.protege.query.ui.NCIExportToCsvAction;
 import edu.stanford.smi.protege.query.ui.QueryComponent;
@@ -237,6 +246,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
         pnlLeft.add(new JScrollPane(getQueryList()), BorderLayout.CENTER);
         pnlLeft.add(getQueryBottomPanel(), BorderLayout.SOUTH);
+        
+        JPanel pnlRight = new JPanel();
+        pnlRight.setLayout(new BorderLayout());
 
         resultsComponent = new PagedFrameList(SEARCH_RESULTS);
         searchResultsList = resultsComponent.getSelectableList();
@@ -265,10 +277,59 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             resultsComponent.addHeaderButton(createExportAction());
         }
 
+        pnlRight.add(resultsComponent, BorderLayout.CENTER);
+        pnlRight.add(getRightBottomPanel(), BorderLayout.SOUTH);
+        
         JSplitPane splitter = ComponentFactory.createLeftRightSplitPane();
         splitter.setLeftComponent(lcLeft);
-        splitter.setRightComponent(resultsComponent);
+        splitter.setRightComponent(pnlRight);
         add(splitter, BorderLayout.CENTER);
+    }
+    
+    protected JComponent getRightBottomPanel() {
+    	JPanel searchTypePanel = new JPanel();
+    	searchTypePanel.setLayout(new BoxLayout(searchTypePanel, BoxLayout.X_AXIS));
+    	searchTypePanel.setAlignmentX(LEFT_ALIGNMENT);
+    	searchTypePanel.add(new JLabel("<html><body><i>Search types:</i></body></html>"));
+    	//searchTypePanel.add(Box.createRigidArea(new Dimension(10,0)));
+    	
+    	final JCheckBox clsesBox = new JCheckBox("Classes");
+    	clsesBox.setSelected(configuration.isSearchResultsIncludeClasses());
+    	clsesBox.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				configuration.setSearchResultsIncludeClasses(clsesBox.isSelected());
+				doSearch();
+			}
+		});
+    	clsesBox.setAlignmentX(LEFT_ALIGNMENT);
+    	searchTypePanel.add(clsesBox);
+    	searchTypePanel.add(Box.createRigidArea(new Dimension(5,0)));
+
+    	final JCheckBox propBox = new JCheckBox(isOWL ? "Properties" : "Slots");
+    	propBox.setSelected(configuration.isSearchResultsIncludeProperties());
+    	propBox.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				configuration.setSearchResultsIncludeProperties(propBox.isSelected());
+				doSearch();
+			}
+		});
+    	searchTypePanel.add(propBox);
+    	searchTypePanel.add(Box.createRigidArea(new Dimension(5,0)));
+
+    	final JCheckBox instBox = new JCheckBox(isOWL ? "Individuals" : "Instances");
+    	instBox.setSelected(configuration.isSearchResultsIncludeIndividuals());
+    	instBox.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				configuration.setSearchResultsIncludeIndividuals(instBox.isSelected());
+				doSearch();
+			}
+		});
+    	searchTypePanel.add(instBox);
+    	
+    	return searchTypePanel;
     }
 
     private Action getEditAction() {
@@ -590,7 +651,24 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private int doQuery(Query q) {
         List<FrameWithBrowserText> results = null;
         if (q != null) {
-            results = new DoQueryJob(kb, q).execute();            
+        	results = new DoQueryJob(kb, q).execute(); 
+        	//Lucene queries are filtered in the lucene search
+        	if (!(q instanceof LuceneOwnSlotValueQuery) && !(q instanceof LuceneBrowserTextSearch)	) {
+        		Collection<FrameWithBrowserText> toRemove = new HashSet<FrameWithBrowserText>();
+        		for (FrameWithBrowserText wrappedFrame : results) {
+        			Frame frame = wrappedFrame.getFrame();
+        			if (!configuration.isSearchResultsIncludeClasses() && frame instanceof Cls) {
+        				toRemove.add(wrappedFrame);
+        			}
+        			if (!configuration.isSearchResultsIncludeProperties() && frame instanceof Slot) {
+        				toRemove.add(wrappedFrame);
+        			}
+        			if (!configuration.isSearchResultsIncludeIndividuals() && frame instanceof SimpleInstance) {
+        				toRemove.add(wrappedFrame);
+        			}
+        		}
+        		results.removeAll(toRemove);
+        	}
         }
         int hits = results != null ? results.size() : 0;
         if (hits == 0) {
