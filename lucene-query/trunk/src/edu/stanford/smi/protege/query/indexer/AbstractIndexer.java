@@ -234,7 +234,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           doc.add(new Field(FRAME_NAME, getFrameName(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           doc.add(new Field(BROWSER_TEXT, frame.getBrowserText(), Field.Store.YES, Field.Index.TOKENIZED));
           doc.add(new Field(BROWSER_TEXT_PRESENT, Boolean.TRUE.toString(), Field.Store.YES, Field.Index.TOKENIZED));
-          doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.TOKENIZED));
+          doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           writer.addDocument(doc);
       } catch (Exception e) {
           Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
@@ -363,6 +363,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
    * This is one of the queries that is actually used for searching the lucene index
    * rather than just for maintaining it.  It is a slight variation of the query that
    * just searches for a single slot.
+   * The Lucene query will only search the frame types configured in the indexer.
    */
   protected Query generateLuceneQuery(Collection<Slot> slots, String expr) throws IOException {
     BooleanQuery query = new  BooleanQuery();
@@ -391,9 +392,18 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         }
         query.add(slotQuery, BooleanClause.Occur.MUST);
     }
+    query.add(getFrameTypeInnerQuery(), BooleanClause.Occur.MUST);
     return query;
   }
 
+  protected Query getFrameTypeInnerQuery() {
+	  BooleanQuery query = new BooleanQuery();	  
+	  for (String frameType : indexableFrameTypes) {
+		  Term term = new Term(FRAME_TYPE, frameType);
+		  query.add(new TermQuery(term), BooleanClause.Occur.SHOULD);
+	  }	  
+	  return query;
+  }
 
   /*
    * This query already contains the frame name to find.  It is used to find a document and thence delete it.
