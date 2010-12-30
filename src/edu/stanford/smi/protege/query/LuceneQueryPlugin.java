@@ -290,8 +290,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     	JPanel searchTypePanel = new JPanel();
     	searchTypePanel.setLayout(new BoxLayout(searchTypePanel, BoxLayout.X_AXIS));
     	searchTypePanel.setAlignmentX(LEFT_ALIGNMENT);
-    	searchTypePanel.add(new JLabel("<html><body><i>Search types:</i></body></html>"));
-    	//searchTypePanel.add(Box.createRigidArea(new Dimension(10,0)));
+    	searchTypePanel.add(Box.createRigidArea(new Dimension(5,0)));
+    	searchTypePanel.add(new JLabel("Search types:"));
+    	searchTypePanel.add(Box.createRigidArea(new Dimension(10,0)));
     	
     	final JCheckBox clsesBox = new JCheckBox("Classes");
     	clsesBox.setSelected(configuration.isSearchResultsIncludeClasses());
@@ -315,6 +316,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				doSearch();
 			}
 		});
+    	propBox.setAlignmentX(LEFT_ALIGNMENT);
     	searchTypePanel.add(propBox);
     	searchTypePanel.add(Box.createRigidArea(new Dimension(5,0)));
 
@@ -327,6 +329,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 				doSearch();
 			}
 		});
+    	instBox.setAlignmentX(LEFT_ALIGNMENT);
     	searchTypePanel.add(instBox);
     	
     	return searchTypePanel;
