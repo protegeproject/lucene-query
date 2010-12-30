@@ -17,7 +17,7 @@ public class ConfigureLuceneAction extends AbstractAction {
     public ConfigureLuceneAction(LuceneQueryPlugin plugin) {
         super("Configure Search Options", OWLIcons.getPreferencesIcon());
         this.plugin = plugin;
-        newConfiguration = new QueryUIConfiguration(plugin.getUIConfiguration());
+        newConfiguration = new QueryUIConfiguration(plugin.getKnowledgeBase(), plugin.getUIConfiguration());
     }
 
     public void actionPerformed(ActionEvent e) {
