@@ -91,7 +91,7 @@ import edu.stanford.smi.protegex.util.PagedFrameList;
 
 /**
  * {@link TabWidget} for doing advanced queries.
- * 
+ *
  * @author Timothy Redmond, Chris Callendar, Tania Tudorache
  * @date 15-Aug-06
  */
@@ -118,8 +118,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private boolean isOWL;
 
     private boolean runsInWindow = false;
-    
-    
+
+
 
     private ViewAction viewAction;
 
@@ -198,7 +198,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             if (getUIConfiguration().canIndex()) {
                 menu.add(new InstallIndiciesAction(this, kb));
             }
-            menu.add(new JMenuItem(new ConfigureLuceneAction(this)));          
+            menu.add(new JMenuItem(new ConfigureLuceneAction(this)));
         }
     }
 
@@ -246,7 +246,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
         pnlLeft.add(new JScrollPane(getQueryList()), BorderLayout.CENTER);
         pnlLeft.add(getQueryBottomPanel(), BorderLayout.SOUTH);
-        
+
         JPanel pnlRight = new JPanel();
         pnlRight.setLayout(new BorderLayout());
 
@@ -279,13 +279,13 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
         pnlRight.add(resultsComponent, BorderLayout.CENTER);
         pnlRight.add(getRightBottomPanel(), BorderLayout.SOUTH);
-        
+
         JSplitPane splitter = ComponentFactory.createLeftRightSplitPane();
         splitter.setLeftComponent(lcLeft);
         splitter.setRightComponent(pnlRight);
         add(splitter, BorderLayout.CENTER);
     }
-    
+
     protected JComponent getRightBottomPanel() {
     	JPanel searchTypePanel = new JPanel();
     	searchTypePanel.setLayout(new BoxLayout(searchTypePanel, BoxLayout.X_AXIS));
@@ -293,11 +293,10 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     	searchTypePanel.add(Box.createRigidArea(new Dimension(5,0)));
     	searchTypePanel.add(new JLabel("Search types:"));
     	searchTypePanel.add(Box.createRigidArea(new Dimension(10,0)));
-    	
+
     	final JCheckBox clsesBox = new JCheckBox("Classes");
     	clsesBox.setSelected(configuration.isSearchResultsIncludeClasses());
-    	clsesBox.addActionListener(new ActionListener() {			
-			@Override
+    	clsesBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				configuration.setSearchResultsIncludeClasses(clsesBox.isSelected());
 				doSearch();
@@ -309,8 +308,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     	final JCheckBox propBox = new JCheckBox(isOWL ? "Properties" : "Slots");
     	propBox.setSelected(configuration.isSearchResultsIncludeProperties());
-    	propBox.addActionListener(new ActionListener() {			
-			@Override
+    	propBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				configuration.setSearchResultsIncludeProperties(propBox.isSelected());
 				doSearch();
@@ -322,8 +320,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     	final JCheckBox instBox = new JCheckBox(isOWL ? "Individuals" : "Instances");
     	instBox.setSelected(configuration.isSearchResultsIncludeIndividuals());
-    	instBox.addActionListener(new ActionListener() {			
-			@Override
+    	instBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				configuration.setSearchResultsIncludeIndividuals(instBox.isSelected());
 				doSearch();
@@ -331,7 +328,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 		});
     	instBox.setAlignmentX(LEFT_ALIGNMENT);
     	searchTypePanel.add(instBox);
-    	
+
     	return searchTypePanel;
     }
 
@@ -355,6 +352,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
                 // add the default view instance action
                 viewAction = new ViewAction("View Instance", searchResultsList, Icons.getViewClsIcon()) {
 
+                    @Override
                     public void onView(Object o) {
                         if (o instanceof FrameWithBrowserText) {
                             kb.getProject().show((Instance) ((FrameWithBrowserText) o).getFrame());
@@ -412,7 +410,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             protected Collection getClsesToExport() {
                 Collection<FrameWithBrowserText> listToExport = resultsComponent.getAllFrames();
                 if (listToExport.size() == 0
-                        || (listToExport.size() == 1 && 
+                        || (listToExport.size() == 1 &&
                             CollectionUtilities.getSoleItem(listToExport).equals(SEARCH_NO_RESULTS_FOUND))) {
                     listToExport.clear();
                 }
@@ -646,7 +644,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     /**
      * Executes the query using the {@link KnowledgeBase} and puts the results into the list.
-     * 
+     *
      * @param q the query to perform
      * @see KnowledgeBase#executeQuery(Query)
      * @return int number of hits for the query
@@ -654,7 +652,7 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
     private int doQuery(Query q) {
         List<FrameWithBrowserText> results = null;
         if (q != null) {
-        	results = new DoQueryJob(kb, q).execute(); 
+        	results = new DoQueryJob(kb, q).execute();
         	//Lucene queries are filtered in the lucene search
         	if (!(q instanceof LuceneOwnSlotValueQuery) && !(q instanceof LuceneBrowserTextSearch)	) {
         		Collection<FrameWithBrowserText> toRemove = new HashSet<FrameWithBrowserText>();
