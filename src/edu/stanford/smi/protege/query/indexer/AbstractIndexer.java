@@ -79,9 +79,9 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     public static final String LITERAL_CONTENTS = "literalContents";
 
     public static final String FRAME_TYPE = "frameType";
-    public static final String FRAME_TYPE_CLS = "C";
-    public static final String FRAME_TYPE_SLOT = "S";
-    public static final String FRAME_TYPE_INSTANCE = "I";
+    public static final String FRAME_TYPE_CLS = "c";
+    public static final String FRAME_TYPE_SLOT = "s";
+    public static final String FRAME_TYPE_INSTANCE = "i";
 
   private transient ExecutorService indexRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
       public Thread newThread(Runnable r) {
@@ -389,31 +389,32 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         }
         query.add(slotQuery, BooleanClause.Occur.MUST);
     }
+
     query.add(getFrameTypeInnerQuery(), BooleanClause.Occur.MUST);
-    return query;
+   return query;
   }
 
   protected Query getFrameTypeInnerQuery() {
 	  BooleanQuery query = new BooleanQuery();
 	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_CLASSES.getProtegeProperty())) {
-		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_CLS)), 
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_CLS)),
 				  BooleanClause.Occur.SHOULD);
 	  }
 	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_PROPERTIES.getProtegeProperty())) {
-		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_SLOT)), 
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_SLOT)),
 				  BooleanClause.Occur.SHOULD);
 	  }
 	  if (isSearchFrameType(BooleanConfigItem.SEARCH_FOR_INDIVIDUALS.getProtegeProperty())) {
-		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_INSTANCE)), 
+		  query.add(new TermQuery(new Term(FRAME_TYPE, AbstractIndexer.FRAME_TYPE_INSTANCE)),
 				  BooleanClause.Occur.SHOULD);
-	  }   
+	  }
 	  return query;
   }
-  
+
   private boolean isSearchFrameType(String searchTypeProp) {
 	  KnowledgeBase kb = (KnowledgeBase)kbLock; //not nice
 	  Object val = kb.getProject().getClientInformation(searchTypeProp);
-	  if (val == null) { return true; }	  
+	  if (val == null) { return true; }
 	  return (Boolean) val;
   }
 
