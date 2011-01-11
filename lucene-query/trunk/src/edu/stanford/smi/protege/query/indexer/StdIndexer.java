@@ -68,21 +68,22 @@ public class StdIndexer extends AbstractIndexer {
       return executeQuery(outerQuery);
   }
 
-  public void browserTextChanged(final Frame frame){
-      getIndexRunner().submit(new BrowserTextChangedRunnable(frame) , true);
+  public void browserTextChanged(final Frame frame, final String newBrowserText){
+      getIndexRunner().submit(new BrowserTextChangedRunnable(frame, newBrowserText) , true);
   }
 
   private class BrowserTextChangedRunnable implements Runnable {
       private Frame frame;
+      private String newBrowserText;
 
-      public BrowserTextChangedRunnable(Frame frame) {
+      public BrowserTextChangedRunnable(Frame frame, String newBrowserText) {
           this.frame = frame;
+          this.newBrowserText = newBrowserText;
       }
       public void run() {
           if (log.isLoggable(Level.FINE)) {
-              log.fine("Update Lucene index for browser text of frame: " + frame.getBrowserText() + " name: " + frame.getName());
+              log.fine("Update Lucene index for browser text of frame: " + newBrowserText + " name: " + frame.getName());
           }
-          System.out.println("aaa");
 
           BooleanQuery query  = new  BooleanQuery();
 
@@ -100,7 +101,7 @@ public class StdIndexer extends AbstractIndexer {
           IndexWriter writer = null;
           try {
               writer = openWriter(false);
-              addFrameBrowserText(writer, frame);
+              addFrameBrowserText(writer, frame, newBrowserText);
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
