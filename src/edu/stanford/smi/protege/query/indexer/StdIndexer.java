@@ -79,9 +79,10 @@ public class StdIndexer extends AbstractIndexer {
           this.frame = frame;
       }
       public void run() {
-          if (log.isLoggable(Level.FINER)) {
-              log.finer("Update Lucene index for browser text of frame: " + frame.getBrowserText() + " name: " + frame.getName());
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Update Lucene index for browser text of frame: " + frame.getBrowserText() + " name: " + frame.getName());
           }
+          System.out.println("aaa");
 
           BooleanQuery query  = new  BooleanQuery();
 
