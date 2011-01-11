@@ -294,7 +294,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			boolean isTemplate, Collection values) throws ProtegeIOException {
 		checkWriteable();
 		if (log.isLoggable(Level.FINE)) {
-			log.fine("addValues");
+			log.fine("Add values. Frame: " + frame + " slot: " + slot + " values: " + values);
 		}
 		delegate.addValues(frame, slot, facet, isTemplate, values);
 		if (facet == null && !isTemplate) {
@@ -314,7 +314,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			boolean isTemplate, Object value) throws ProtegeIOException {
 		checkWriteable();
 		if (log.isLoggable(Level.FINE)) {
-			log.fine("Remove  Value");
+			log.fine("Remove  value. Frame: " + frame + " slot: " + slot + " value: " + value);
 		}
 		delegate.removeValue(frame, slot, facet, isTemplate, value);
 		if (facet == null && !isTemplate) {
@@ -328,7 +328,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 			boolean isTemplate, Collection values) throws ProtegeIOException {
 		checkWriteable();
 		if (log.isLoggable(Level.FINE)) {
-			log.fine("setValues");
+		    log.fine("Set values. Frame: " + frame + " slot: " + slot + " values: " + values);
 		}
 		delegate.setValues(frame, slot, facet, isTemplate, values);
 		if (facet == null && !isTemplate) {
@@ -366,7 +366,7 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 	public void deleteFrame(Frame frame) throws ProtegeIOException {
 		checkWriteable();
 		if (log.isLoggable(Level.FINE)) {
-			log.fine("deleteFrame ");
+			log.fine("Delete frame: " + frame);
 		}
 		String fname = getFrameName(frame);
 		delegate.deleteFrame(frame);
@@ -417,6 +417,10 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 	public void replaceFrame(Frame original, Frame replacement) {
 		checkWriteable();
+		if (log.isLoggable(Level.FINE)) {
+		    log.fine("Replace frame. Original frame: " + original + " New frame: " + replacement);
+		}
+
 		Slot slot = original.getKnowledgeBase().getSystemFrames().getNameSlot();
 		for (Indexer indexer : indexers) {
 		    indexer.removeValues(original.getName());
