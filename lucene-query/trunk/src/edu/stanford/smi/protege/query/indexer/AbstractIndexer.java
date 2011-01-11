@@ -238,8 +238,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           log.warning("continuing...");
           errorsFound = true;
       }
-      if (log.isLoggable(Level.FINER)) {
-          log.finer("Adding frame browser text to index: " + frame.getBrowserText() + " " + frame.getName() + " " + errorsFound);
+      if (log.isLoggable(Level.FINE)) {
+          log.fine("Adding frame browser text to index: " + frame.getBrowserText() + " " + frame.getName() + " " + errorsFound);
       }
       return errorsFound;
   }
@@ -295,8 +295,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
     writer.addDocument(doc);
 
-    if (log.isLoggable(Level.FINER)) {
-        log.finer("Updating in the Lucene index the values for frame " + frame.getBrowserText() + " name: " + frame.getName() +
+    if (log.isLoggable(Level.FINE)) {
+        log.fine("Updating in the Lucene index the values for frame " + frame.getBrowserText() + " name: " + frame.getName() +
                 " slot: " + slot + " value: " + value);
     }
   }
@@ -619,8 +619,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           if (status == Status.DOWN || !searchableSlots.contains(slot) || isAnonymous(frame)) {
               return;
           }
-          if (log.isLoggable(Level.FINER)) {
-              log.finer("Adding values for frame named " + frame.getName() + " and slot " + slot.getName() + " values: " + values);
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Adding values for frame named " + frame.getName() + " and slot " + slot.getName() + " values: " + values);
           }
           IndexWriter writer = null;
           try {
@@ -673,8 +673,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           if (status == Status.DOWN || !searchableSlots.contains(slot) || !(value instanceof String)) {
               return;
           }
-          if (log.isLoggable(Level.FINER)) {
-              log.finer("Removing value " + value + " for frame " + frame.getName() + " and slot " + slot.getName());
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Removing value " + value + " for frame " + frame.getName() + " and slot " + slot.getName());
           }
           try {
               deleteDocuments(generateLuceneQuery(frame, slot, (String) value));
@@ -707,8 +707,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           if (status == Status.DOWN || !searchableSlots.contains(slot)) {
               return;
           }
-          if (log.isLoggable(Level.FINER)) {
-              log.finer("Removing all values for frame " + frame.getName() + " and slot " + slot.getName());
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Removing all values for frame " + frame.getName() + " and slot " + slot.getName());
           }
           try {
               Query q = null;
@@ -747,8 +747,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           if (status == Status.DOWN) {
               return;
           }
-          if (log.isLoggable(Level.FINER)) {
-              log.finer("Removing all values for frame named " + fname);
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Removing all values for frame named " + fname);
           }
           try {
               deleteDocuments(generateLuceneQuery(fname));
