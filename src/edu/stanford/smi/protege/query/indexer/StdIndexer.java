@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -27,8 +29,9 @@ import edu.stanford.smi.protege.query.querytypes.impl.LuceneBrowserTextSearch;
 import edu.stanford.smi.protege.query.querytypes.impl.LuceneOwnSlotValueQuery;
 import edu.stanford.smi.protege.util.Log;
 
-
 public class StdIndexer extends AbstractIndexer {
+
+ private transient static final Logger log = Log.getLogger(StdIndexer.class);
 
   public StdIndexer() {
     super();
@@ -49,8 +52,11 @@ public class StdIndexer extends AbstractIndexer {
       BooleanQuery.setMaxClauseCount(100000);
 
       try {
-          QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
+          QueryExpander queryExpander = new QueryExpander(getIndexRunner(), getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
           queryExpander.parsePrefixQuery(expandedQuery, q.getText());
+          if (log.isLoggable(Level.FINE)) {
+              log.fine("Expanded Lucene query: " + expandedQuery);
+          }
       } catch (Exception e) {
           IOException ioe = new IOException(e.getMessage());
           ioe.initCause(e);
@@ -73,6 +79,10 @@ public class StdIndexer extends AbstractIndexer {
           this.frame = frame;
       }
       public void run() {
+          if (log.isLoggable(Level.FINER)) {
+              log.finer("Update Lucene index for browser text of frame: " + frame.getBrowserText() + " name: " + frame.getName());
+          }
+
           BooleanQuery query  = new  BooleanQuery();
 
           Term term;
@@ -93,7 +103,7 @@ public class StdIndexer extends AbstractIndexer {
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
-              Log.getLogger().warning("Error during indexing" + t);
+              log.warning("Error during indexing" + t);
           }
           finally {
               forceClose(writer);
@@ -107,7 +117,7 @@ public class StdIndexer extends AbstractIndexer {
           BooleanQuery expandedQuery  = new BooleanQuery();
           BooleanQuery.setMaxClauseCount(100000);
 
-          QueryExpander queryExpander = new QueryExpander(getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
+          QueryExpander queryExpander = new QueryExpander(getIndexRunner(), getAnalyzer(), BROWSER_TEXT, getFullIndexPath());
           queryExpander.parsePrefixQuery(expandedQuery, luceneQuery);
 
           outerQuery.add(expandedQuery, BooleanClause.Occur.MUST);
