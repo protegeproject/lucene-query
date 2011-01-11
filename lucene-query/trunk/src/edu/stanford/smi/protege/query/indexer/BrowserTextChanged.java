@@ -21,8 +21,8 @@ public class BrowserTextChanged extends ProtegeJob {
     private Frame f;
 
     public static void browserTextChanged(Frame f) {
-        if (log.isLoggable(Level.FINER)) {
-            log.finer("Browser text changed (not yet in the index): " + f.getBrowserText() + " " + f.getName());
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Browser text changed (not yet in the index): " + f.getBrowserText() + " " + f.getName());
         }
         new BrowserTextChanged(f).execute();
     }
@@ -38,7 +38,7 @@ public class BrowserTextChanged extends ProtegeJob {
         if (qnfs != null) {
             for (Indexer indexer : qnfs.getIndexers()) {
                 if (indexer instanceof StdIndexer) {
-                    ((StdIndexer) indexer).browserTextChanged(f);
+                    ((StdIndexer) indexer).browserTextChanged(f, f.getBrowserText());
                 }
             }
         }
