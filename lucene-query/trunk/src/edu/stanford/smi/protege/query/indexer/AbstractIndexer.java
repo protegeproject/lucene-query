@@ -624,6 +624,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           this.frame = frame;
           this.slot = slot;
           this.values = values;
+          this.browserText = browserText;
       }
 
       public void run() {
