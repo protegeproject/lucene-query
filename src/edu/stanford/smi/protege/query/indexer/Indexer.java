@@ -28,7 +28,7 @@ public interface Indexer {
 
 
 
-    void addValues(final Frame frame, final Slot slot, final Collection values);
+    void addValues(final Frame frame, final Slot slot, final Collection values, final String browserText);
 
     void removeValue(final Frame frame, final Slot slot, final Object value);
 
