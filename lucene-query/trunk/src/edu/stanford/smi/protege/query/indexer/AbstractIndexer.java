@@ -176,7 +176,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       public void run() {
           boolean errorsFound = false;
           long start = System.currentTimeMillis();
-          Log.getLogger().info("Started indexing ontology with " + searchableSlots.size() + " searchable slots");
+          log.info("Started indexing ontology with " + searchableSlots.size() + " searchable slots");
           IndexWriter myWriter = null;
           try {
               myWriter = openWriter(true);
@@ -191,7 +191,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               }
               myWriter.optimize();
               status = Status.READY;
-              Log.getLogger().info("Finished indexing ontology ("
+              log.info("Finished indexing ontology ("
                                    + ((System.currentTimeMillis() - start)/1000) + " seconds)");
           } catch (IOException ioe) {
               died(ioe);
@@ -234,9 +234,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           writer.addDocument(doc);
       } catch (Exception e) {
-          Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
-          Log.getLogger().warning("continuing...");
+          log.log(Level.WARNING, "Exception caught indexing ontologies", e);
+          log.warning("continuing...");
           errorsFound = true;
+      }
+      if (log.isLoggable(Level.FINER)) {
+          log.finer("Adding frame browser text to index: " + frame.getBrowserText() + " " + frame.getName() + " " + errorsFound);
       }
       return errorsFound;
   }
@@ -266,8 +269,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                   addUpdate(writer, frame, slot, (String) value);
               }
           } catch (Exception e) {
-              Log.getLogger().log(Level.WARNING, "Exception caught indexing ontologies", e);
-              Log.getLogger().warning("continuing...");
+              log.log(Level.WARNING, "Exception caught indexing ontologies", e);
+              log.warning("continuing...");
               errorsFound = true;
           }
       }
@@ -289,8 +292,13 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     }
     doc.add(new Field(CONTENTS_FIELD, value, Field.Store.YES, Field.Index.TOKENIZED));
     doc.add(new Field(LITERAL_CONTENTS, value, Field.Store.YES, Field.Index.UN_TOKENIZED));
-    doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.TOKENIZED));
+    doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
     writer.addDocument(doc);
+
+    if (log.isLoggable(Level.FINER)) {
+        log.finer("Updating in the Lucene index the values for frame " + frame.getBrowserText() + " name: " + frame.getName() +
+                " slot: " + slot + " value: " + value);
+    }
   }
 
   public Collection<Frame> executeQuery(Collection<Slot> slots, String expr) throws IOException {
@@ -465,9 +473,9 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   protected void died(IOException ioe) {
-    Log.getLogger().warning("Search index update failed " + ioe);
-    Log.getLogger().warning("This exception will not interfere with normal (non-query) operations");
-    Log.getLogger().warning("suggest reindexing to get the lucene indicies back");
+    log.warning("Search index update failed " + ioe);
+    log.warning("This exception will not interfere with normal (non-query) operations");
+    log.warning("suggest reindexing to get the lucene indicies back");
     status = Status.DOWN;
   }
 
@@ -477,7 +485,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         searcher.close();
       }
     } catch (IOException ioe) {
-      Log.getLogger().log(Level.WARNING, "Exception caught closing files involved during search", ioe);
+      log.log(Level.WARNING, "Exception caught closing files involved during search", ioe);
     }
   }
 
@@ -487,7 +495,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               reader.close();
           }
       } catch (IOException ioe) {
-          Log.getLogger().log(Level.WARNING, "Exception caught reading/deleting documents from index", ioe);
+          log.log(Level.WARNING, "Exception caught reading/deleting documents from index", ioe);
       }
   }
 
@@ -497,7 +505,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
         writer.close();
       }
     } catch (IOException ioe) {
-      Log.getLogger().log(Level.WARNING, "Exception caught closing files involved in lucene indicies", ioe);
+      log.log(Level.WARNING, "Exception caught closing files involved in lucene indicies", ioe);
     }
   }
 
@@ -612,7 +620,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               return;
           }
           if (log.isLoggable(Level.FINER)) {
-              log.finer("Adding values for frame named " + frame.getName() + " and slot " + slot.getName());
+              log.finer("Adding values for frame named " + frame.getName() + " and slot " + slot.getName() + " values: " + values);
           }
           IndexWriter writer = null;
           try {
@@ -628,12 +636,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                   }
               }
               if (log.isLoggable(Level.FINE)) {
-                  log.fine("updated " + values.size() + " values in " + (System.currentTimeMillis() - start) + "ms");
+                  log.fine("Adding " + values.size() + " values in " + (System.currentTimeMillis() - start) + "ms");
               }
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
-              Log.getLogger().warning("Error during indexing" + t);
+              log.warning("Error during updating the Lucene index (add values)" + t);
           } finally {
               forceClose(writer);
           }
@@ -673,7 +681,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
-              Log.getLogger().warning("Exception caught during indexing" + t);
+              log.warning("Error during updating the Lucene index (remove value)" + t);
           }
       }
   }
@@ -715,7 +723,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
-              Log.getLogger().warning("Exception caught during indexing " + t);
+              log.warning("Error during updating Lucene index (removing all frame values)  " + t);
           }
       }
   }
@@ -747,7 +755,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
           } catch (IOException ioe) {
               died(ioe);
           } catch (Throwable t) {
-              Log.getLogger().warning("Exception caught during indexing " + t);
+              log.warning("Error at updating the Lucene index (remove all frame values)  " + t);
           }
       }
   }
