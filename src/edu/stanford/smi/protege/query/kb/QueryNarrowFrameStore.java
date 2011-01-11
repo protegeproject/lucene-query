@@ -299,7 +299,8 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		delegate.addValues(frame, slot, facet, isTemplate, values);
 		if (facet == null && !isTemplate) {
 		    for (Indexer indexer : indexers) {
-		        indexer.addValues(frame, slot, values);
+		        //not nice, but there is no choice: we make a top level call...
+		        indexer.addValues(frame, slot, values, frame.getBrowserText());
 		    }
 		}
 	}
@@ -334,7 +335,8 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 		if (facet == null && !isTemplate) {
 	          for (Indexer indexer : indexers) {
 	              indexer.removeValues(frame, slot);
-	              indexer.addValues(frame, slot, values);
+	              //not nice, but there is no choice: we make a top level call...
+	              indexer.addValues(frame, slot, values, frame.getBrowserText());
 	          }
 		}
 	}
@@ -430,7 +432,8 @@ public class QueryNarrowFrameStore implements NarrowFrameStore {
 
 		  for (Indexer indexer : indexers) {
 		      //TODO: not the ideal method. We need to index also the slots. Should call the indexer.addFrame
-              indexer.addValues(replacement, slot, CollectionUtilities.createCollection(replacement.getName()));
+		      //not nice, but there is no choice: we make a top level call...
+              indexer.addValues(replacement, slot, CollectionUtilities.createCollection(replacement.getName()), replacement.getBrowserText());
           }
 	}
 
