@@ -186,7 +186,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               }
               for (Frame frame : frames) {
                   if (indexable(frame)) {
-                      errorsFound = errorsFound || !addFrame(myWriter, frame);
+                      //TODO: not ideal. We make a kb call in another thread, but it may be OK for the indexing
+                      errorsFound = errorsFound || !addFrame(myWriter, frame, frame.getBrowserText());
                   }
               }
               myWriter.optimize();
@@ -220,7 +221,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       return indexableFrameTypes.contains(AbstractIndexer.FRAME_TYPE_INSTANCE);
   }
 
-  protected boolean addFrameBrowserText(IndexWriter writer, Frame frame) {
+  protected boolean addFrameBrowserText(IndexWriter writer, Frame frame, String newBrowserText) {
       if (status == Status.DOWN  || !isIndexableFrameType(frame)) {
           return false;
         }
@@ -229,7 +230,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       try {
           Document doc = new Document();
           doc.add(new Field(FRAME_NAME, getFrameName(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
-          doc.add(new Field(BROWSER_TEXT, frame.getBrowserText(), Field.Store.YES, Field.Index.TOKENIZED));
+          doc.add(new Field(BROWSER_TEXT, newBrowserText, Field.Store.YES, Field.Index.TOKENIZED));
           doc.add(new Field(BROWSER_TEXT_PRESENT, Boolean.TRUE.toString(), Field.Store.YES, Field.Index.TOKENIZED));
           doc.add(new Field(FRAME_TYPE, getFrameType(frame), Field.Store.YES, Field.Index.UN_TOKENIZED));
           writer.addDocument(doc);
@@ -245,8 +246,16 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
   }
 
   @SuppressWarnings("unchecked")
-  private boolean addFrame(IndexWriter writer, Frame frame) {
-      boolean errorsFound = addFrameBrowserText(writer, frame);
+  private boolean addFrame(IndexWriter writer, Frame frame, String browserText) {
+      if (status == Status.DOWN  || !isIndexableFrameType(frame)) {
+          return false;
+        }
+
+      if (log.isLoggable(Level.FINE)) {
+          log.fine("Adding to lucene index frame: " + frame.getBrowserText() + " " + frame);
+      }
+
+      boolean errorsFound = addFrameBrowserText(writer, frame, browserText);
       for (Slot slot : searchableSlots) {
           try {
               List values;
@@ -594,11 +603,11 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
    * Update Utilities for the Narrow Frame Store
    */
 
-  public void addValues(final Frame frame, final Slot slot, final Collection values) {
+  public void addValues(final Frame frame, final Slot slot, final Collection values, final String browserText) {
       if (status == Status.DOWN || !searchableSlots.contains(slot) || isAnonymous(frame)) {
           return;
       }
-      indexRunner.submit(new AddValuesRunnable(frame, slot, values), true);
+      indexRunner.submit(new AddValuesRunnable(frame, slot, values, browserText), true);
       installOptimizeTask();
   }
 
@@ -606,10 +615,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
       private Frame frame;
       private Slot slot;
       private Collection values;
+      private String browserText;
 
       public AddValuesRunnable(final Frame frame,
                                final Slot slot,
-                               final Collection values) {
+                               final Collection values,
+                               final String browserText) {
           this.frame = frame;
           this.slot = slot;
           this.values = values;
@@ -627,7 +638,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               long start = System.currentTimeMillis();
               writer = openWriter(false);
               if (slot.equals(nameSlot)) {
-                  addFrame(writer, frame);
+                  addFrame(writer, frame, browserText);
                   return;
               }
               for (Object value : values) {
