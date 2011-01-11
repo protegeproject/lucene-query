@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -25,21 +29,17 @@ public class QueryExpander {
     private static final String WILDCARD_LEADING_TRAILING_PATTERN = "^\\" + WILDCARD_CHAR + "|\\" + WILDCARD_CHAR + "$";
     private static final int EXACT_MATCH_BOOST = 10;
 
+    private final ExecutorService indexRunner;
     private final Analyzer analyzer;
     private final String field;
     private final String fullIndexPath;
-    private final Set<String> frameTypes;
 
-    public QueryExpander(Analyzer analyzer, String field, String fullIndexPath) {
-        this(analyzer, field, fullIndexPath, null);
-    }
 
-    public QueryExpander(Analyzer analyzer, String field, String fullIndexPath, Set<String> frameTypes) {
-        super();
+    public QueryExpander(ExecutorService indexRunner, Analyzer analyzer, String field, String fullIndexPath) {
+        this.indexRunner = indexRunner;
         this.analyzer = analyzer;
         this.field = field;
         this.fullIndexPath = fullIndexPath;
-        this.frameTypes = frameTypes;
     }
 
     /**
@@ -86,24 +86,38 @@ public class QueryExpander {
         return expr;
     }
 
-    private Term[] expand(String prefix) throws Exception {
-        QueryParser parser = new QueryParser(field, analyzer);
-        Query queryExact = parser.parse(prefix + WILDCARD_CHAR);
-        IndexReader reader = null;
-        Query queryRewritten = null;
-        try {
-            reader = IndexReader.open(fullIndexPath);
-            queryRewritten = queryExact.rewrite(reader);
-        } finally {
-            forceClose(reader);
+    private Term[] expand(String prefix) throws ExecutionException, InterruptedException {
+        QueryExpanderRunner expander = new QueryExpanderRunner(prefix);
+        Future<Term[]> future = indexRunner.submit(expander);
+        return future.get();
+    }
+
+    private class QueryExpanderRunner implements Callable<Term[]> {
+        private String prefix;
+
+        public QueryExpanderRunner(String prefix) {
+            this.prefix = prefix;
         }
 
-        Set<Term> terms = new TreeSet<Term>();
-        terms.add(new Term(field, prefix));
+        public Term[] call() throws Exception {
+            QueryParser parser = new QueryParser(field, analyzer);
+            Query queryExact = parser.parse(prefix + WILDCARD_CHAR);
+            IndexReader reader = null;
+            Query queryRewritten = null;
+            try {
+                reader = IndexReader.open(fullIndexPath);
+                queryRewritten = queryExact.rewrite(reader);
+            } finally {
+                forceClose(reader);
+            }
 
-        queryRewritten.extractTerms(terms);
+            Set<Term> terms = new TreeSet<Term>();
+            terms.add(new Term(field, prefix));
 
-        return terms.toArray(new Term[terms.size()]);
+            queryRewritten.extractTerms(terms);
+
+            return terms.toArray(new Term[terms.size()]);
+        }
     }
 
     private void forceClose(IndexReader reader) {
