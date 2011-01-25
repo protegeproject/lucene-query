@@ -3,8 +3,8 @@ package edu.stanford.smi.protege.query.indexer;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -159,7 +159,7 @@ public class StdIndexer extends AbstractIndexer {
               return new HashMap<String, String>();
           }
           Searcher searcher = null;
-          Map<String, String> results = new TreeMap<String, String>();
+          Map<String, String> results = new LinkedHashMap<String, String>();
           try {
               searcher = new IndexSearcher(getFullIndexPath());
               Hits hits = searcher.search(query);
