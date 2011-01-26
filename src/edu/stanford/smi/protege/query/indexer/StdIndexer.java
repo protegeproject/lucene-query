@@ -162,7 +162,7 @@ public class StdIndexer extends AbstractIndexer {
           Map<String, String> results = new LinkedHashMap<String, String>();
           try {
               searcher = new IndexSearcher(getFullIndexPath());
-              Hits hits = searcher.search(query);
+              Hits hits = searcher.search(query); //these seemed to be ranked in the deprecated version
               for (int i = 0; i < hits.length(); i++) {
                   Document doc = hits.doc(i);
                   String frameName = doc.get(FRAME_NAME);
