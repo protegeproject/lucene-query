@@ -409,6 +409,9 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             @Override
             protected Collection getClsesToExport() {
                 Collection<FrameWithBrowserText> listToExport = resultsComponent.getAllFrames();
+                if (listToExport == null) {
+                    listToExport = new ArrayList<FrameWithBrowserText>();
+                }
                 if (listToExport.size() == 0
                         || (listToExport.size() == 1 &&
                             CollectionUtilities.getSoleItem(listToExport).equals(SEARCH_NO_RESULTS_FOUND))) {
