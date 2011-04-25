@@ -1,0 +1,89 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<project name = "lucene-query" default = "init" basedir = ".">
+
+	<property name = "project.name" value = "lucene-query"/>
+	<property name = "plugin.name" value = "luceneQueryPlugin"/>
+	<property name = "build.dir" value = "./build"/>
+	<property name = "build.src" value = "${build.dir}/src"/>
+	<property name = "build.dest" value = "${build.dir}/classes"/>
+	<property name = "packages" value = "edu.*"/>
+	<property name = "dist.dir" value = "./dist"/>
+	<property name = "lib.dir" value = "./lib"/>
+	<property file = "../global.properties"/>
+
+	<target name = "init">
+		<tstamp/>
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- PREPARE-SRC -->
+	<!-- =================================================================== -->
+	<target name = "prepare-src" depends = "init">
+
+		<mkdir dir = "${build.src}"/>
+		<mkdir dir = "${build.dest}"/>
+		<mkdir dir = "${dist.dir}"/>
+
+		<!-- get source code from subversion repository -->
+		<exec executable = "cmd.exe" dir = "${batch.files}" os = "${os}">
+			<arg line = "/c checkout ${svn.core.url}/${project.name}/trunk ../${project.name} --non-recursive"/>
+		</exec>
+		<exec executable = "cmd.exe" dir = "${batch.files}" os = "${os}">
+			<arg line = "/c checkout ${svn.core.url}/${project.name}/trunk/src ../${project.name}/build/src"/>
+		</exec>
+		<exec executable = "cmd.exe" dir = "${batch.files}" os = "${os}">
+			<arg line = "/c checkout ${svn.core.url}/${project.name}/trunk/lib ../${project.name}/lib"/>
+		</exec>
+
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- COMPILE -->
+	<!-- Compile the source directory. -->
+	<!-- =================================================================== -->
+	<target name = "compile" depends = "prepare-src">
+
+		<!-- compile source code -->
+		<javac srcdir = "${build.src}" destdir = "${build.dest}" deprecation = "on" includeAntRuntime = "no">
+			<classpath>
+				<pathelement path = "${protege.jar}"/>
+				<pathelement path = "${protege-owl.jar}"/>
+				<pathelement path = "${standard-extensions.jar}"/>
+				<fileset dir = "${lib.dir}">
+					<include name = "**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
+		<!-- copy resources to output directory -->
+		<copy todir = "${build.dest}">
+			<fileset dir = "${build.src}" includes = "**/*.gif"/>
+		</copy>
+
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- JAR -->
+	<!-- Create the class package. -->
+	<!-- =================================================================== -->
+	<target name = "jar" depends = "compile">
+		<jar jarfile = "${dist.dir}/${plugin.name}.jar" basedir = "${build.dest}" manifest = "${build.src}/META-INF/MANIFEST.MF"/>
+	</target>
+	
+	<!-- =================================================================== -->
+	<!-- CLEAN -->
+	<!-- Cleans all generated files and directories. -->
+	<!-- =================================================================== -->
+	<target name = "clean" depends = "init">
+		<delete dir = "${build.dir}"/>
+		<delete dir = "${dist.dir}"/>
+		<delete dir = "${lib.dir}"/>
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- ALL -->
+	<!-- Create the jar - any future tasks could be added here. -->
+	<!-- =================================================================== -->
+	<target name = "all" depends = "jar"/>
+
+</project>
