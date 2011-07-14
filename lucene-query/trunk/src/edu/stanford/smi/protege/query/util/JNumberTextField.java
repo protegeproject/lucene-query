@@ -19,7 +19,8 @@ import javax.swing.text.PlainDocument;
  */
 public class JNumberTextField extends JTextField implements FocusListener {
 
-	private final double defaultValue;
+	private static final long serialVersionUID = 8108716227600886496L;
+    private final double defaultValue;
 	private final boolean allowOnlyIntegers;
 	
 	/**
@@ -112,7 +113,9 @@ public class JNumberTextField extends JTextField implements FocusListener {
 	
 	class NumberDocument extends PlainDocument {
 		
-		public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+		private static final long serialVersionUID = 5464419999283375205L;
+
+        public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
 			str = str.trim();
 			if (testInsert(offs, str)) {
 				super.insertString(offs, str, a);

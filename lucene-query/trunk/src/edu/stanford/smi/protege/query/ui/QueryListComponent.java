@@ -23,7 +23,8 @@ import edu.stanford.smi.protege.util.LabeledComponent;
  */
 public class QueryListComponent extends QueryLabeledComponent {
 
-	protected KnowledgeBase kb;
+	private static final long serialVersionUID = -2813733860049512399L;
+    protected KnowledgeBase kb;
 	private JList lst;
 	private ArrayList<QueryListComponentListener> listeners;
 	

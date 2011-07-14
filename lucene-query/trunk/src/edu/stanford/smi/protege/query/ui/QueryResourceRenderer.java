@@ -41,7 +41,9 @@ import edu.stanford.smi.protegex.owl.ui.icons.OWLIcons;
  */
 public class QueryResourceRenderer extends ResourceRenderer implements QueryRenderer {
 
-	private String queryString;
+	private static final long serialVersionUID = 3351686172646983366L;
+
+    private String queryString;
 
 	private Pattern pattern;
 

@@ -69,7 +69,9 @@ public class NegatedQueryComponent extends QueryBuildingJPanel {
 					BorderFactory.createLoweredBevelBorder()));
 			
 			JButton btn = groupLabeledComponent.addHeaderButton(new AbstractAction("Add another query", Icons.getAddQueryLibraryIcon()) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = 6865989014211800811L;
+
+                public void actionPerformed(ActionEvent e) {
 					addQueryComponent();
 				}
 			});

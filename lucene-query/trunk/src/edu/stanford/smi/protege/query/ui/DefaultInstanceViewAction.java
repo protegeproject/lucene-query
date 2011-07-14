@@ -15,7 +15,8 @@ import edu.stanford.smi.protege.util.ViewAction;
  */
 public class DefaultInstanceViewAction extends ViewAction {
 
-	private KnowledgeBase kb;
+	private static final long serialVersionUID = -8276167370050884511L;
+    private KnowledgeBase kb;
 	
 	public DefaultInstanceViewAction(String text, Selectable selectable, Icon icon, KnowledgeBase kb) {
 		super(text, selectable, icon);

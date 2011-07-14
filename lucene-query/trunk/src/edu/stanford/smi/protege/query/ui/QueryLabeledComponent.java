@@ -12,7 +12,9 @@ import edu.stanford.smi.protege.util.LabeledComponent;
 
 public class QueryLabeledComponent extends LabeledComponent {
 
-	public QueryLabeledComponent(String label, Component c) {
+	private static final long serialVersionUID = -1105229187022328458L;
+
+    public QueryLabeledComponent(String label, Component c) {
 		super(label, c);
 	}
 

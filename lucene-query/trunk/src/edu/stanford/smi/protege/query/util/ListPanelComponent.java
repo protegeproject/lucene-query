@@ -27,7 +27,8 @@ import javax.swing.JToolBar;
  */
 public class ListPanelComponent extends JPanel {
 
-	private ListPanel listPanel;
+	private static final long serialVersionUID = -6504592276642699797L;
+    private ListPanel listPanel;
 	private JComponent pnlMain;
 	private JToolBar rightToolbar;
 	private boolean showArrowButtons;
@@ -110,7 +111,9 @@ public class ListPanelComponent extends JPanel {
 			rightToolbar.setMaximumSize(new Dimension(19, 5000));
 			
 			upAction = new AbstractAction(null, getIcon("up.gif")) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = 1846702160316129235L;
+
+                public void actionPerformed(ActionEvent e) {
 					if (listPanel != null) {
 						listPanel.moveUp(ListPanelComponent.this);
 					}
@@ -119,7 +122,9 @@ public class ListPanelComponent extends JPanel {
 			rightToolbar.add(addButton(upAction, "Move up", showArrowButtons, showArrowButtons));
 
 			removeAction = new AbstractAction(null, getIcon("remove.gif")) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = -3767809932556896397L;
+
+                public void actionPerformed(ActionEvent e) {
 					if (listPanel != null) {
 						listPanel.removePanel(ListPanelComponent.this);
 					}
@@ -128,7 +133,9 @@ public class ListPanelComponent extends JPanel {
 			rightToolbar.add(addButton(removeAction, "Remove", showCloseButton, showCloseButton));
 			
 			downAction = new AbstractAction(null, getIcon("down.gif")) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = 8286928160744413939L;
+
+                public void actionPerformed(ActionEvent e) {
 					if (listPanel != null) {
 						listPanel.moveDown(ListPanelComponent.this);
 					}
@@ -180,7 +187,9 @@ public class ListPanelComponent extends JPanel {
 		dlg.getContentPane().add(new JScrollPane(listPanel), BorderLayout.CENTER);
 		
 		Action action = new AbstractAction("Add") {
-			public void actionPerformed(ActionEvent e) {
+			private static final long serialVersionUID = 2627844945552951290L;
+
+            public void actionPerformed(ActionEvent e) {
 				JPanel pnl = new JPanel();
 				pnl.add(new JLabel("Label #" + (listPanel.getPanelCount()+1)));
 				ListPanelComponent comp = new ListPanelComponent(listPanel, pnl, true, true);

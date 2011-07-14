@@ -11,7 +11,9 @@ import edu.stanford.smi.protege.model.query.Query;
  */
 public class InvalidQueryException extends Exception {
 
-	public InvalidQueryException(Query query) {
+	private static final long serialVersionUID = 8679755317632959921L;
+
+    public InvalidQueryException(Query query) {
 		super("Invalid query: " + (query == null ? "null" : query.toString()));
 	}
 

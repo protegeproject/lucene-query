@@ -10,7 +10,8 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 
 public class OwnSlotValueQuery implements VisitableQuery, BoundableQuery {
-	private Slot slot;
+	private static final long serialVersionUID = -4372293116074722675L;
+    private Slot slot;
 	private String expr;
 	private int maxMatches = KnowledgeBase.UNLIMITED_MATCHES;
 

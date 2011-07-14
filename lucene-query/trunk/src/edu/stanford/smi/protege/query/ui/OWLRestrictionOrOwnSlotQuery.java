@@ -43,7 +43,8 @@ import edu.stanford.smi.protegex.owl.model.RDFProperty;
  */
 public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 
-	private LabeledComponent groupLabeledComponent;
+	private static final long serialVersionUID = -6051473903052770314L;
+    private LabeledComponent groupLabeledComponent;
 	private ListPanel groupListPanel;
 	private JLabel queryTypeLabel;
 	
@@ -145,7 +146,9 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 					BorderFactory.createLoweredBevelBorder()));
 			
 			JButton btn2 = groupLabeledComponent.addHeaderButton(new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = 3163783948665245445L;
+
+                public void actionPerformed(ActionEvent e) {
 					addNegatedQueryComponent();
 				}
 			});
@@ -157,7 +160,9 @@ public class OWLRestrictionOrOwnSlotQuery extends QueryComponent {
 			btn2.setMaximumSize(dim2);
 			
 			JButton btn = groupLabeledComponent.addHeaderButton(new AbstractAction("Add another query", Icons.getAddQueryLibraryIcon()) {
-				public void actionPerformed(ActionEvent e) {
+				private static final long serialVersionUID = -4129462896790443850L;
+
+                public void actionPerformed(ActionEvent e) {
 					addQueryComponent();
 				}
 			});

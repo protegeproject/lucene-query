@@ -352,6 +352,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
                 // add the default view instance action
                 viewAction = new ViewAction("View Instance", searchResultsList, Icons.getViewClsIcon()) {
 
+                    private static final long serialVersionUID = -1260348544639665712L;
+
                     @Override
                     public void onView(Object o) {
                         if (o instanceof FrameWithBrowserText) {
@@ -399,6 +401,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         ExportToCsvUtil.setExportSuperclass(true);
 
         return new NCIExportToCsvAction(getKnowledgeBase(), LuceneQueryPlugin.this, false) {
+            private static final long serialVersionUID = -5187825490101053656L;
+
             @Override
             protected String getStringToExport() {
                 VisitableQuery query = getQuery();
@@ -455,6 +459,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             pnlQueryBottom.setPreferredSize(new Dimension(500, 28));
 
             JButton btn = new JButton(new AbstractAction("Clear", Icons.getClearIcon(false, false)) {
+                private static final long serialVersionUID = 6558035751460474426L;
+
                 public void actionPerformed(ActionEvent e) {
                     clearComponents();
                 }
@@ -474,6 +480,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
             pnlQueryBottom.add(Box.createHorizontalGlue());
 
             btnSearch = new JButton(new AbstractAction("Search", Icons.getFindIcon()) {
+                private static final long serialVersionUID = 6798398591348759724L;
+
                 public void actionPerformed(ActionEvent e) {
                     // TODO:
                     // This is a terrible fix for setting the default button.
@@ -516,6 +524,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private Action getAddQueryAction() {
         return new AbstractAction("Add Query", Icons.getAddQueryLibraryIcon()) {
+            private static final long serialVersionUID = 5104327174824528793L;
+
             public void actionPerformed(ActionEvent e) {
                 addQueryComponent();
             }
@@ -524,6 +534,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
 
     private Action getAddNegatedNestedQueryAction() {
         return new AbstractAction("Add Negated Query", Icons.getAddQueryLibraryIcon()) {
+            private static final long serialVersionUID = 561405102670886057L;
+
             public void actionPerformed(ActionEvent e) {
                 QueryUtil.addNegatedNestedQuery(kb, LuceneQueryPlugin.this, queriesListPanel, SlotFilterType.DIRECT_OWN_VALUE_PROPERTIES);
             }
@@ -534,6 +546,8 @@ public class LuceneQueryPlugin extends AbstractTabWidget {
         Icon icon = new OverlayIcon(OWLIcons.getImageIcon(OWLIcons.PRIMITIVE_OWL_CLASS).getImage(), 5, 5, OWLIcons
                 .getImageIcon(OWLIcons.ADD_OVERLAY).getImage(), 15, 13, 15, 16);
         return new AbstractAction("Add a nested query", icon) {
+            private static final long serialVersionUID = 2322661975476159954L;
+
             public void actionPerformed(ActionEvent e) {
                 QueryUtil.addRestrictionQueryComponent((OWLModel) kb, LuceneQueryPlugin.this, queriesListPanel);
             }

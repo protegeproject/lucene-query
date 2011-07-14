@@ -494,7 +494,9 @@ public class QueryComponent extends QueryBuildingJPanel {
         Action action = null;
         if (allowViewActions) {
 	        action = new AbstractAction(name, icon) {
-	            public void actionPerformed(ActionEvent event) {
+	            private static final long serialVersionUID = -3444382275717921145L;
+
+                public void actionPerformed(ActionEvent event) {
 	            	comp.viewObject();
 	            }
 	        };
@@ -508,7 +510,9 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 */
 	protected Action createSelectClsAction(final QueryListComponent comp, final String name, Icon icon) {
 		return new AbstractAction(name, icon) {
-			public void actionPerformed(ActionEvent e) {
+			private static final long serialVersionUID = -3109079411948083934L;
+
+            public void actionPerformed(ActionEvent e) {
 				Cls cls = DisplayUtilities.pickCls(comp, kb, kb.getRootClses(), name);
 				// if the user pressed cancel then cls will be null
 				if (cls != null) {
@@ -524,7 +528,9 @@ public class QueryComponent extends QueryBuildingJPanel {
 	 */
 	protected Action createSelectInstanceAction(final QueryListComponent comp, final String name, Icon icon) {
 		return new AbstractAction(name, icon) {
-			@SuppressWarnings("unchecked")
+			private static final long serialVersionUID = 176312691614995440L;
+
+            @SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent e) {
 				Slot slot = (Slot) selectSlot.getObject();
 				Collection clses = (slot == null ? kb.getRootClses() : slot.getAllowedClses());
@@ -552,7 +558,9 @@ public class QueryComponent extends QueryBuildingJPanel {
 	/** Creates an action used to select a value for the QueryListComponent.  Initially enabled. */
 	protected Action createSelectSlotAction(final QueryListComponent comp, final String name, Icon icon) {
 		return new AbstractAction(name, icon) {
-			public void actionPerformed(ActionEvent e) {
+			private static final long serialVersionUID = 8933706286145128798L;
+
+            public void actionPerformed(ActionEvent e) {
 				Slot slot = DisplayUtilities.pickSlot(comp, getUIConfiguration().getAllSlots(slotFilterType), name);
 				// if the user pressed cancel then slot will be null
 				if (slot != null) {
@@ -565,6 +573,8 @@ public class QueryComponent extends QueryBuildingJPanel {
 	/** Creates an action used to remove a value from the QueryListComponent.  Initially disabled. */
 	protected Action createRemoveAction(final QueryListComponent comp, String name, Icon icon) {
         Action action = new AbstractAction(name, icon) {
+            private static final long serialVersionUID = -2826861702540287796L;
+
             public void actionPerformed(ActionEvent event) {
                 comp.clearObject();
             }

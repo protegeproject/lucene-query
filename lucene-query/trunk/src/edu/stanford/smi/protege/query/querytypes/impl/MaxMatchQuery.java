@@ -6,7 +6,8 @@ import edu.stanford.smi.protege.query.querytypes.QueryVisitor;
 import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 
 public class MaxMatchQuery implements VisitableQuery {
-	private int maxMatches;
+	private static final long serialVersionUID = -3713867529630074154L;
+    private int maxMatches;
 	private VisitableQuery innerQuery;
 
 	public MaxMatchQuery(VisitableQuery innerQuery, int maxMatches) {

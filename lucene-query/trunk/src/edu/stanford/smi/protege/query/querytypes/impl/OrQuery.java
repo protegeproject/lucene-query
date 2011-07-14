@@ -12,7 +12,8 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 
 public class OrQuery implements VisitableQuery, BoundableQuery {
 
-  Collection<VisitableQuery> disjuncts;
+  private static final long serialVersionUID = -8583729128535587681L;
+Collection<VisitableQuery> disjuncts;
   int maxMatches = KnowledgeBase.UNLIMITED_MATCHES;
 
   public OrQuery(Collection<VisitableQuery> disjuncts) {

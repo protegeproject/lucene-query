@@ -25,6 +25,8 @@ import edu.stanford.smi.protege.widget.TabWidget;
  * @date 25-Sep-06
  */
 public class NCIEditAction extends ViewAction {
+    private static final long serialVersionUID = 4255345393962921001L;
+
     private static transient Logger log = Log.getLogger(NCIEditAction.class);
 
 	protected static final String NCITAB = "gov.nih.nci.protegex.edit.NCIEditTab";
