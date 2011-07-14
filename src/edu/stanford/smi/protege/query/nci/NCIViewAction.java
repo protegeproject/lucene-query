@@ -20,7 +20,8 @@ import edu.stanford.smi.protege.widget.TabWidget;
  */
 public class NCIViewAction extends NCIEditAction {
 
-	private static final String EDITDIALOG = "gov.nih.nci.protegex.dialog.EditDialog";
+	private static final long serialVersionUID = 5528631919204236041L;
+    private static final String EDITDIALOG = "gov.nih.nci.protegex.dialog.EditDialog";
 
 	public NCIViewAction(String text, Selectable selectable, Icon icon) {
 		super(text, selectable, icon);

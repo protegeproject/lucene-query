@@ -9,7 +9,8 @@ import edu.stanford.smi.protege.util.LocalizeUtils;
 
 public class PhoneticQuery implements VisitableQuery {
 
-	private Slot slot;
+	private static final long serialVersionUID = 5408195114388781036L;
+    private Slot slot;
 	private String expr;
 
 	public PhoneticQuery(Slot slot, String expr) {

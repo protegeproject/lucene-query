@@ -94,6 +94,8 @@ public class IndexConfigurer extends JPanel {
 
         labeledComp.addHeaderButton(new AllowableAction("Add slots", Icons.getAddSlotIcon(), null) {
 
+            private static final long serialVersionUID = 4531211547590229617L;
+
             public void actionPerformed(ActionEvent e) {
                 List<Slot> removeableSlots = new ArrayList<Slot>(allSlots);
                 removeableSlots.removeAll(configuration.getSearchableSlots());
@@ -116,6 +118,8 @@ public class IndexConfigurer extends JPanel {
         });
 
         labeledComp.addHeaderButton(new AllowableAction("Remove slot", Icons.getRemoveSlotIcon(), null) {
+
+            private static final long serialVersionUID = 2038026506019233463L;
 
             public void actionPerformed(ActionEvent arg0) {
                 Collection selection = slotsList.getSelection();

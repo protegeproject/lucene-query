@@ -33,7 +33,8 @@ import javax.swing.text.JTextComponent;
  */
 public class ListPanel extends JPanel {
 
-	public static final Color DEFAULT_COLOR_SELECTED = new Color(240, 230, 202);
+	private static final long serialVersionUID = 2848218576232581903L;
+    public static final Color DEFAULT_COLOR_SELECTED = new Color(240, 230, 202);
 	public static final Color DEFAULT_COLOR = new Color(236, 233, 216);
 	public static final Color DEFAULT_BORDER_COLOR = new Color(245, 165, 16);
 	private static final Border BORDER_NOFOCUS = new CustomLineBorder(Color.lightGray, null, Color.lightGray, null, 1);

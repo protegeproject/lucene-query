@@ -16,6 +16,7 @@ import edu.stanford.smi.protegex.owl.model.OWLProperty;
 import edu.stanford.smi.protegex.owl.model.impl.OWLSystemFrames;
 
 public class OWLRestrictionQuery implements VisitableQuery {
+    private static final long serialVersionUID = -1536384812188517165L;
     private OWLProperty property;
     private VisitableQuery query;
         

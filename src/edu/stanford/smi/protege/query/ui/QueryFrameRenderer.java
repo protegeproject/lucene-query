@@ -36,7 +36,8 @@ import edu.stanford.smi.protege.util.ModalDialog;
  */
 public class QueryFrameRenderer extends FrameWithBrowserTextRenderer implements QueryRenderer {
 
-	private String queryString;	
+	private static final long serialVersionUID = -6521907639311365845L;
+    private String queryString;	
 	private Pattern pattern;
 	private boolean appendQuery;
 	private boolean bold;

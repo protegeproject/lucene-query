@@ -7,6 +7,7 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
 
 public class OWLNamedClassesQuery implements VisitableQuery {
+    private static final long serialVersionUID = -5865840512438837083L;
     private transient OWLModel owlModel;
 
     public OWLNamedClassesQuery(OWLModel owlModel) {

@@ -23,7 +23,8 @@ import javax.swing.border.LineBorder;
  */
 public class CustomLineBorder extends EmptyBorder {
 
-	private final int TOP = 0, LEFT = 1, BOTTOM = 2, RIGHT = 3;
+	private static final long serialVersionUID = -4398893414804257924L;
+    private final int TOP = 0, LEFT = 1, BOTTOM = 2, RIGHT = 3;
 	protected final Color[] colors = new Color[4]; 
 	
 	public CustomLineBorder(Color color, int top, int left, int bottom, int right) {

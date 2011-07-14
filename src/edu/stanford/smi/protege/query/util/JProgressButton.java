@@ -22,7 +22,8 @@ import javax.swing.JProgressBar;
  */
 public class JProgressButton extends JButton {
 
-	protected final int MIN = 0;
+	private static final long serialVersionUID = 8713372404704291597L;
+    protected final int MIN = 0;
 	protected final int MAX = 20;
 	private long sleep = 50;
 	private ProgressRunnable runnable = null;
@@ -152,7 +153,9 @@ public class JProgressButton extends JButton {
 
 		final JProgressButton btn = new JProgressButton();
 		Action action = new AbstractAction("Start") {
-			public void actionPerformed(ActionEvent e) {
+			private static final long serialVersionUID = -4390570145698511645L;
+
+            public void actionPerformed(ActionEvent e) {
 				btn.showProgressBar();
 				new Thread(new Runnable() {
 					public void run() {

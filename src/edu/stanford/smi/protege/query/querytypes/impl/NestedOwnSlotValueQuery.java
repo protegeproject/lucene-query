@@ -8,7 +8,8 @@ import edu.stanford.smi.protege.query.ui.QueryUtil;
 import edu.stanford.smi.protege.util.LocalizeUtils;
 
 public class NestedOwnSlotValueQuery implements VisitableQuery {
-	Slot slot;
+	private static final long serialVersionUID = 6073909569759256712L;
+    Slot slot;
 	VisitableQuery innerQuery;
 
 	public NestedOwnSlotValueQuery(Slot slot, VisitableQuery innerQuery) {

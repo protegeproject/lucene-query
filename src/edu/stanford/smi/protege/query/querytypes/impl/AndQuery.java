@@ -10,7 +10,8 @@ import edu.stanford.smi.protege.query.querytypes.VisitableQuery;
 import edu.stanford.smi.protege.query.ui.QueryUtil;
 
 public class AndQuery implements VisitableQuery {
-	public Collection<VisitableQuery> conjuncts;
+	private static final long serialVersionUID = 6026905851658299567L;
+    public Collection<VisitableQuery> conjuncts;
 
 	public AndQuery(Collection<VisitableQuery> conjuncts) {
 		this.conjuncts = conjuncts;
