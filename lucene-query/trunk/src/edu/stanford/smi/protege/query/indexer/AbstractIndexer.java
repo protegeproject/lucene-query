@@ -184,10 +184,17 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
               synchronized (kbLock) {
                   frames = delegate.getFrames();
               }
+              
+              int count = 0;
               for (Frame frame : frames) {
                   if (indexable(frame)) {
                       //TODO: not ideal. We make a kb call in another thread, but it may be OK for the indexing
                       errorsFound = errorsFound || !addFrame(myWriter, frame, frame.getBrowserText());
+                  }
+                  count ++;
+                  
+                  if (count % 1000 == 0) {
+                	  Log.getLogger().info("Indexed " + count + " frames");
                   }
               }
               myWriter.optimize();
