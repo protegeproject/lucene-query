@@ -1,5 +1,6 @@
 package edu.stanford.smi.protege.query.script;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -9,7 +10,6 @@ import edu.stanford.smi.protege.model.KnowledgeBase;
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protege.query.api.QueryApi;
 import edu.stanford.smi.protege.query.api.QueryConfiguration;
-import edu.stanford.smi.protege.query.menu.IndexConfigurer;
 import edu.stanford.smi.protege.server.RemoteProjectManager;
 import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.util.Log;
@@ -44,24 +44,28 @@ public class IndexOntology {
 			System.exit(1);
 		}
 
-		log.info("Start indexing .. ");
-
 		index(prj);
-
-		log.info("Ended indexing.");
 	}
 
 	private static void index(Project prj) {
 		KnowledgeBase kb = prj.getKnowledgeBase();
-
-		final IndexConfigurer configurer = new IndexConfigurer(kb);
-
+	
 		QueryApi api = new QueryApi(kb);
-		QueryConfiguration qc = configurer.getConfiguration();
 		
-		log.info("Indexing slots: " + qc.getSearchableSlots());
-
-		api.index(qc);
+		String indexPath = prj.getProjectDirectoryURI().getPath() + File.separator + "lucene" +
+				File.separator + prj.getProjectName();
+		File indexFile = new File(indexPath);
+		
+		Log.getLogger().info("Using index configuration from directory: " + indexFile.getAbsolutePath());
+		
+		QueryConfiguration conf = api.install(indexFile);
+		
+		log.info("Indexing slots: " + conf.getSearchableSlots());
+		log.info("Start indexing .. ");
+		
+		api.index(conf);
+		
+		log.info("Ended indexing.");
 	}
 
 	private static Project getLocalProject(String path) {
