@@ -195,7 +195,7 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                       count ++;
                   }
                   
-                  if (count % 1000 == 0) {
+                  if (count % 10000 == 0) {
                 	  Log.getLogger().info("Indexed " + count + " frames");
                   }
               }
