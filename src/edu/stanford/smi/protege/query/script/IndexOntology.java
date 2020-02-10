@@ -15,22 +15,21 @@ import edu.stanford.smi.protege.ui.ProjectManager;
 import edu.stanford.smi.protege.util.Log;
 
 public class IndexOntology {
-	
+
 	private static Logger log = Log.getLogger(IndexOntology.class);
-	
+
 	private static boolean runRemotely = false;
 
 	public static void main(String[] args) {
 		if (args.length < 1) {
-			log.severe("Missing arg(s). Expected: "
-					+ " For local project: (1) ICD pprj file; rest of args ignored "
+			log.severe("Missing arg(s). Expected: " + " For local project: (1) ICD pprj file; rest of args ignored "
 					+ " For remote project (1) First arg ignored ; (2) Protege Server url; "
 					+ "(3) OptionalProtege server user ; (4) Protege server password; (5) Protege server project name.");
 			return;
 		}
 
 		Project prj = null;
-		
+
 		if (args.length == 1) {
 			prj = getLocalProject(args[0]);
 		} else if (args.length == 5) {
@@ -39,31 +38,31 @@ public class IndexOntology {
 			log.warning("Wrong number of arguments. Args = " + args);
 			System.exit(1);
 		}
-	
+
 		if (prj == null) {
 			log.warning("Could not read project. Abort");
 			System.exit(1);
 		}
-	
+
 		log.info("Start indexing .. ");
-		
+
 		index(prj);
-		
+
 		log.info("Ended indexing.");
 	}
-	
-	
-	
+
 	private static void index(Project prj) {
 		KnowledgeBase kb = prj.getKnowledgeBase();
-		 final IndexConfigurer configurer = new IndexConfigurer(kb);
-		 
-		 QueryApi api = new QueryApi(kb);
-         QueryConfiguration qc = configurer.getConfiguration();
-         
-         api.index(qc);
-	}
 
+		final IndexConfigurer configurer = new IndexConfigurer(kb);
+
+		QueryApi api = new QueryApi(kb);
+		QueryConfiguration qc = configurer.getConfiguration();
+		
+		log.info("Indexing slots: " + qc.getSearchableSlots());
+
+		api.index(qc);
+	}
 
 	private static Project getLocalProject(String path) {
 		Collection errors = new ArrayList();
@@ -74,7 +73,7 @@ public class IndexOntology {
 		}
 		return localPrj;
 	}
-	
+
 	private static Project connectToRemoteProject(String[] args) {
 		Project prj = null;
 		try {
@@ -86,5 +85,5 @@ public class IndexOntology {
 		runRemotely = true;
 		return prj;
 	}
-	
+
 }
