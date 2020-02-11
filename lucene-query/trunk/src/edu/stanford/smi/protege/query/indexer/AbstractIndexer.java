@@ -394,10 +394,11 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
     QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
     parser.setAllowLeadingWildcard(true);
     
-    expr = QueryParser.escape(expr);
+    expr = escape(expr);
     
     try {
-        query.add(parser.parse(expr), BooleanClause.Occur.MUST);
+    	Query contentQuery = parser.parse(expr);
+        query.add(contentQuery, BooleanClause.Occur.MUST);
     } catch (ParseException e) {
         IOException ioe = new IOException(e.getMessage());
         ioe.initCause(e);
@@ -422,6 +423,33 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
 
     query.add(getFrameTypeInnerQuery(), BooleanClause.Occur.MUST);
    return query;
+  }
+  
+  // This method ensure that the start and end stars are not quoted
+  private String escape(String expr)  {
+	  boolean isHttpExpr = isHttpString(expr); //do not use wildcards for http
+	 
+	  expr = QueryParser.escape(expr);
+	  
+	  if (expr.startsWith("\\*")) {
+		  expr = expr.substring(2); //removes the \* from beginning
+		  if (isHttpExpr == false) {
+			  expr = "*" + expr;
+		  }
+	  }
+	  
+	  if (expr.endsWith("\\*")) {
+		  expr = expr.substring(0, expr.length()-2); //removes last two chars, \*
+		  if (isHttpExpr == false) {
+			  expr = expr + "*";
+		  }
+	  }
+	  
+	  return expr;
+  }
+  
+  private boolean isHttpString(String expr) {
+	  return expr.contains("http://") || expr.contains("https://");
   }
 
   protected Query getFrameTypeInnerQuery() {
