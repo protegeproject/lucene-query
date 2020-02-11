@@ -390,8 +390,12 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
    */
   protected Query generateLuceneQuery(Collection<Slot> slots, String expr) throws IOException {
     BooleanQuery query = new  BooleanQuery();
+    
     QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
     parser.setAllowLeadingWildcard(true);
+    
+    expr = QueryParser.escape(expr);
+    
     try {
         query.add(parser.parse(expr), BooleanClause.Occur.MUST);
     } catch (ParseException e) {
