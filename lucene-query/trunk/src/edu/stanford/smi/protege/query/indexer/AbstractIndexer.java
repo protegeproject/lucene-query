@@ -193,10 +193,10 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
                       errorsFound = errorsFound || !addFrame(myWriter, frame, frame.getBrowserText());
                     
                       count ++;
-                  }
-                  
-                  if (count % 10000 == 0) {
-                	  Log.getLogger().info("Indexed " + count + " frames");
+                      
+                      if (count % 10000 == 0) {
+                    	  Log.getLogger().info("Indexed " + count + " frames");
+                      }
                   }
               }
               myWriter.optimize();
