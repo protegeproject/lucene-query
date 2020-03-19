@@ -389,7 +389,8 @@ private transient static final Logger log = Log.getLogger(AbstractIndexer.class)
    * The Lucene query will only search the frame types configured in the indexer.
    */
   protected Query generateLuceneQuery(Collection<Slot> slots, String expr) throws IOException {
-    BooleanQuery query = new  BooleanQuery();
+	BooleanQuery.setMaxClauseCount(100000);
+	BooleanQuery query = new  BooleanQuery();
     
     QueryParser parser = new QueryParser(CONTENTS_FIELD, analyzer);
     parser.setAllowLeadingWildcard(true);
